@@ -40,15 +40,33 @@
 
 #include "cache.h"
 
+#define DB_VERSION	"1"
+#define DB_VERSION_KEY	"VERSION"
+
 struct cache
 { 	DB *dbp;
 };
-
 
 static void
 db_errcall_fcn(const char *errpfx, char *msg)
 {
 	rs_log_error("%s", msg);
+}
+
+static void
+upgrade_db_if_needed( DB *dbp )
+{	DBT key, data;
+	int ret=0;
+
+	memset(&key,  0, sizeof(key));
+	memset(&data, 0, sizeof(data));
+	key.data = DB_VERSION_KEY;
+	key.size = strlen(DB_VERSION_KEY) + 1;
+
+	ret = dbp->get(dbp, NULL, &key, &data, 0);
+	if( ret == 0 )
+	{
+	}
 }
 
 cache_t
@@ -75,6 +93,7 @@ cache_new(const char *dbpath)
 	{	cdt = malloc(sizeof(*cdt));
 		if( cdt )
 		{	cdt->dbp = dbp;
+			upgrade_db_if_needed(dbp);
 		}
 		else	
 			dbp->close(dbp, 0);

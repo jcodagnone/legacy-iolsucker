@@ -58,6 +58,7 @@
 #include "link.h"
 #include "progress.h"
 #include "cache.h"
+#include "forum.h"
 
 #ifndef CURLOPT_WRITEDATA
   #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
@@ -83,11 +84,14 @@
 #define URL_LOGIN	URL_BASE"/login.asp"
 #define URL_LOGIN_1	URL_BASE"/mynav.asp"
 #define URL_LOGIN_ARG	"txtdni=%s&txtpwd=%s&Submit=Conectar&cmd=login"
+#define IOL_COURSE_PARAMETER	"nivel=4"
+#define IOL_DEPART_PARAMETER	"nivel=3"
 #define URL_LOGOUT	URL_BASE"/mynav.asp?cmd=logout"
-#define URL_CHANGE 	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
+#define URL_CHANGE_COU 	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
+#define URL_CHANGE_DPT	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=3&snivel=%s"
 #define URL_MATERIAL	URL_BASE"/newmaterialdid.asp" 
 #define URL_DOWNLOAD	URL_BASE"/download.asp" 
-#define IOL_COURSE_PARAMETER	"nivel=4"
+#define IOL_FORUM  	URL_BASE"/foroDis.asp"
 #define IOL_NEWS	URL_BASE"/novlistall.asp"
 
 #define IOL_MATERIAL_FOLDER	"material"
@@ -100,9 +104,15 @@ struct buff
 	size_t size;
 };
 
+enum course_type {
+	CT_COURSE,
+	CT_DEPART
+};
+
 struct course 
 {       char *code;
 	char *name;
+	enum course_type type;
 };
 
 /**
@@ -112,7 +122,7 @@ struct iolCDT
 	int bLogged;    	/**< already logged in ? */ 
 	GSList *courses;	/**< loaded courses */ 
 
-	char *current_course;
+	const struct course *current_course;
 	char *repository;	/**< repository directory */
 
 	int dry;		/**< dry run ? */
@@ -259,6 +269,7 @@ iol_new(void)
 	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGFUNCTION, curl_debug_fnc);
 	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGDATA, cdt);
 	#endif
+
 	return cdt;
 }
 
@@ -312,7 +323,6 @@ iol_destroy(iol_t iol)
 	g_slist_foreach(iol->courses, (GFunc)free_courses_list ,NULL);
 	g_slist_free(iol->courses);
 
-	free(iol->current_course);
 	free(iol->repository);
 
 	if( iol->fcache )
@@ -538,13 +548,21 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 {	GSList **listptr =  d;
 	struct course *course; 
 	char *s;
-
+	enum course_type type;
 	assert(d);
 
 	s = strstr(link,IOL_COURSE_PARAMETER);
 	if( s == NULL )
-		return;
-
+	{	s = strstr(link,IOL_DEPART_PARAMETER);
+		if( s == NULL )
+			return;
+		else
+			type = CT_DEPART;
+	}
+	else
+		type = CT_COURSE;
+	
+	
 	/* get code */
 	s =  strstr(link,"snivel=" );
 	if( s )
@@ -563,6 +581,7 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 		if( course ) 
 		{ 	course->code = strdup(s);
 			course->name = normalize_course_name(strdup(ss));
+			course->type = type;
 			if( course->code && course->name )
 				*listptr = g_slist_prepend(*listptr, course);
 			else
@@ -662,35 +681,66 @@ iol_logout(iol_t iol)
 	return nRet;
 }
 
+
+struct tmp_cname
+{	const char *code;
+	struct course *ret;
+};
+
+static void
+foreach_find_cname( struct course *course, struct tmp_cname *t)
+{
+	if( t && !t->ret )
+	{	
+		if( !strcmp(t->code, course->code) )
+			t->ret = course;
+	
+	}
+}
+
+static struct course *
+get_course_by_name( iol_t iol, const char *code )
+{	struct tmp_cname tmp;
+
+	tmp.code = code;
+	tmp.ret = NULL;
+	
+	g_slist_foreach(iol->courses, (void *)foreach_find_cname, (void *)&tmp);
+	
+	return tmp.ret;
+}
 static int 
 iol_set_current_course(iol_t iol, const char *course) 
-{	char *s;
+{	const struct course *c;
 	int ret = E_OK;
-
-	/**
-	 * \todo i dont check whether the course exists in the list because
-	 * is not catastrofic. ( at least not for the client side :^)  ) 
-	 */
-
+	char *s;
+	
 	if( !IS_IOL_T(iol) )
 		return E_INVAL;
-
-	if( iol->current_course && !strcmp(iol->current_course, course) )
+	else if( (c=get_course_by_name(iol,course)) == NULL)
+		return E_INVAL;
+	else if( iol->current_course && 
+	         !strcmp(iol->current_course->code, c->code) )
 		return E_OK;	
-	else if( iol->current_course )
-		free(iol->current_course);
+	else
+	{
+		iol->current_course = c;
 
-	iol->current_course = strdup(course);
-	if( iol->current_course == NULL )
-		return E_MEMORY;
+		if( c->type == CT_COURSE )
+			s = g_strdup_printf(URL_CHANGE_COU, course);
+		else if( c->type == CT_DEPART )
+			s = g_strdup_printf(URL_CHANGE_DPT, course);
+		else
+			assert(0);
 
-	s = g_strdup_printf(URL_CHANGE,course);
-	#ifndef IOLDEMO
-	sleep(5); 
-	#endif
-	if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
-		ret = E_NETWORK;
-	g_free(s);
+		#ifndef IOLDEMO
+		sleep(5); 
+		#endif
+		if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
+			ret = E_NETWORK;
+		g_free(s);
+	}
+
 	return	ret;
 }
 
@@ -1056,7 +1106,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		size_t len_url = strlen(d->url_prefix);
 
 		/* server race happenend ? */
-		if(strstr(file,d->iol->current_course) == NULL)
+		if(strstr(file,d->iol->current_course->code) == NULL)
 		{	rs_log_error(_("No se ha podido cambiar de materia. "
 		                       "La teoria del autor es que existe una "
 		                       "race en el servidor. Si bajase los "
@@ -1132,42 +1182,19 @@ convertRepository( const char *from, const char *to)
 	return ret;
 }
 
-struct tmp_cname
-{	const char *code;
-	const char *ret;
-};
-
-static void
-foreach_find_cname( struct course *course, struct tmp_cname *t)
-{
-	if( t && !t->ret )
-	{	
-		if( !strcmp(t->code, course->code) )
-			t->ret = course->name;
-	
-	}
-}
-
-static const char *
-get_course_name( iol_t iol, const char *code )
-{	struct tmp_cname tmp;
-
-	tmp.code = code;
-	tmp.ret = NULL;
-	
-	g_slist_foreach(iol->courses, (void *)foreach_find_cname, (void *)&tmp);
-	
-	return tmp.ret;
-}
-
 static int 
-iol_resync_download(iol_t iol, const char *code, const char *cname)
+iol_resync_download(iol_t iol, const struct course *course)
 {	int ret = E_OK;
 	struct stat st;
 	struct tmp_resync_getfile tmp;
-	char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
+	char *s, *r;
+
+	if( course->type != CT_COURSE )
+		return ret;
+
+	s = g_strdup_printf("%s/%s/%s", iol->repository, course->code,
 				  IOL_MATERIAL_FOLDER);
-	char *r = g_strdup_printf("%s/%s/%s", iol->repository, cname,
+	r = g_strdup_printf("%s/%s/%s", iol->repository, course->name,
 				  IOL_MATERIAL_FOLDER);
 
 	if( iol->fancy )	/* convert repository ? */
@@ -1216,43 +1243,60 @@ iol_resync_download(iol_t iol, const char *code, const char *cname)
 
 
 static int 
-iol_resync_news(iol_t iol, const char *code, const char *cname)
+iol_resync_news(iol_t iol, const struct course *course)
 {
 	return E_INVAL;
 }
 
 static int 
-iol_resync_forum(iol_t iol, const char *code, const char *cname)
-{
-	return E_INVAL;
+iol_resync_forum(iol_t iol, const struct course *courses)
+{	struct buff webpage = { NULL, 0};
+	char *url = IOL_FORUM;
+	int ret = E_OK;
+	
+	if(transfer_page(iol->curl,url,0,&webpage)!=E_OK)
+		ret = E_NETWORK;
+	else
+	{	
+		rs_log_info("forum: %d",forum_parse(webpage.data,webpage.size));
+
+	}
+	
+	free(webpage.data);
+	
+	return ret;
 }
 
 int 
 iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 {	
 	int ret = E_OK;
-	const char *cname;
-
+	struct course *c;
+	
 	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
 		ret = E_INVAL;
 	else if( !iol->bLogged )
 		ret = E_NLOGED;
-	else if( (cname= get_course_name(iol, code)) == NULL )
+	else if( (c=get_course_by_name(iol,code)) == NULL )
+	{	ret = E_INVAL;
+		rs_log_error(_("invalid course `%s'"), code);
+	}
+	else if( c->name == NULL )
 	{	ret = E_INVAL;
 		rs_log_error(_("course `%s' has no name! (TODO)"),code);
 	}
-	else if( rs_log_info(_("%s (%s)"), code, cname) ,
+	else if( rs_log_info(_("%s (%s)"), code, c->name) ,
 	         iol_set_current_course(iol, code) != E_OK )  /* C hack */
 	{ 	rs_log_error(_("setting current course to `%s'"),code);
 		ret = E_NETWORK;
 	} 
 	else
 	{	if( flags & IOL_RF_FILE && ret == E_OK )
-			ret = iol_resync_download(iol, code, cname);
+			ret = iol_resync_download(iol, c);
 		if( flags & IOL_RF_NEWS && ret == E_OK )
-			ret = iol_resync_news(iol, code, cname);
+			ret = iol_resync_news(iol, c);
 		if( flags & IOL_RF_FORUM && ret == E_OK )
-			ret = iol_resync_forum(iol, code, cname);
+			ret = iol_resync_forum(iol, c);
 	}
 
 	return ret;
