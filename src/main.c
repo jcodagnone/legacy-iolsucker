@@ -109,7 +109,7 @@ main( int argc, char **argv )
 	{	const char *p = ret == E_NETWORK ? "login(): %s: %s" :
 	 	                                   "login(): %s";
 	 	                                   
-		rs_log_error(_("login(): login failed"));
+		rs_log_error(_("login(): login failed: %s"));
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
 		return EXIT_FAILURE;
 	}
@@ -118,7 +118,7 @@ main( int argc, char **argv )
 	{	const char *p = ret == E_NETWORK ? "resync_all(): %s: %s" :
 	 	                                   "resync_all(): %s";
 	 	                                   
-		rs_log_error(_("resync_all(): login failed"));
+		rs_log_error(_("resync_all(): failed"));
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
 		return EXIT_FAILURE;
 	}
