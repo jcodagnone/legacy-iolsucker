@@ -49,9 +49,10 @@ _("Usage: %s [OPTION]\n"
 /* X   X                      X */
 " -V   --version              prints the version info and dies\n"
 " -h   --help                 prints this message\n"
-" -u   --user username        specify a username\n"
+" -u   --user username        specify the login username\n"
 " -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
 " -U <user[:password]>        specify proxy authentication\n"
+" -n   --dry                  dry-run: don't download any files. just report\n"
 "\n"
 "Send bugs to <juam at users dot sourceforge dot net>\n"
 "\n"),rs_program_name);
@@ -62,7 +63,7 @@ _("Usage: %s [OPTION]\n"
 static void 
 usage ( void )
 {
-	printf("Usage: %s [-hV] [--help] [--version] [-u username]\n", rs_program_name);
+	printf("Usage: %s [-hnV] [--help] [--version] [--dry][-u username]\n", rs_program_name);
 
 	exit( EXIT_SUCCESS );
 }
@@ -94,11 +95,14 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*07*/ {"U",           OPT_NORMAL, 1,  OPT_T_GENER, NULL },
 	 /*08*/ {"x",           OPT_NORMAL, 1,  OPT_T_GENER, NULL },
 	 /*09*/ {"proxy",       OPT_NORMAL, 0,  OPT_T_GENER, NULL },
+	 /*10*/ {"n",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL },
+	 /*11*/ {"dry-run",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL },
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_FUNCT, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
 	   lopt[7].data = &(opt->proxy_user);
 	   lopt[8].data = lopt[9].data = &(opt->proxy);
+	   lopt[10].data = lopt[11].data = &(opt->dry);
 
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );

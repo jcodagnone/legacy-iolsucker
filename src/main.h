@@ -16,6 +16,7 @@ struct opt {
 	char repository[MAX_REPOSITORY];
 	char *proxy;
 	char *proxy_user;
+	int dry;
 };
 
 #endif

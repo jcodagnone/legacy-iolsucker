@@ -89,8 +89,11 @@ struct iolCDT
 	int bLogged;    	/**< already logged in ? */ 
 	char *cookie_file;	/**< ehhhh */
 	GSList *courses;	/**< loaded courses */ 
+
 	char *current_course;
 	char *repository;	/**< repository directory */
+
+	int dry;		/**< dry run ? */
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -235,7 +238,8 @@ free_courses_list( struct course *data, gpointer user_data )
 {
 	if( data )
 	{	free(data->code);
-		free(data->name); free(data);
+		free(data->name);
+		free(data);
 	}
 }
 
@@ -308,6 +312,18 @@ iol_set_proxy_user(iol_t cdt, const char *proxy_user)
 	return ret;
 }
 
+static int
+iol_set_download(iol_t cdt, int *download)
+{	int ret = E_OK;
+
+	if( download )
+		cdt->dry = *download;
+	else
+		ret = E_INVAL;
+		
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -319,7 +335,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 	}  table [] = 
 	{	{	IOL_REPOSITORY,	(iol_set_fnc) iol_set_repository }, 
 		{	IOL_PROXY_HOST, (iol_set_fnc) iol_set_proxy_host },
-		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user }
+		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user },
+		{	IOL_DOWNLOAD,   (iol_set_fnc) iol_set_download   }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -689,7 +706,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 	struct stat st;
 
 	q = URL_BASE;
-	if( file && d && d->url_prefix )
+	if( file && d && d->url_prefix && !d->iol->dry )
 	{	size_t len_q = strlen(q);
 		size_t len_url = strlen(d->url_prefix);
 		

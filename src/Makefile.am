@@ -3,10 +3,10 @@ AM_LDFLAGS = @LDFLAGS@  -L../lib -L.
 
 LIBS =  @CURL_LIBS@ @LIBS@  @XML_LIBS@ @GLIB_LIBS@ -lefence
 
-bin_PROGRAMS = iolsuck link
+bin_PROGRAMS = iolsucker link
 
 link_SOURCES = link.c link.h testlink.c link_debug.c
-iolsuck_SOURCES = \
+iolsucker_SOURCES = \
 	main.c 			\
 	main.h			\
 	config.c		\
@@ -21,7 +21,7 @@ iolsuck_SOURCES = \
 	ask_pass.h		\
 	progress.c
 
-iolsuck_LDADD = ../lib/libmisc.a
+iolsucker_LDADD = ../lib/libmisc.a
 
 link_debug.c:	link.c gendebug.sh
 	gendebug.sh < link.c > link_debug.c
