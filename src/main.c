@@ -35,6 +35,8 @@
 #include "fconfig.h"
 #include "getpass.h"
 
+#define NELEMS(p) (sizeof(p) / sizeof(*(p)))
+
 const char *rs_program_name;
 
 static int
@@ -64,31 +66,51 @@ validate_opt(struct opt* opt)
 	return ret;
 }
 
+
 static int
 suck(struct opt *opt)
-{ 	iol_t iol;
-	int ret = EXIT_SUCCESS;
+{ 	unsigned i;
+	iol_t iol;
+	int ret = EXIT_SUCCESS, r;
 	enum resync_flags flags = IOL_RF_FILE | IOL_RF_FORUM * (opt->forum!=0) ;
-
+	struct {
+		int set;
+		void *data;
+		const char *report;
+	} settings_table[] =
+	{ { IOL_REPOSITORY,  opt->repository, "repository" },
+	  { IOL_PROXY_HOST,  opt->proxy,      "proxy's host" },
+	  { IOL_PROXY_USER,  opt->proxy_user, "proxy's user" },
+	  { IOL_HOST,        opt->server,     "IOL's host"   },
+	  { IOL_PROXY_TYPE,  opt->proxy_type, "proxy's type" },
+	  { IOL_DRY,         &(opt->dry),     "dry run"      },
+	  { IOL_VERBOSE,     &(opt->verbose), "verbose flag" },
+	  { IOL_FANCY_NAMES, &(opt->fancy),   "fancy flag"   },
+	  { IOL_WAIT,        &(opt->wait),    "wait flag"    }
+	};
+	
 	iol = iol_new();
 	if( iol == NULL )
 	{	rs_log_error("creating IOL object. bye bye");
 		ret = EXIT_FAILURE;
 	}
 	
-	iol_set(iol, IOL_REPOSITORY, opt->repository);
-	iol_set(iol, IOL_PROXY_HOST, opt->proxy);
-	iol_set(iol, IOL_PROXY_USER, opt->proxy_user);
-	iol_set(iol, IOL_PROXY_TYPE, opt->proxy_type);
-	iol_set(iol, IOL_DRY,        &(opt->dry));
-	iol_set(iol, IOL_VERBOSE,    &(opt->verbose));
-	iol_set(iol, IOL_FANCY_NAMES,&(opt->fancy));
-	iol_set(iol, IOL_WAIT,       &(opt->wait));
-	if( opt->server )
-		iol_set(iol, IOL_HOST, opt->server);
-		
-	rs_log_info(_("login on as `%s'"), opt->username);
-	if( (ret = iol_login(iol, opt->username, opt->password)) != E_OK )
+	for( i=0; i<NELEMS(settings_table) && ret != EXIT_FAILURE ; i++ )
+	{	if( settings_table[i].data )
+		{ 	if( (r=iol_set(iol, settings_table[i].set, 
+	        	                    settings_table[i].data)) != E_OK )
+			{	rs_log_error("setting %s: %s",
+			                     settings_table[i].report,
+				             iol_strerror(r) );
+				ret = EXIT_FAILURE;
+			}
+		}
+	}
+
+	if( ret ==  EXIT_FAILURE )
+		;
+	else if( rs_log_info(_("login on as `%s'"), opt->username),
+	        (ret = iol_login(iol, opt->username, opt->password)) != E_OK )
 	{	const char *p = ret == E_NETWORK ? "login(): %s: %s" :
 	 	                                   "login(): %s";
 	 	                                   
