@@ -36,6 +36,8 @@ const char *link_debug(int state) {
 		r = "ST_TAG_A_HREF_EQ_READ";
 	else if( state==15 ) 
 		r = "ST_TAG_A_END_IS_SLASH_A_OTHER";
+	else if( state==16 ) 
+		r = "ST_TAG_A_END_IS_A_AGAIN";
 
 	return r;
 }

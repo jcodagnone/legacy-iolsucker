@@ -1,6 +1,5 @@
 /*
  * link.c -- 
- 
  *
  * Copyright (C) 2003 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -39,7 +38,8 @@ enum state {
 /*extract*/     ST_TAG_A_HREF,
 /*extract*/     ST_TAG_A_HREF_EQ,
 /*extract*/     ST_TAG_A_HREF_EQ_READ,
-/*extract*/     ST_TAG_A_END_IS_SLASH_A_OTHER
+/*extract*/     ST_TAG_A_END_IS_SLASH_A_OTHER,
+/*extract*/	ST_TAG_A_END_IS_A_AGAIN
 };
 
 struct link_parserCDT
@@ -87,6 +87,8 @@ add_char(int c, void *data)
 {	link_parser_t parser = data;
 
 	parser->link[parser->i++]=c;
+	parser->link[parser->i]=0;
+	
 	return 0;
 }
 
@@ -101,6 +103,7 @@ addcomment(int c, void *data)
 	{       if( isspace(c) )
 			c = ' ';
 		parser->comment[parser->j++]=c;
+		parser->comment[parser->j]=0;
 	}
 
 	return 0;
@@ -149,6 +152,27 @@ done_link(int c, void *data)
 		 (*parser->link_fnc)(parser->link, parser->comment,
 		                     parser->user_data);
 
+	return 0;
+}
+
+static int
+embeeded_gotoa(int c, void *data)
+{ 
+	done_link(c, data);
+
+	return 0;
+}
+
+static int
+embeeded_goto_end(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->comment[parser->j++]='<';
+	parser->comment[parser->j++]='/';
+	parser->comment[parser->j++]='a';
+	parser->comment[parser->j++]=c;
+	parser->comment[parser->j++]=0;
+	
 	return 0;
 }
 
@@ -234,6 +258,7 @@ static ST_PARSE st_tag_a_end[]=
 static ST_PARSE st_tag_a_end_is_slash[]=
 {	{ ST_FUNC,	isspace,	ST_TAG_A_END_IS_SLASH,  	NULL },
 	{ ST_CHAR,	'/',   		ST_TAG_A_END_IS_SLASH_A,	NULL },
+	{ ST_LCHAR,	'a',   		ST_TAG_A_END_IS_A_AGAIN,	NULL },
 	{ ST_FUNC,	ELSE,    	ST_TAG_A_END,              e_is_slash},
 };
 
@@ -246,6 +271,12 @@ static ST_PARSE st_tag_a_end_is_slash_a_other[]=
 {	{ ST_CHAR,'>',    	ST_START,	done_link },
 	{ ST_FUNC,isspace,    	ST_START,	done_link },
 	{ ST_FUNC,ELSE,    	ST_TAG_A_END,	e_slash_a_other}
+};
+
+/* embeeded link in what is supposed to be the link text */
+static ST_PARSE st_tag_a_end_is_a_again[]=
+{ 	{ ST_FUNC,      isspace,ST_TAG_A,       done_link },
+	{ ST_FUNC,      ELSE,   ST_TAG_A_END,   embeeded_goto_end }
 };
 
 static ST_PARSE *link_table[]=
@@ -265,8 +296,8 @@ static ST_PARSE *link_table[]=
 	st_tag_a_href,
 	st_tag_a_href_eq,
 	st_tag_a_href_eq_read,
-	st_tag_a_end_is_slash_a_other
-
+	st_tag_a_end_is_slash_a_other,
+	st_tag_a_end_is_a_again
 };
 
 /*****************************************************************************/
