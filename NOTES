@@ -1,3 +1,8 @@
+iolsucker-2.0.23: 
+  o si la terminal tiene más de 80 columnas las usamos
+  o opcion xenofoba: lista los archivos que no se encuntran en iol pero
+    si en nuestro repositorio
+
 iolsucker-2.0.22: ¿Un año de vida?
   o bugfix: a veces los nombres de los directorios se obtenian de forma 
     incompleta (tbol en vez de futbol).
