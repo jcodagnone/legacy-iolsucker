@@ -514,7 +514,7 @@ dot_update (void *progress, long howmuch, long dltime)
 	  print_download_speed (dp, row_qty, dltime);
 	}
     }
-
+    fflush(stdout);
 }
 
 /* Dot-progress backend for progress_finish. */
@@ -971,7 +971,7 @@ dot_progress_callback(struct progress *progress,
 	                                  wtimer_elapsed(progress->timer));
 
 	progress->dllast = dlnow;
-
+	fflush(stdout);
 	return 0;
 }
 
@@ -991,6 +991,6 @@ bar_progress_callback( struct progress *progress,
 	                                   wtimer_elapsed(progress->timer));
 
 	progress->dllast = dlnow;
-
+	fflush(stdout);
 	return 0;
 }
