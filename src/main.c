@@ -66,6 +66,20 @@ validate_opt(struct opt* opt)
 	return ret;
 }
 
+static
+int xenofobe_fnc(const char *file, void *data)
+{	
+	int *n  = data;
+	
+	if( n == 0 )
+	{
+		rs_log_info(_("Unknown files:"));
+		(*n)++;
+	}
+	rs_log_info("%s", file);
+
+	return 0;
+}
 
 static int
 suck(struct opt *opt)
@@ -86,7 +100,8 @@ suck(struct opt *opt)
 	  { IOL_DRY,         &(opt->dry),     "dry run"      },
 	  { IOL_VERBOSE,     &(opt->verbose), "verbose flag" },
 	  { IOL_FANCY_NAMES, &(opt->fancy),   "fancy flag"   },
-	  { IOL_WAIT,        &(opt->wait),    "wait flag"    }
+	  { IOL_WAIT,        &(opt->wait),    "wait flag"    },
+	  { IOL_XENOFOBE,    &(opt->xenofobe),"xenofobe flag"}
 	};
 	
 	iol = iol_new();
@@ -130,8 +145,9 @@ suck(struct opt *opt)
 		iol_logout(iol);
 	}
 	else
-	{	unsigned n;
+	{	unsigned n = 0;
 
+		iol_traverse_xenofobe_list(iol, xenofobe_fnc, &n);
 		rs_log_info(_("hay novedades?"));
 		ret = iol_get_new_novedades(iol,&n);
 		if( ret == E_OK )

@@ -14,6 +14,7 @@ enum iol_settings {
 	IOL_WAIT,       /**< wait when changing context? 
 	                 *   default FALSE. data: (int *) */
 	IOL_HOST,	/**< address or name of the server. data <host[:port]>*/
+	IOL_XENOFOBE,   /**< show forein files? default: FALSE data: (int *) */
 	IOL_MAX
 };
 
@@ -53,6 +54,8 @@ const char *iol_strerror(int code);
 
 int iol_get_new_novedades( iol_t iol, unsigned *n );
 
+void iol_traverse_xenofobe_list( iol_t iol, int (*fn)(const char *file, void
+                                 *data), void *data );
 /**
  * errors
  */

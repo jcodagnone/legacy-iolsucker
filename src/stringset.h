@@ -19,5 +19,8 @@ int stringset_is_valid(stringset_t set);
 
 stringset_error_t stringset_add(stringset_t set, const char *string);
 stringset_error_t stringset_look(stringset_t set, const char *string);
+stringset_error_t stringset_remove(stringset_t set, const char *string);
+void stringset_list(stringset_t set, int (*fn)(const char *file, void *data), 
+                    void *data );
 
 #endif

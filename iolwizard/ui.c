@@ -58,7 +58,8 @@ struct tmp
 	GtkWidget *hwnd, *frame_proxy;
 	GtkWidget *edtUser, *edtPass, *edtRep, *edtSHost;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
-	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait;
+	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait, 
+	          *chkXenofobe;
 	char *msg;
 };
 
@@ -196,6 +197,7 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkForum), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkVerbose), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkWait), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkXenofobe), 0);
 
 }
 
@@ -304,6 +306,12 @@ wait_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkWait));
 }
 
+static void
+xenofobe_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->xenofobe =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkXenofobe));
+}
 
 /*
  * EDIT CONTROLS
@@ -446,7 +454,8 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 static void
 create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait;
+{ 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait,
+                  *chkXenofobe;
 	GtkWidget *table;
 
 	/* extra frame */
@@ -456,13 +465,16 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	chkForum = gtk_check_button_new_with_label(_("Resync Foros"));
 	chkVerbose= gtk_check_button_new_with_label(_("Verbose"));
 	chkWait = gtk_check_button_new_with_label(_("Wait"));
+	chkXenofobe = gtk_check_button_new_with_label(_("Xenofobo"));
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
 
-	gtk_table_attach(GTK_TABLE(table),chkDry,0,1,0,1,GTK_FILL,     0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkFancy,0,1,1,2,GTK_FILL,   0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkForum,1,2,0,1,GTK_FILL,   0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkVerbose,1,2,1,2,GTK_FILL, 0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkWait,2,3,0,1,GTK_FILL, 0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkDry,     0,1,0,1,GTK_FILL, 0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkForum,   1,2,0,1,GTK_FILL, 0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkWait,    2,3,0,1,GTK_FILL, 0, 4,0);
+	
+	gtk_table_attach(GTK_TABLE(table),chkFancy,   0,1,1,2,GTK_FILL, 0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkVerbose, 1,2,1,2,GTK_FILL, 0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkXenofobe,2,3,1,2,GTK_FILL, 0, 4,0);
 
 	/* signals */
 	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
@@ -475,6 +487,8 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                           GTK_SIGNAL_FUNC(verbose_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkWait),"toggled",
 	                           GTK_SIGNAL_FUNC(wait_fnc), tmp);
+	gtk_signal_connect(GTK_OBJECT(chkXenofobe),"toggled",
+	                           GTK_SIGNAL_FUNC(xenofobe_fnc), tmp);
 	                           
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
@@ -491,13 +505,17 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	 _("esperar unos segundos en el cambio de contexo de materias. "
 	   "Util cuando el programa imprime el mensaje de que el server tiene "
 	   "problemas con los contextos"), NULL);
-	   
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkXenofobe,
+	 _("Modo xenofobia: al terminar, lista los archivos que se encuentran "
+	 "en nuestro repositorio y que no existen en iol"), NULL);
+
 	/* save data */
 	tmp->chkDry = chkDry;
 	tmp->chkFancy = chkFancy;
 	tmp->chkForum = chkForum;
 	tmp->chkVerbose = chkVerbose;
 	tmp->chkWait  = chkWait;
+	tmp->chkXenofobe = chkXenofobe;
 	
 	/* default values */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
@@ -729,7 +747,9 @@ exec_iolwizard(void)
 	if( pid == -1 )
 		return -1;
 	else if( pid == 0 )
-		execlp("xterm","xterm", "-e", "iolsucker");
+	{	system("xterm -e '(iolsucker; read -p \"press ENTER>\")'");
+		exit(0);
+	}
 		
 	return 0;
 }

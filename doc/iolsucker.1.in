@@ -25,13 +25,14 @@ iolsucker \- cliente no interactivo para IOL
 .SH SYNOPSIS
 .HP 10
 .BR iolsucker
-.RB [ \-hnVvW ]
+.RB [ \-hnVvWX ]
 .RB [ \-\-help ] 
 .RB [ \-\-version ]
 .RB [ \-\-verbose ]
 .RB [ \-\-dry\-run ]
 .RB [ \-\-fancy ]
 .RB [ \-\-wait ]
+.RB [ \-\-xenofobe ]
 .RB [ \-\-user\  username]
 .RB [ \-r\  repository ]
 .RB [ \-f\  filename ]
@@ -71,6 +72,9 @@ esperar 5 segundos al pasar de materia antes de hacer nada.
 Si el programa le dice que hubo problemas con el servidor (algo de una
 carrera/race del servidor) activela. Esperar 5 segundos era el comportamiento 
 de versiones < 2.0.14.
+.IP "\fB\-X\fR, \fB\-\-xenofobe\fR"
+Modo xenofobia: al terminar lista los archivos que se encuentran en nuestro
+repositorio y que no están en iol.
 .IP "\fB\-r\fR repositorio"
 especifica el directorio donde se almacenan los archivos bajados.
 .IP "\fB\-f\fR"

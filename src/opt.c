@@ -50,6 +50,7 @@ _("Usage: %s [OPTION]\n"
 " -n   --dry-run              dry-run: don't download any files. just report\n"
 " -F   --forum                resync the forums\n"
 " -W   --wait                 wait when changing context\n"
+" -X   --xenofobe             prints forein files\n"
 " -t   --proxy-type type      proxy type. http is the default (other: socks5)\n"
 " -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
 "      --fancy                use fancy names as course directories\n"
@@ -67,8 +68,8 @@ _("Usage: %s [OPTION]\n"
 static void 
 usage ( void )
 {
-	printf("Usage: %s [-hnVvW] [--help] [--version] [--dry-run] [--fancy]"
-	       " [-F] [--forum] [--wait]"
+	printf("Usage: %s [-hnVvWX] [--help] [--version] [--dry-run] [--fancy]"
+	       " [-F] [--forum] [--wait] [--xenofobe]"
 	       " [-u username] [-r repository]"
 	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>"
 	       " [-t proxy-type ] [--proxy-type proxy-type] "
@@ -118,6 +119,8 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*20*/ {"W",      	OPT_NORMAL, 1,  OPT_T_FLAG, NULL},
 	 /*21*/ {"wait",      	OPT_NORMAL, 0,  OPT_T_FLAG, NULL},
 	 /*22*/ {"H",      	OPT_NORMAL, 1,  OPT_T_GENER, NULL},
+	 /*23*/ {"X",      	OPT_NORMAL, 1,  OPT_T_FLAG,  NULL},
+	 /*24*/ {"xenofobe",   	OPT_NORMAL, 0,  OPT_T_FLAG,  NULL},
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
@@ -131,6 +134,8 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	   lopt[18].data = lopt[19].data = &(opt->forum);
 	   lopt[20].data = lopt[21].data = &(opt->wait);
 	   lopt[22].data = &(opt->server);
+	   lopt[23].data = &(opt->xenofobe);
+	   lopt[24].data = &(opt->xenofobe);
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
 	i = GetOptions( argv, lopt, 0, NULL);

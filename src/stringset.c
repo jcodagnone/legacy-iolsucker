@@ -56,7 +56,7 @@ stringset_add(stringset_t set, const char *string)
 	if( IS_STRINGSET(set) )
 	{
 		if( stringset_look(set, string) == E_STRINGSET_NOTFOUND )
-			g_tree_insert(set->tree, strdup(string), strdup(string) );
+			g_tree_insert(set->tree, strdup(string), NULL );
 		else
 			ret = E_STRINGSET_EXISTS;
 	}
@@ -84,6 +84,49 @@ stringset_look(stringset_t set, const char *string)
 		
 	return ret;
 }
+
+stringset_error_t
+stringset_remove(stringset_t set, const char *string)
+{	stringset_error_t ret = E_STRINGSET_NOTFOUND;
+
+	if( IS_STRINGSET(set) )
+	{	
+		 g_tree_remove(set->tree, string);
+		 ret = E_STRINGSET_OK;
+	}
+	else
+		ret = E_STRINGSET_INVALID;
+
+	return ret;
+}
+
+struct stringset_list {
+	void *data;
+	int (*fn)(const char *file, void *data);
+};
+
+static gboolean 
+stringset_list_fnc(gpointer key, gpointer value, gpointer data)
+{	struct stringset_list *d = data;
+
+	return (*d->fn)(key, d->data);
+}
+
+void 
+stringset_list(stringset_t set, int (*fn)(const char *file, void *data), 
+               void * data )
+{	struct stringset_list d;
+	
+	if( IS_STRINGSET(set) )
+	{
+		d.fn = fn;
+		d.data = data;
+		g_tree_traverse(set->tree, stringset_list_fnc, G_IN_ORDER, &d);
+	}
+
+}
+
+
 #else /********************** dummy implementation *************************/
 stringset_t 
 stringset_new(void)
@@ -126,6 +169,14 @@ stringset_look(stringset_t set, const char *string)
 	
 	return E_STRINGSET_NOTFOUND;
 }
+
+
+stringset_error_t
+stringset_remove(stringset_t set, const char *string)
+{
+	return E_STRINGSET_OK;
+}
+
 #endif
 
 #ifdef TEST_DRIVER_STRINGSET
@@ -147,6 +198,13 @@ int main(void)
 	stringset_destroy(set);
 	
 	return 0;
+}
+
+void 
+stringset_list(stringset_t set, int (*fn)(const char *file, void *data), 
+               void * data )
+{
+
 }
 #endif
 

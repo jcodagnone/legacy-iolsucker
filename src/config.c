@@ -95,17 +95,20 @@ config_load_table( xmlDocPtr doc, xmlNodePtr cur,
 	{
 		current = config_find_entry(cur->name, table, n);
 		key = xmlNodeListGetString(doc,cur->xmlChildrenNode, 1);
-		if( current && key )
-		{	if( current->type == CT_SZ )
+		if( current )
+		{	if( current->type == CT_SZ  )
 			{	
-				if( current->size ) 
-				{ 	t = current->data;
-					strncpy(t, key, current->size);
-					t[current->size-1] = 0;
-				}
-				else
-				{	s = current->data;
-					*s = strdup(key);
+				if( key ) 
+				{
+					if( current->size ) 
+					{ 	t = current->data;
+						strncpy(t, key, current->size);
+						t[current->size-1] = 0;
+					}
+					else
+					{	s = current->data;
+						*s = strdup(key);
+					}
 				}
 			}
 			else if( current->type == CT_FLAG )
@@ -127,6 +130,7 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 		{  "rep",  &(opt->repository), sizeof(opt->repository), CT_SZ },
 		{  "fancy",&(opt->fancy), 0, CT_FLAG },
 		{  "wait", &(opt->wait),  0, CT_FLAG },
+		{  "xenofobe", &(opt->xenofobe),  0, CT_FLAG },
 		{  "host", &(opt->server),  0, CT_SZ },
 	};
 
@@ -293,6 +297,8 @@ save_config_file( const struct opt *opt)
 		err = dump_line("\t\t<verbose></verbose>\n", fd);
 	if( !err && opt->wait )
 		err = dump_line("\t\t<wait></wait>\n", fd);
+	if( !err && opt->xenofobe)
+		err = dump_line("\t\t<xenofobe></xenofobe>\n", fd);
 	if( !err && opt->server )
 	{	buf = g_strdup_printf("\t\t<host>%s</host>\n", opt->server);
 		err = dump_line(buf, fd);

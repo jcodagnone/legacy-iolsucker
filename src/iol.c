@@ -30,6 +30,7 @@
 #include <assert.h>
 
 #include <errno.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -47,6 +48,7 @@
 #include <mkrdir.h>
 #include <dirname.h>
 #include <queue.h>
+#include <ftw_.h>
 
 #include "i18n.h"
 #include "iol.h"
@@ -55,6 +57,7 @@
 #include "forum.h"
 #include "stringset.h"
 #include "common.h"
+
 
 #ifndef CURLOPT_WRITEDATA
   #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
@@ -129,12 +132,15 @@ struct iolCDT
 	int verbose;		/**< print lots of information? */
 	int fancy;		/**< use fancy names */
 	int wait;		/**< seconds to wait when changing context */
+	int xenofobe;           /**< show forein files (the ones that aren't 
+	                             from iol's repository) */
 
 	FILE *logfp;		/**< logfile filepointer */
 
 	char url_tmp[256];
 	char *url_tmp_pt;
 	
+	stringset_t repfiles;
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -324,6 +330,12 @@ iol_new(void)
 		return NULL;
 		
 	memset( cdt, 0, sizeof(*cdt));
+	cdt->repfiles = stringset_new();
+	if( !stringset_is_valid(cdt->repfiles) )
+	{	free(cdt);
+		return NULL;
+	}
+	
 	cdt->host = IOL_HOSTN;
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -404,7 +416,8 @@ iol_destroy(iol_t iol)
 
 	free(iol->repository);
 	free(iol->url_tmp_pt);
-	
+	stringset_destroy(iol->repfiles);
+
 	free(iol);
 }
 
@@ -564,6 +577,18 @@ iol_set_host(iol_t cdt, const char *host)
 	return ret;
 }
 
+static int
+iol_set_xenofobe(iol_t cdt, int *xenofobe)
+{	int ret = E_OK;
+
+	if( xenofobe )
+		cdt->xenofobe = *xenofobe != 0;
+	else
+		ret = E_INVAL;
+		
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -581,7 +606,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    },
 		{	IOL_FANCY_NAMES,(iol_set_fnc) iol_set_fancy_names},
 		{	IOL_WAIT,       (iol_set_fnc) iol_set_wait       },
-		{	IOL_HOST,       (iol_set_fnc) iol_set_host       }
+		{	IOL_HOST,       (iol_set_fnc) iol_set_host       },
+		{	IOL_XENOFOBE,   (iol_set_fnc) iol_set_xenofobe   }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -1216,7 +1242,7 @@ inform_url_and_date( FILE *fp, const char *url )
 	fprintf(fp, "%s\n",url + off);
 }
 
-/** tries to download ::file if it doesn't exist in the repository.
+/** try to download ::file if it doesn't exist in the repository.
  *
  * ::file can contain spaces.
  */
@@ -1237,6 +1263,7 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 		                       "archivos, estaría mezclando carpetas"));
 		        return ;
 		}
+		
 		len = strlen(d->url_prefix);
 		if( *(file+len) == '/' )
 			len++;
@@ -1244,6 +1271,8 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 		local = g_strdup_printf("%s/%s", d->prefix, unquote);
 		dirname = my_path_get_dirname(local);
 
+		if( d->iol->xenofobe ) 
+			stringset_remove(d->iol->repfiles, local);
 		if( stat(local,&st) == -1 )
 		{	/** \todo 
 		 	 * if a deeper directory  has been created
@@ -1382,6 +1411,13 @@ iol_resync_forum(iol_t iol, const struct course *courses)
 	return ret;
 }
 
+static int
+_iol_fill_xenofobe_fnc(const char *file, struct stat *st, iol_t iol)
+{
+	stringset_add(iol->repfiles, file);
+	return 0;
+}
+
 int 
 iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 {	
@@ -1406,7 +1442,20 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 		ret = E_NETWORK;
 	} 
 	else
-	{	/* only do what the servers capabilities says */
+	{	
+		if( iol->xenofobe )
+		{	char *r;
+
+			if( iol->fancy )
+				r = g_strdup_printf("%s/%s/%s", iol->repository,
+				             c->name, IOL_MATERIAL_FOLDER);
+			else
+				r = g_strdup_printf("%s/%s/%s", iol->repository,
+			 	             c->code, IOL_MATERIAL_FOLDER);
+			ftw_(r,(void *) _iol_fill_xenofobe_fnc, iol);
+			g_free(r);
+		}
+		/* only do what the servers capabilities says */
 		flags &= iol->current_course->flags;
 		if( flags & IOL_RF_FILE && ret == E_OK )
 			ret = iol_resync_download(iol, c);
@@ -1506,4 +1555,15 @@ iol_get_new_novedades( iol_t iol, unsigned *n )
 	}
 
 	return ret; 
+}
+
+void 
+iol_traverse_xenofobe_list( iol_t iol, int (*fn)(const char *file, void *data),
+ void *data)
+{
+
+	if( IS_IOL_T(iol) && iol->xenofobe )
+	{
+		stringset_list(iol->repfiles, fn, data);
+	}
 }
