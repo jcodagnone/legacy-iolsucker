@@ -751,7 +751,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 	struct stat st;
 
 	q = URL_BASE;
-	if( file && d && d->url_prefix && !d->iol->dry )
+	if( file && d && d->url_prefix )
 	{	size_t len_q = strlen(q);
 		size_t len_url = strlen(d->url_prefix);
 
@@ -786,12 +786,14 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 			if( mkrdir(dirname,0755) == 0 || errno == EEXIST)
 			{	time_t now =  time(NULL);
 				struct tm *tm = localtime(&now);
-				printf("--%02d:%02d:%02d-- %s" ,tm->tm_hour,
+				printf("--%02d:%02d:%02d-- %s\n" ,tm->tm_hour,
 				                   tm->tm_min,tm->tm_sec,file);
 				download = g_strdup_printf("%s/%s", dirname, 
 				                          IOL_MATERIAL_TMPFILE);
-				if( transfer_page(d->iol->curl, file, TP_FILE,
-				             download) == 0 )
+				if( d->iol->dry )
+					;
+				else if( transfer_page(d->iol->curl, file,
+				         TP_FILE, download) == 0 )
 					rename(download,local);
 				else
 				{	remove(download);
@@ -806,8 +808,6 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		g_free(dirname);
 		g_free(local);
 	}
-	else if( file  ) /* dry run */
-		rs_log_info(_("should download `%s'"), file);
 }
 
 int 
