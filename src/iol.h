@@ -20,6 +20,8 @@ enum resync_flags {
 	IOL_RF_FILE  = 1<<0,	/**< resync files */	
 	IOL_RF_NEWS  = 1<<1,	/**< resync the news */
 	IOL_RF_FORUM = 1<<2,	/**< resync the forum */
+	IOL_RF_RULES = 1<<3,	
+	IOL_RF_ALULIST = 1<<4,
 	IOL_RF_MAX
 };
 

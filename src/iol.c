@@ -110,6 +110,7 @@ struct course
 {       char *code;	/**< code name: eg: "21.71" */
 	char *name;     /**< human name: Base de datos I */
 	enum course_type type; 
+	enum resync_flags flags;
 };
 
 /**
@@ -620,6 +621,7 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 		{ 	course->code = strdup(s);
 			course->name = normalize_course_name(strdup(ss));
 			course->type = type;
+			course->flags = 0;
 			if( course->code && course->name )
 				*listptr = g_slist_prepend(*listptr, course);
 			else
@@ -747,9 +749,61 @@ get_course_by_name( iol_t iol, const char *code )
 	
 	return tmp.ret;
 }
+
+static void 
+link_context_fnc( const char *link,const char *comment,enum resync_flags *flags)
+{	static const struct 
+	{	const char *link;
+		enum resync_flags flag;
+	} table[]=
+	{	{ "newmaterialdid.asp", IOL_RF_FILE  },
+		{ "reglamentacion.asp", IOL_RF_RULES },
+		{ "novlist.asp",        IOL_RF_NEWS  },
+		{ "foroDis.asp",        IOL_RF_FORUM },
+		{ "AluList.asp",        IOL_RF_ALULIST},
+	};
+	unsigned i;
+	int found=0;
+
+	assert(flags);
+	
+	for(i=0; !found && i<sizeof(table)/sizeof(*table); i++)
+	{
+		if( !strcmp(link,table[i].link) )
+			found=1;
+	}
+
+	if( found )
+		*flags |=table[i-1].flag;
+}
+
+static enum resync_flags
+get_course_capabilities( struct buff *page )
+{ 	link_parser_t  parser;
+	enum resync_flags flags = 0;
+	unsigned i;
+	
+	parser = link_parser_new();
+	if( parser )
+	{
+		link_parser_set_link_callback(parser,
+				(link_callback)link_context_fnc,
+				&flags);
+		for( i = 0 ; i< page->size &&
+		           link_parser_proccess_char(parser,page->data[i])==0;
+		     i++ ) 
+		     	;
+		link_parser_end(parser);
+		link_parser_destroy(parser);
+	}
+	
+	
+	return flags;
+}
+
 static int 
 iol_set_current_course(iol_t iol, const char *course) 
-{	const struct course *c;
+{	struct course *c;
 	int ret = E_OK;
 	char *s;
 	
@@ -761,7 +815,7 @@ iol_set_current_course(iol_t iol, const char *course)
 	         !strcmp(iol->current_course->code, c->code) )
 		return E_OK;	
 	else
-	{
+	{	struct buff page = {NULL, 0};
 		iol->current_course = c;
 
 		if( c->type == CT_COURSE )
@@ -774,8 +828,12 @@ iol_set_current_course(iol_t iol, const char *course)
 		if( iol->wait )
 			sleep(5); 
 		
-		if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
+		if( transfer_page(iol->curl, s, 0, &page) != E_OK )
 			ret = E_NETWORK;
+		else
+			c->flags = get_course_capabilities(&page);
+
+		free(page.data);
 		g_free(s);
 	}
 
@@ -1225,9 +1283,6 @@ iol_resync_download(iol_t iol, const struct course *course)
 	struct tmp_resync_getfile tmp;
 	char *s, *r;
 
-	if( course->type != CT_COURSE )
-		return ret;
-
 	s = g_strdup_printf("%s/%s/%s", iol->repository, course->code,
 				  IOL_MATERIAL_FOLDER);
 	r = g_strdup_printf("%s/%s/%s", iol->repository, course->name,
@@ -1308,7 +1363,7 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 {	
 	int ret = E_OK;
 	struct course *c;
-	
+
 	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
 		ret = E_INVAL;
 	else if( !iol->bLogged )
@@ -1321,17 +1376,15 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 	{	ret = E_INVAL;
 		rs_log_error(_("course `%s' has no name! (TODO)"),code);
 	}
-	else if( c->type != CT_COURSE && !(flags&(IOL_RF_NEWS|IOL_RF_FORUM)))
-	{	if( flags & IOL_RF_FILE && ret == E_OK )
-			ret = iol_resync_download(iol, c);
-	}
 	else if( rs_log_info(_("%s (%s)"), code, c->name) ,
 	         iol_set_current_course(iol, code) != E_OK )  /* C hack */
 	{ 	rs_log_error(_("setting current course to `%s'"),code);
 		ret = E_NETWORK;
 	} 
 	else
-	{	if( flags & IOL_RF_FILE && ret == E_OK )
+	{	/* only do what the server capabilities says */
+		flags &= iol->current_course->flags;
+		if( flags & IOL_RF_FILE && ret == E_OK )
 			ret = iol_resync_download(iol, c);
 		if( flags & IOL_RF_NEWS && ret == E_OK )
 			ret = iol_resync_news(iol, c);
@@ -1351,7 +1404,6 @@ struct foreach_resync
 	unsigned flags;
 };
 
-/* nice for a lambda function */
 static void
 foreach_resync(struct course *course, struct foreach_resync *r) 
 {
