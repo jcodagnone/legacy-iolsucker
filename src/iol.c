@@ -1363,7 +1363,7 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		eurl = my_url_escape( url );
 		eurl = eurl ? eurl : url;
 		
-		t.prefix = eurl;
+		t.prefix = url;
 		strncpy(t.stringurl, eurl, sizeof(t.stringurl));
 		t.stringurl[sizeof(t.stringurl)-1] = 0;
 
@@ -1396,6 +1396,10 @@ get_file_list_from_current(iol_t iol, GSList **l)
 			link_parser_end(parser);    
 			link_parser_destroy(parser);
 			
+			/* printf("After: %s\n", eurl);
+			 * queue_print_debug(t.pending);
+			 */
+
 			/* segunda pasada */
 			webpage.data[webpage.size-1]=0; 
 			link_files_fnc2(iol, webpage.data, &(t.files) );
