@@ -33,37 +33,43 @@ iolsucker \- cliente no interactivo para IOL
 .RB [ \-f\  filename ]
 .RB [ \-x\  <host[:port]> ]
 .RB [ \-U\  <username[:password]> ]
+.RB [ \-t\  <http|socks5> ]
 
 
-.SH DESCRIPTION
+.SH DESCRIPCIÓN
 
 .BR iolsucker
-es un cliente no interactivo para acceder a los contentenidos de 
+es un cliente no interactivo para acceder a los contenidos de 
 IOL, de la forma más eficiente posible.
 ¿Por que utilizar un cliente no interactivo? Porque mantener archivos
-sincronizados usando una interfase web y el mouse  es dificil y aburrido:
+sincronizados usando una interfase web y el mouse  es difícil y aburrido:
 mientras haya una materia, hay que entrar a la materia, ir al material
-didactico, y por cada carpeta que allí existe, ver si hay algun archivo nuevo.
+didáctico, y por cada carpeta que allí existe, ver si hay algún archivo nuevo.
 
 .SH OPCIONES
 
 .IP "\fB-h\fR, \fB\-\-help\fR"
-muestra la ayuda y muere
+muestra la ayuda y muere.
 .IP "\fB\-V\fR, \fB\-\-version\fR"
-muestra la información de la version y muere
-.IP "\fB\-\-user\fR username"
-especifica el usuario con el cual se ingresará al sistema. La contraseña se le
-será pedida si no se encuentra en algun archivo de documentación.
+muestra la información de la versión y muere.
 .IP "\fB\-n\fR, \fB\-\-dry\-run\fR"
 corre en seco: no descarga ningún archivo. Solo reporta cambios.
+.IP "\fB\-f\fR"
+leer opciones del archivo de configuración llamado \fIfilename\fR.
+.IP "\fB\-\-user\fR username"
+especifica el usuario con el cual se ingresará al sistema. La contraseña se le
+será pedida si no se encuentra en algún archivo de documentación.
 .IP "\fB\-x\fR, \fB--proxy\fR <host[:port]>"
 .BR iolusucker
 intentará usar como proxy de HTTP a \fIhost\fR. Si un puerto
 no se especifica entonces se usará el 1080.
 .IP "\fB-U\fR <usuario[:password]>
 usuario y contraseña para el proxy (si es que lo necesita). Si no especifica
-la password se le preguntará desde la entrada estandar. No es aconsejable
+la password se le preguntará desde la entrada estándar. No es aconsejable
 especificar la password desde la línea de comandos.
+.IP "\fB-t\fR <http|socks5>
+Setea el tipo de proxy. Puede ser un proxy http o un socks5. Si no se
+especifica ninguno, entonces 
 
 .SH "CONFIGURACION"
 .BR iolsucker 
@@ -71,9 +77,12 @@ puede recibir sus opciones tanto desde la línea de comandos, como
 desde un archivo de configuración.
 Las opciones de la línea de comandos tiene mayor prioridad que las del
 archivo. 
-El programa, por defecto, siempre busca la configuración en el  archivo 
-\fB~/.iolrc\fR. 
-Otra archivo se puede especificar usando la opción \fB\-f\fR.
+
+En Windows(tm) se utiliza el registro para almacenar la configuración. 
+Si usted es un usuario de Windows, puede saltear esta sección.
+En en el resto de los sistemas, el programa, por defecto siempre busca la
+configuración en el archivo \fI~/.iolrc\fR. 
+Otro archivo se puede especificar usando la opción \fB\-f\fR.
 
 El archivo de configuración tiene una estructura jerarquica:
 .PP
@@ -97,61 +106,43 @@ El archivo de configuración tiene una estructura jerarquica:
 .br
 		<user>usuario:password</user>
 .br
+		<type>socks5</type>
 	</proxy>
 .br
 </iolsucker>
-
-Todos los nodos pueden estar ausentes: tanto login y proxy, como cualquiera de
-sus hijos.
 .PP
-Si no tiene idea de como generar como crear el archivo, use la
-utilidad 
-.BR iolwizard (1).
+Todos los nodos, con la excepción del raiz,  pueden estar ausentes: tanto login
+como proxy, y como cualquiera de sus hijos.  
+.PP
+Si no tiene idea de como generar como crear el archivo, use la utilidad 
+.BR iolwizard. 
 
 .SH ACLARACIONES
-Usted notará que muchos (o todos!) los mensajes de errores y de comunicacion
-con el usuario estan en idioma ingles (estaré un poco loco, pero no tanto).
-La causa de esto, es que el programa esta construido sobre codigos fuentes
-que reutilizo con frecuencia y por ello el ingles, y otras librerias que salen
+Usted notará que muchos (o todos!) los mensajes de errores y de comunicación
+con el usuario están en idioma ingles (estaré un poco loco, pero no tanto).
+La causa de esto, es que el programa esta construido sobre códigos fuentes
+que reutilizo con frecuencia y por ello el ingles, y otras librerías que salen
 de la comunidad internacional. 
 Éstas librerías en general soportan la internalización (i18n) y la
-localización, por lo que tambien estan disponibles los mensajes en español. 
-Por otro lado, todas las cadenas de mis códigos estan marcadas y listas para
-ser traducidas al español.  Asi que no todo es descabellado.
+localización, por lo que también están disponibles los mensajes en español. 
+Por otro lado, todas las cadenas de mis códigos están marcadas y listas para
+ser traducidas al español. No todo es \fBtan\fR descabellado.
 
-El autor (y sus familiares) no esta afiliado, ni tiene conexion directa on IOL.
-El programa nacio para llenar un nicho faltante en el sistema.
-
-.SH EJEMPLOS
-
-.IP \(bu 4 
-Say you want just to set up the proxy at the port 11011 with no \
-filter.
-.EXAMPLE "pop3filter pop3.isp.net 110 11011"
-
-.IP \(bu
-Now you want to catch all request on your network going to 
-.BR pop3.isp.net 
-so the thing goes transparent. If you use Linux(\*(Tm) 2.4, with Netfilter:
-.EXAMPLE "/usr/sbin/iptables \-t nat \-A PREROUTING \-i eth0 \-p tcp \-d \
-pop3.isp.net --dport 110 -j REDIRECT --to 11011
-
-.IP  \(bu
-Now you want to leave the program running as a daemon?
-.EXAMPLE "pop3filter -f pop3.isp.net 110 11011 "
-
+El autor (y sus familiares) no esta afiliado, ni tiene conexión directa con IOL.
+El programa nació para llenar un nicho faltante en el sistema.
 
 .SH BUGS
-See the
-.I BUGS
-file in the distribution.
+No muchos espero. 
 
 .SH HISTORIA
 
 .BR iolsucker
-nació como un script para bash un sabado por la tarde. El script consistía de
-456 lineas. Para desperdiciar un poco de tiempo y probar algunas cosas
-(archivos de configuración xml) se escribió esta version en lenguaje C. 
+nació como un script para bash un sábado por la tarde. El script consistía de
+456 líneas. Para desperdiciar un poco de tiempo y probar algunas cosas
+(archivos de configuración xml) se escribió esta versión en lenguaje C. 
+La implementación en C (del iolsucker y el iolwizard) pasaron a ser 4499
+líneas de código reales (sobre 6765).  1523 ya estaban escritas para otros
+proyectos. Cuan versátil es el scripting!
 
 .SH AUTHOR
 Original written by Juan F. Codagnone <juam@users.sourceforge.net>
@@ -173,5 +164,3 @@ Documentation License'', with no Front-Cover Texts, and with no
 Back-Cover Texts.  A copy of the license is included in the section
 entitled ``\s-1GNU\s0 Free Documentation License''.
 
-.SH "SEE ALSO"
-.BR iolwizard (1),
