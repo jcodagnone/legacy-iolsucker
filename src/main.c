@@ -88,7 +88,7 @@ version( void )
 	exit( EXIT_SUCCESS );
 }
 
-static int
+int
 parseOptions( int argc, char * const * argv, struct opt *opt)
 {	int i;
 	const char *user = 0, *configfile = 0;
@@ -129,19 +129,25 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	if( opt->proxy_user )
 		opt->proxy_user = strdup(opt->proxy_user);
 	if( opt->proxy )
-		opt->proxy = strdup(opt->proxy_user);
+		opt->proxy = strdup(opt->proxy);
 	/** \todo support strdup error condition */
 
 	return 0;
 }
 
-void free_options( struct opt *opt )
+void
+free_options( struct opt *opt )
 {
 	if( opt )
 	{	free(opt->proxy);
 		free(opt->proxy_user);
 	}
 }
+
+/* we share GetOptions with iolwizard. 
+ * quick hack to prevent duplicated simbols
+ */
+#ifdef IOLMAIN
 
 int
 main( int argc, char **argv )
@@ -196,3 +202,5 @@ main( int argc, char **argv )
 	
 	return 0;
 }
+
+#endif
