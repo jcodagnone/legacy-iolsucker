@@ -45,7 +45,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h string.h limits.h])
-AC_CHECK_HEADERS([syslog.h unistd.h])
+AC_CHECK_HEADERS([syslog.h unistd.h fcntl.h])
 AC_CHECK_HEADERS([sys/time.h sys/file.h])
 AC_CHECK_HEADERS([termios.h])
 

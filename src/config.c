@@ -29,6 +29,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
+
+#ifdef  HAVE_FCNTL_H 
+  #include <fcntl.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+  #include <unistd.h>
+#endif
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -202,8 +211,12 @@ load_config_file(struct opt *opt)
 		g_snprintf(opt->configfile, sizeof(opt->configfile), "%s/%s",
 		          home,IOL_RC);
 		opt->configfile[sizeof(opt->configfile)-1]=0;
-		if( stat(opt->configfile, &buff) == -1 )
-			opt->configfile[0]=0;
+		if( stat(opt->configfile, &buff) == -1||!S_ISREG(buff.st_mode))
+			;
+		else if( buff.st_mode & 0077 )
+			rs_log_warning(
+			    _("file `%s' has dangerous permition 0%o"),
+			    opt->configfile, buff.st_mode & 0777);
 	}
 
 
@@ -212,54 +225,106 @@ load_config_file(struct opt *opt)
 	return ret;
 }
 
+static int
+dump_line(const char *line, int fd)
+{	int r = 0;
+	size_t n;
+	
+	if( line )
+	{ 	n = strlen(line);
+		r = write(fd, line, n);
+		if( r !=  n )
+		{	rs_log_error("saving configuration file: %s",
+			             strerror(errno));
+			r = -1;
+		}
+		else
+			r = 0;
+	}
+
+	return r;
+}
+
+/* why do i use POSIX I/O instead of ANSI I/O? because is the only safe way 
+ * to set mode_t to a file we are creating.
+ *
+ * this function sucks in style, but is pretty dumb
+ */
 int
 save_config_file( const struct opt *opt)
-{ 	FILE *fp;
-	char *s;
+{ 	char *s, *buf;
+	int fd, err;
 
-	
 	if( ! opt->configfile[0] )
 		return -1;
 
 	s = g_strdup_printf("%s_",opt->configfile);
-	fp = fopen(s, "wb");
-	if( fp == NULL )
-	{	g_free(s);
+	fd = open(s, O_WRONLY|O_CREAT|O_TRUNC, 0600);
+	if( fd == -1 )
+	{	rs_log_error("creating `%s': %s", s, strerror(errno) );
+		g_free(s);
 		return  -1;
 	}
-	
-	fprintf(fp,"<?xml version=\"1.0\"?>\n" );
-	fprintf(fp,"<iolsucker>\n");
-	fprintf(fp,"\t<login>\n");
 
-	if( opt->username[0] )
-		fprintf(fp,"\t\t<user>%s</user>\n",opt->username);
-	if( opt->password[0] )
-		fprintf(fp,"\t\t<pass>%s</pass>\n",opt->password);
-	if( opt->repository[0] )
-		fprintf(fp,"\t\t<rep>%s</rep>\n", opt->repository);
-	if( opt->fancy )
-		fprintf(fp,"\t\t<fancy></fancy>\n");
-	if( opt->forum )
-		fprintf(fp,"\t\t<forum></forum>\n");
-	if( opt->verbose )
-		fprintf(fp,"\t\t<verbose></verbose>\n");
-	if( opt->wait )
-		fprintf(fp,"\t\t<wait></wait>\n");
-	if( opt->server )
-		fprintf(fp,"\t\t<host>%s</host>\n",opt->server);
-        fprintf(fp,"\t</login>\n");
-        fprintf(fp,"\t<proxy>\n");
-        if( opt->proxy_type[0] )
-        	fprintf(fp,"\t\t<type>%s</type>\n",opt->proxy_type);
-        if( opt->proxy ) 
-        	fprintf(fp,"\t\t<host>%s</host>\n",opt->proxy);
-        if( opt->proxy_user ) 
-        	fprintf(fp,"\t\t<user>%s</user>\n",opt->proxy_user);
-	fprintf(fp,"\t</proxy>\n");
-	fprintf(fp,"</iolsucker>\n");
+	(err = dump_line("<?xml version=\"1.0\"?>\n", fd) )||
+	(err = dump_line("<iolsucker>\n", fd)) ||
+	(err = dump_line("\t<login>\n", fd));
 
-	if( fclose(fp) == -1 ) 	/* BTW, this can't happen in linux AFAIK */ 
+	if( !err &&  opt->username[0] )
+	{	buf = g_strdup_printf("\t\t<user>%s</user>\n", opt->username);
+		err = dump_line(buf, fd);
+		g_free(buf);
+	}
+	if( !err && opt->password[0] )
+	{	buf = g_strdup_printf("\t\t<pass>%s</pass>\n",opt->password);
+		err = dump_line(buf, fd);
+		g_free(buf);
+	}
+	if( !err && opt->repository[0] )
+	{	buf = g_strdup_printf("\t\t<rep>%s</rep>\n", opt->repository);
+		err = dump_line(buf, fd);
+		g_free(buf);
+	}
+	if( !err && opt->fancy )
+		err = dump_line("\t\t<fancy></fancy>\n", fd);
+	if( !err && opt->forum )
+		err = dump_line("\t\t<forum></forum>\n", fd);
+	if( !err && opt->verbose )
+		err = dump_line("\t\t<verbose></verbose>\n", fd);
+	if( !err && opt->wait )
+		err = dump_line("\t\t<wait></wait>\n", fd);
+	if( !err && opt->server )
+	{	buf = g_strdup_printf("\t\t<host>%s</host>\n", opt->server);
+		err = dump_line(buf, fd);
+		g_free(buf);
+	}
+	if( !err )
+		err = dump_line("\t</login>\n", fd);
+	if( !err )
+		err = dump_line("\t<proxy>\n",  fd);
+        if( !err && opt->proxy_type[0] )
+        {	buf = g_strdup_printf("\t\t<type>%s</type>\n",opt->proxy_type);
+        	err = dump_line(buf, fd);
+        	g_free(buf);
+        }
+        if( !err && opt->proxy ) 
+        {	buf = g_strdup_printf("\t\t<host>%s</host>\n",opt->proxy);
+        	err = dump_line(buf, fd);
+        	g_free(buf);
+        }
+        
+        if( !err &&  opt->proxy_user ) 
+        {	buf = g_strdup_printf("\t\t<user>%s</user>\n",opt->proxy_user);
+        	err = dump_line(buf, fd);
+        	g_free(buf);
+        }
+
+        if( !err )
+        	err = dump_line("\t</proxy>\n", fd);
+        if( !err )
+		err = dump_line("</iolsucker>\n", fd);
+
+	if( close(fd) == -1 )
 		remove(s);
 	else
 		rename(s, opt->configfile);
