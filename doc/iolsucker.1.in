@@ -25,11 +25,12 @@ iolsucker \- cliente no interactivo para IOL
 .SH SYNOPSIS
 .HP 10
 .BR iolsucker
-.RB [ \-hnVvWX ]
+.RB [ \-hnVvWXF ]
 .RB [ \-\-help ] 
 .RB [ \-\-version ]
 .RB [ \-\-verbose ]
 .RB [ \-\-dry\-run ]
+.RB [ \-\-forum ]
 .RB [ \-\-fancy ]
 .RB [ \-\-wait ]
 .RB [ \-\-xenofobe ]
@@ -63,6 +64,8 @@ Antes de envierle esta informacion a otra persona, para que lo ayude,
 fijese que no exista informacion confidencial.
 .IP "\fB\-n\fR, \fB\-\-dry\-run\fR"
 corre en seco: no descarga ningún archivo. Solo reporta cambios.
+.IP "\fB\-F\fR, \fB\-\-forum\fR"
+imprime la cantidad de mensajes en los foros de las materias.
 .IP "\fB\-\-fancy\fR"
 usar nombres lindos en los nombres de los directorios de las materias. la
 opcion es inteligente: sabe determinar si la ultima ves se utilizó la opcion
