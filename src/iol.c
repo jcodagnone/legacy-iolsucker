@@ -565,6 +565,13 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			/* login */
 			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, s);
 
+			/* hack:  iol scripts break if the login is not
+			 * a number. i won't force the user to enter 
+			 * numbers.... if it fails, just ignore the error
+			 * the parser won't find any course
+			 */
+			curl_easy_setopt(iol->curl,CURLOPT_FAILONERROR, 0);
+			
 			if(transfer_page(iol->curl, URL_LOGIN_1,0,&buf) != E_OK)
 				nRet = E_NETWORK;
 			else if( parse_courses(&(iol->courses),&buf) == 0)
@@ -572,6 +579,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			else
 				nRet = E_LOGINTUPLE;
 
+			curl_easy_setopt(iol->curl,CURLOPT_FAILONERROR, 1);
 			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, "");
 			curl_easy_setopt(iol->curl,CURLOPT_POST,0L);
 			curl_easy_setopt(iol->curl,CURLOPT_HTTPGET,1L);
