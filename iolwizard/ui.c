@@ -747,7 +747,7 @@ exec_iolwizard(void)
 	if( pid == -1 )
 		return -1;
 	else if( pid == 0 )
-	{	system("xterm -e '(iolsucker; read -p \"press ENTER>\")'");
+	{	system("xterm -e /bin/bash -c 'iolsucker; read -p \"press ENTER>\"'");
 		exit(0);
 	}
 		
