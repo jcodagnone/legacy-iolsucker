@@ -1323,7 +1323,7 @@ static void
 foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 {	size_t len;
 	char *local, *dirname, *download;
-	const char *q, *unquote;;
+	const char *q, *unquote;
 	struct stat st;
 
 	q = URL_BASE;
