@@ -968,12 +968,15 @@ is_javascript_link( const char *link)
 	return !strncmp(link,"javascript:",sizeof("javascript:"));
 }
 
+/**
+ * escape only spaces 
+ */
 static char *
 my_url_escape(const char *url)
 {	char *s;
 	unsigned i=0, j,len=0;
 	
-	for(s=(char *)url; *s ; s++,len ++)
+	for( s=(char *)url; *s ; s++,len ++) /* how many spaces we have? */
 	{	if( *s == ' ' )
 			i++;
 	}
@@ -996,7 +999,7 @@ my_url_escape(const char *url)
 }
 
 /**
- * \returns true if the url contains and file id (download.asp scheme).
+ * \returns true if ::url contains a file id (download.asp scheme).
  * Also copy the fid to ::buf
  */
 static int
