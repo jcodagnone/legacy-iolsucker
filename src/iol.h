@@ -1,39 +1,18 @@
 #ifndef _IOL_H_
 #define _IOL_H_
 
-#include <list>
-#include <queue>
+typedef struct iolCDT *iol_t;
 
-struct materia
-{	const char *name;
-	unsigned short cod;
-};
+iol_t iol_new(void);
+void  iol_destroy(iol_t iol);
+int   iol_login(iol_t iol, const char *user, const char *pass);
+int   iol_logout(iol_t iol);
+int   iol_resync(iol_t iol, const char *code);
+int   iol_resync_all(iol_t iol);
+int   iol_set_repository(iol_t iol, const char *path);;
 
-
-class IOL
-{
-public:
-	IOL();
-	~IOL();
-	int login(const char *user, const char *pass);
-	int logout();
-	
-	/**
-	 *  resync a course
-	 */
-	int resync(const char *code);
-	
-	/**
-	 * resync all courses
-	 */
-	int resync_all();
-
-	int set_repository(const char *path);
-private:
-	/**
-	 * Get all the files for the current subject
-	 */
-	int get_file_list_recursive(const char *url, std::list<char *> *files,
+/*
+int get_file_list_recursive(const char *url, std::list<char *> *files,
 	                            std::queue<char *> *pending);
 
 	int get_file_list(std::list<char *> &l);
@@ -42,7 +21,7 @@ private:
 	int transfer_page( const char *url, unsigned flags, struct buff *);
 	struct hidden *cdt;
 };
-
+*/
 enum errors
 {	E_OK,		/* no error */
 	E_INVAL,	/* invalid arguments */

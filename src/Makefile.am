@@ -1,19 +1,18 @@
-AM_CFLAGS = @CFLAGS@ -I../lib @CURL_CFLAGS@  @XML_CFLAGS@
-
+AM_CFLAGS = @CFLAGS@ -I../lib @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@
 AM_LDFLAGS = @LDFLAGS@  -L../lib -L. 
 
-LIBS =  -lmisc @CURL_LIBS@ @LIBS@ -lefence  @XML_LIBS@
+LIBS =  -lmisc @CURL_LIBS@ @LIBS@ -lefence  @XML_LIBS@ @GLIB_LIBS@
 
 bin_PROGRAMS = iolsuck link
 
 link_SOURCES = link.c link.h testlink.c link_debug.c
 iolsuck_SOURCES = \
-	main.cpp 		\
+	main.c 			\
 	main.h			\
 	config.c		\
 	config.h		\
 	i18n.h			\
-	iol.cpp			\
+	iol.c			\
 	iol.h			\
 	link.c			\
 	link.h			\

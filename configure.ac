@@ -29,7 +29,6 @@ AM_SANITY_CHECK
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_CXX
 AC_MINGW32
 
 AC_PROG_INSTALL
@@ -50,13 +49,14 @@ AC_C_INLINE
 # Checks for library functions.
 AM_PATH_CURL
 AM_PATH_XML2
+AM_PATH_GLIB_2_0
+
 AC_CHECK_FUNCS([memset strchr strtol])
 AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strtol])
 AC_FUNC_STAT
 
 CFLAGS="$CFLAGS -Wall -W -ansi -Winline -Wno-unused -I ../lib"
-CXXFLAGS=$CFLAGS
 
 dnl --------------------------------------------------------------------------
 dnl Optionnal stuff
