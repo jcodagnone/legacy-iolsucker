@@ -1,7 +1,7 @@
 
 AUTOMAKE_OPTIONS = foreign dist-bzip2
 
-EXTRA_DIST = configwin.h TODO NOTES
+EXTRA_DIST = TODO NOTES
 
 SUBDIRS = \
 	bin \

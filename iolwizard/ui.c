@@ -23,15 +23,9 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #ifdef WIN32
-    #include "../configwin.h"
-  #else
-    #include <config.h>
-  #endif
+  #include <config.h>
 #endif
 
-#
- 
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +42,7 @@
 #include <trace.h>
 
 #include "../src/main.h"
-#include "../src/config.h"
+#include "../src/fconfig.h"
 #include "error_dlg.h"
 
 #define SIZE_X	320

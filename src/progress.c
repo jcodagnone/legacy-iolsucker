@@ -31,11 +31,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #ifdef WIN32
-    #include "../configwin.h"
-  #else
-    #include "../config.h"
-  #endif
+  #include <config.h>
 #endif
 
 #include <stdio.h>

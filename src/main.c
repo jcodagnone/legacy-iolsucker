@@ -21,11 +21,7 @@
 #include "iol.h"
 
 #ifdef HAVE_CONFIG_H
-  #ifdef WIN32
-    #include "../configwin.h"
-  #else
-    #include "../config.h"
-  #endif
+  #include <config.h>
 #endif
 
 #include <stdlib.h>
@@ -36,7 +32,7 @@
 
 #include "i18n.h"
 #include "main.h"
-#include "config.h"
+#include "fconfig.h"
 #include "getpass.h"
 
 const char *rs_program_name;
