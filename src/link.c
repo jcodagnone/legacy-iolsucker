@@ -370,7 +370,9 @@ void
 link_parser_destroy(link_parser_t parser)
 {
 	if( IS_PARSER(parser) ) 
+	{	stm_destroy(parser->st);
 		free(parser);
+	}
 
 }
 
