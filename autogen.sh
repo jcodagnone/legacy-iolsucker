@@ -1,4 +1,6 @@
 MAKE=make
+export WANT_AUTOMAKE=1.7
+export WANT_AUTOCONF=2.58
 
 echo "*** Retrieving configure tests needed by configure.in"
 aclocal -I . -I admin -I admin/extra
