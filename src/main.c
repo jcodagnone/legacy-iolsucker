@@ -50,9 +50,11 @@ _("Usage: %s [OPTION]\n"
 " -V   --version              prints the version info and dies\n"
 " -h   --help                 prints this message\n"
 " -u   --user username        specify the login username\n"
+" -n   --dry-run              dry-run: don't download any files. just report\n"
 " -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
 " -U <user[:password]>        specify proxy authentication\n"
-" -n   --dry                  dry-run: don't download any files. just report\n"
+" -f filename                 load settings from file\n"
+
 "\n"
 "Send bugs to <juam at users dot sourceforge dot net>\n"
 "\n"),rs_program_name);
@@ -63,7 +65,9 @@ _("Usage: %s [OPTION]\n"
 static void 
 usage ( void )
 {
-	printf("Usage: %s [-hnV] [--help] [--version] [--dry][-u username]\n", rs_program_name);
+	printf("Usage: %s [-hnV] [--help] [--version] [--dry-run] [-u username]"
+	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>\n",
+	       rs_program_name);
 
 	exit( EXIT_SUCCESS );
 }

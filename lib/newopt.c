@@ -1,7 +1,7 @@
 /*
  * newopt.c -- Command line options parser inspired in getopt(3)(in behavior)
  *
- * $Id: newopt.c,v 1.3 2003/02/19 19:59:14 juam Exp $
+ * $Id: newopt.c,v 1.4 2003/02/24 17:44:35 juam Exp $
  *
  * Copyright (C) 2001 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -76,12 +76,12 @@ report( unsigned flags, const char *fmt,...)
  * is 'str' alphabetic?
  */
 static int
-buffIsAlpha( const char *str )
+buffIsValid( const char *str )
 {	
-	if( str == NULL )
+	if( str == NULL || str[0]=='-' || str[0] =='_' )
 		return 0;
 
-	for( ; *str && isalpha(*str) ;str++)
+	for( ; *str && (isalpha(*str)|*str=='-'|*str=='_') ;str++)
 		;
 
 	return !*str;
@@ -119,7 +119,7 @@ check_table( const optionT * opt )
 
 	assert( opt );
 
-	for( i=0; opt[i].name && buffIsAlpha(opt[i].name) &&
+	for( i=0; opt[i].name && buffIsValid(opt[i].name) &&
 	     valid_type(opt[i].type) && valid_flag(opt[i].flags) ; i++ )
 		;
 

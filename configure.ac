@@ -87,6 +87,7 @@ dnl Output
 dnl --------------------------------------------------------------------------
 AC_OUTPUT([
 Makefile
+doc/Makefile
 lib/Makefile
 src/Makefile],
 [echo ])
