@@ -880,15 +880,15 @@ iol_set_current_course(iol_t iol, const char *course)
 	char *s, *burl;
 	
 	if( !IS_IOL_T(iol) )
-		return E_INVAL;
+		ret = E_INVAL;
 	else if( (c=get_course_by_name(iol,course)) == NULL)
 		return E_INVAL;
 	else if( iol->current_course && 
 	         !strcmp(iol->current_course->code, c->code) )
-		return E_OK;	
+		ret = E_OK;	
 	else if( (burl=iol_get_url(iol, c->type == CT_COURSE ? 
 	                           URL_CHANGE_COU : URL_CHANGE_DPT)) == NULL  )
-		return E_MEMORY;
+		ret = E_MEMORY;
 	else
 	{	struct buff page = {NULL, 0};
 		iol->current_course = c;
