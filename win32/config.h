@@ -176,3 +176,18 @@
 #define HAVE_CURLOPT_DEBUGDATA 1
 #define HAVE_CURLOPT_PRIVATE 1
 
+/* include TRIO lib */
+#undef HAVE_CONFIG_H
+#define TRIO_REPLACE_STDIO
+#define HAVE_PRINTF
+#define HAVE_FPRINTF
+#define HAVE_VFPRINTF
+#define HAVE_SPRINTF
+#define HAVE_VSPRINTF
+#define HAVE_SCANF
+#define HAVE_FSCANF
+#define HAVE_VFSCANF
+#define HAVE_SSCANF
+
+#include <trio/trio.h>
+#define HAVE_CONFIG_H
