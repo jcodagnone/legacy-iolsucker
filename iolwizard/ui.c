@@ -472,7 +472,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkFancy,
 	 _("usar el nombre de la materia, como nombre de directorio"),NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkForum,
-	 _("resincronizar los foros? por ahora solo advierte de cambios en los"
+	 _("resincronizar los foros? por ahora solo advierte de cambios en "
 	   "los foros. (no baja los mensajes)"),NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkVerbose,
 	 _("imprime información extra sobre la conexion. util para cuando las"
@@ -566,7 +566,7 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                   
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtHost,
-	    _("ip o nombre de la maquina donde se encuntra el proxy"), NULL);
+	    _("ip o nombre de la maquina donde se encuentra el proxy"), NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), cmbType,
 	    _("tipo de proxy: http|socks5"), NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtPUser,
