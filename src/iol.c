@@ -513,7 +513,7 @@ iol_set_current_course(iol_t iol, const char *course)
 		return E_MEMORY;
 
 	s = g_strdup_printf(URL_CHANGE,course);
-
+	sleep(5); 
 	if( transfer_page(iol->curl, s, 0, NULL, &(iol->neterr)) != E_OK )
 		ret = E_NETWORK;
 
@@ -702,6 +702,15 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 	if( file && d && d->url_prefix && !d->iol->dry )
 	{	size_t len_q = strlen(q);
 		size_t len_url = strlen(d->url_prefix);
+
+		/* server race happenend ? */
+		if(strstr(file,d->iol->current_course) == NULL)
+		{	rs_log_error(_("No se ha podido cambiar de materia. "
+		                       "La teoria del autor es que existe una "
+		                       "race en el servidor. Si bajase los "
+		                       "archivos, estaría mezclando carpetas"));
+		        return ;
+		}
 		
 		assert(len_url>0);
 		len =  len_q   + (q[len_q-1]!='/')  + 
@@ -734,7 +743,8 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 					rename(download,local);
 				else
 				{	remove(download);
-					rs_log_error("downloading %s",file);
+					rs_log_error("downloading: %s",
+					 iol_get_network_error(d->iol));
 				}
 
 				g_free(download);
