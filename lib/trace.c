@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- library for network deltas
- * $Id: trace.c,v 1.6 2003/04/10 04:17:02 juam Exp $
+ * $Id: trace.c,v 1.7 2003/04/10 12:39:48 juam Exp $
  *
  * Copyright (C) 2000, 2001 by Martin Pool <mbp@samba.org>
  *
@@ -55,6 +55,9 @@
 
 #ifdef HAVE_UNISTD_H
  #include <unistd.h>
+#else
+  int vsnprintf(char *str, size_t size, const char  *format, va_list ap);
+  size_t write (int __fd, __const void *__buf, size_t __n) ;
 #endif
 
 #ifdef WIN32
@@ -65,9 +68,6 @@ rs_trace_fn_t  *rs_trace_impl = rs_trace_stderr;
 int rs_trace_fd = 2;
 
 int rs_trace_level = RS_LOG_INFO;
-
-int vsnprintf(char *str, size_t size, const char  *format, va_list ap);
-size_t write(int fd, const void *buf, size_t count);
 
 static void rs_log_va(int level, char const *fn, char const *fmt, va_list va);
 
