@@ -327,7 +327,7 @@ link_parser_new(void)
 		parser->i = parser->j = 0;
 		parser->link_fnc = NULL ;
 		parser->user_data = NULL;
-		parser->st = st_new(link_table,  NELEMS(link_table), ST_START,
+		parser->st = stm_new(link_table,  NELEMS(link_table), ST_START,
 		                    parser);
 		if( parser->st == NULL )
 		{	free(parser);
@@ -351,7 +351,7 @@ void
 link_parser_set_debug(link_parser_t parser, int b)
 {	
 	if( IS_PARSER(parser) )
-		st_set_debug(parser->st, b ? link_internal_debug : NULL );
+		stm_set_debug(parser->st, b ? link_internal_debug : NULL );
 }
 
 void
@@ -366,12 +366,23 @@ link_parser_set_link_callback(link_parser_t parser,link_callback call, void *d )
 int
 link_parser_process_char( link_parser_t parser, int c )
 {
-	return st_parse(parser->st, c);
+	return stm_parse(parser->st, c);
 }
 
 void
 link_parser_end(link_parser_t parser)
-{
+{	int state;
+
+	/* we have a link in the buffer, but the author forgot about
+	 * the </a>. the comment should be ignored
+	 */
+
+	state = stm_get_state(parser->st);
+	if( state == ST_TAG_A_END || 
+	    state == ST_TAG_A_END_IS_SLASH ||
+	    state == ST_TAG_A_END_IS_SLASH_A_OTHER)
+	    	(*parser->link_fnc)(parser->link, "", parser->user_data);
+
 }
 
 
