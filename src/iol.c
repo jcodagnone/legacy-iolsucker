@@ -1179,20 +1179,6 @@ struct tmp_resync_getfile
 	iol_t iol;
 };
 
-static unsigned
-get_tty_columns( void )
-{	const char *env = getenv("COLUMNS");
-	unsigned columns = 80;
-	
-	if( env )
-	{	columns = atoi(env);
-		if( columns == 0 )
-			columns = 80;
-	}
-
-	return columns;
-}
-
 /** print some information of the url we are downloading to a log/tty */
 static void
 inform_url_and_date( FILE *fp, const char *url )
@@ -1209,7 +1195,7 @@ inform_url_and_date( FILE *fp, const char *url )
 		return;
 
 	if( columns == 0 )
-		columns = get_tty_columns();
+		columns = determine_screen_width();
 
 	fprintf(fp,"--");
 	if( !bTTY )

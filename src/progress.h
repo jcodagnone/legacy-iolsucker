@@ -15,4 +15,6 @@ int
 bar_progress_callback( struct progress *p, double dltotal, double dlnow,
                        double ultotal, double ulnow);
 
+int determine_screen_width (void);
+
 #endif

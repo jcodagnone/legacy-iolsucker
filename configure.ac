@@ -47,7 +47,7 @@ AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h string.h limits.h])
 AC_CHECK_HEADERS([syslog.h unistd.h fcntl.h])
 AC_CHECK_HEADERS([sys/time.h sys/file.h])
-AC_CHECK_HEADERS([termios.h])
+AC_CHECK_HEADERS([termios.h sys/ioctl.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
