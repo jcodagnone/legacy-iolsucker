@@ -77,7 +77,7 @@ suck(struct opt *opt)
 		int set;
 		void *data;
 		const char *report;
-	} settings_table[] =
+	} settings_table[] = /* this code is not ansi, but is pretty */
 	{ { IOL_REPOSITORY,  opt->repository, "repository" },
 	  { IOL_PROXY_HOST,  opt->proxy,      "proxy's host" },
 	  { IOL_PROXY_USER,  opt->proxy_user, "proxy's user" },

@@ -18,9 +18,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-/*
- * TODO: XSD or DTD!
+/**
+ * \todo XSD or DTD!
  */
+ 
 #ifdef HAVE_CONFIG_H
   #include <config.h>
 #endif
@@ -33,6 +34,7 @@
 #include <libxml/parser.h>
 #include <glib.h>
 
+#include <strdup.h>
 #include <trace.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -43,100 +45,104 @@
 
 #define IOL_RC ".iolrc"
 
-static void
-parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
-{ 	xmlChar *key;
-	cur = cur->xmlChildrenNode;
-	while (cur != NULL) 
-	{
-		if ((!xmlStrcmp(cur->name, (const xmlChar *)"user"))) 
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode, 1);
-			if( opt->username[0] == 0 && key )
-			{  strncpy(opt->username,key,sizeof(opt->username));
-				opt->username[sizeof(opt->username)-1] = 0;
-	 		}
-	 		xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"pass")))
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1); 
-			if( key )
-			{ strncpy(opt->password,key,sizeof(opt->password));
-				opt->password[sizeof(opt->password) -1 ] = 0;
-			}
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"rep")))
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			if( opt->repository[0]==0 &&  key )
-			{  strncpy(opt->repository,key,sizeof(opt->repository));
-				opt->repository[sizeof(opt->repository)-1] = 0;
-			}
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"fancy")))
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			opt->fancy = 1;
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"forum")))
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			opt->forum = 1;
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"wait")))
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			opt->wait = 1;
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"host")))
-		{	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			opt->server = strdup(key);
-			xmlFree(key);
-		}
-		cur = cur->next;
-	}
+#define NELEMS(q)	(sizeof(q)/sizeof(*(q)))
 
-	return;
+enum config_type
+{ 	CT_SZ,
+	CT_FLAG
+};
+
+struct config
+{	const unsigned char *key;
+	void *data;
+	size_t size;	/* CT_SZ: size of string */
+	enum config_type type;
+};
+
+static const struct config *
+config_find_entry( const unsigned char *name, const struct config *table,
+                   size_t n)
+{	const struct config *ret = NULL;
+	size_t i;
+
+	for( i=0 ; i< n && !ret; i++)
+	{	if( !strcmp( (char *)name, (char *)table[i].key) )
+			ret = table + i;
+	}
+	
+	return ret;
 }
 
 static void
-parse_proxy (xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
-{ 	xmlChar *key;
-	cur = cur->xmlChildrenNode;
-	while (cur != NULL) 
-	{ 	if ((!xmlStrcmp(cur->name, (const xmlChar *)"host"))) 
-		{	key = xmlNodeListGetString(doc,cur->xmlChildrenNode, 1);
-			if( key )
-				opt->proxy = strdup(key);
-	 		xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"user")))
-		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1); 
-			if( key )
-				opt->proxy_user = strdup(key);
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"type")))
-		{	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			if( key )
-			{	if( !strcmp(key, "socks5") )
-					opt->proxy_type ="socks5";
-				else if( !strcmp(key, "http" ) )
-					opt->proxy_type = "http";
-				else
-					opt->proxy_type = "";
-			}
-			xmlFree(key);
-		}
-		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"text")))
-			;
-		else
-			rs_log_warning(_("unknown tag: `%s'"),cur->name);
+config_load_table( xmlDocPtr doc, xmlNodePtr cur,
+                   const struct config *table, size_t n)
+{ 	const struct config *current;
+	xmlChar *key;
+	unsigned char *t;
+	char **s;
+	int *p;
 
-		cur = cur->next;
+	for( cur = cur->xmlChildrenNode ; cur ; cur = cur->next )
+	{
+		current = config_find_entry(cur->name, table, n);
+		key = xmlNodeListGetString(doc,cur->xmlChildrenNode, 1);
+		if( current && key )
+		{	if( current->type == CT_SZ )
+			{	
+				if( current->size ) 
+				{ 	t = current->data;
+					strncpy(t, key, current->size);
+					t[current->size-1] = 0;
+				}
+				else
+				{	s = current->data;
+					*s = strdup(key);
+				}
+			}
+			else if( current->type == CT_FLAG )
+			{	p = current->data;
+				*p = 1;
+			}
+			else 
+				assert(0);
+		}
+	 	xmlFree(key);
 	}
-	
-	return;
+}
+                       
+static void
+parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
+{	struct config login[]=
+	{	{  "user", &(opt->username), sizeof(opt->username), CT_SZ },
+		{  "pass", &(opt->password), sizeof(opt->password), CT_SZ },
+		{  "rep",  &(opt->repository), sizeof(opt->repository), CT_SZ },
+		{  "fancy",&(opt->fancy), 0, CT_FLAG },
+		{  "wait", &(opt->wait),  0, CT_FLAG },
+		{  "host", &(opt->server),  0, CT_SZ },
+	};
+
+	config_load_table(doc, cur, login, NELEMS(login));
+}
+
+static void
+parse_proxy(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
+{	char *ptype = NULL;
+	struct config proxy[]=
+	{	{ "host", &(opt->proxy),      0, CT_SZ },
+		{ "user", &(opt->proxy_user), 0, CT_SZ },
+		{ "type", &(ptype),           0, CT_SZ },
+	};
+
+	config_load_table(doc, cur, proxy, NELEMS(proxy));
+
+	if( ptype )
+	{ 	if( !strcmp(ptype, "socks5") )
+			opt->proxy_type ="socks5";
+		else if( !strcmp(ptype, "http" ) )
+			opt->proxy_type = "http";
+		else
+			opt->proxy_type = "";
+	}
 }
 
 static int
@@ -164,9 +170,9 @@ parse_config(const char *docname, struct opt *opt)
 		return -1;
 	}
 
-	cur = cur->xmlChildrenNode;
-	while (cur != NULL) {
-		if ((!xmlStrcmp(cur->name, (const xmlChar *)"login")))
+	
+	for( cur = cur->xmlChildrenNode; cur != NULL ;  cur = cur->next)
+	{ 	if ((!xmlStrcmp(cur->name, (const xmlChar *)"login")))
 			parse_login (doc, cur, opt);
 		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"proxy")))
 			parse_proxy (doc, cur, opt);
@@ -175,7 +181,6 @@ parse_config(const char *docname, struct opt *opt)
 		else
 			rs_log_warning(_("unknown tag: `%s'"),cur->name);
 
-		cur = cur->next;
 	}
 
 	xmlFreeDoc(doc);
