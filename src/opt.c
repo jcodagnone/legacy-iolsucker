@@ -106,7 +106,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*10*/ {"n",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL },
 	 /*11*/ {"dry-run",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL },
 	 /*12*/ {"t",           OPT_NORMAL, 1,  OPT_T_GENER,  NULL },
-	 /*13*/ {"proxy-type",  OPT_NORMAL, 1,  OPT_T_GENER,  NULL },
+	 /*13*/ {"proxy-type",  OPT_NORMAL, 0,  OPT_T_GENER,  NULL },
 	 /*14*/ {"v",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL  },
 	 /*15*/ {"verbose",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL  },
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
