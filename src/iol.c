@@ -59,6 +59,11 @@
 #include "progress.h"
 #include "cache.h"
 
+#ifdef IOLDEMO
+  #define curl_easy_setopt(c,p,q) ioldemo_curl_easy_setopt(c,p,(void *)q)
+  int ioldemo_curl_easy_setopt(CURL *c, unsigned f, void *q); 
+#endif
+
 /** User Agent string reported to the webserver */
 #ifdef WIN32
 	#define USERAGENT	"iolsucker ("VERSION"; Windows )"
@@ -620,7 +625,9 @@ iol_set_current_course(iol_t iol, const char *course)
 		return E_MEMORY;
 
 	s = g_strdup_printf(URL_CHANGE,course);
+	#ifndef IOLDEMO
 	sleep(5); 
+	#endif
 	if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
 		ret = E_NETWORK;
 	g_free(s);
