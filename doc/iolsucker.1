@@ -1,0 +1,176 @@
+.\" .TH = manual's title
+.\" .SH = section heading
+.\" .TP = Formats options correctly (sets up the "hanging indent")
+.\" .LP = used between paragraphs sections
+.\" .B  = bold
+.\" .I  = italic
+.\" .br = line break
+.\" \(bu bullet
+.\" \(dg cross
+.\" comment
+.\" See man groff_man
+
+.\" Macros
+.de EXAMPLE .\" Format de los ejemplos
+.RS 10
+.BR "\\$1"
+.RE
+..
+
+.TH IOLSUCKER @VERSION@ @DATE@
+.LO 1
+.SH NAME
+iolsucker \- cliente no interactivo para IOL
+
+.SH SYNOPSIS
+.HP 10
+.BR iolsucker
+.RB [ \-hnV ]
+.RB [ \-\-help ] 
+.RB [ \-\-version ]
+.RB [ \-\-dry\-run ]
+.RB [ \-\-user\  username]
+.RB [ \-x\  <host[:port]> ]
+.RB [ \-U\  <username[:password]> ]
+
+
+.SH DESCRIPTION
+
+.BR iolsucker
+es un cliente no interactivo para acceder a los contentenidos de 
+IOL, de la forma más eficiente posible.
+¿Por que utilizar un cliente no interactivo? Porque mantener archivos
+sincronizados usando una interfase web y el mouse  es dificil y aburrido:
+mientras haya una materia, hay que entrar a la materia, ir al material
+didactico, y por cada carpeta que allí existe, ver si hay algun archivo nuevo.
+
+.SH OPCIONES
+
+.IP "\fB-h\fR, \fB\-\-help\fR"
+muestra la ayuda y muere
+.IP "\fB\-V\fR, \fB\-\-version\fR"
+muestra la información de la version y muere
+.IP "\fB\-\-user\fR username"
+especifica el usuario con el cual se ingresará al sistema. La contraseña se le
+será pedida si no se encuentra en algun archivo de documentación.
+.IP "\fB\-n\fR, \fB\-\-dry\-run\fR"
+corre en seco: no descarga ningún archivo. Solo reporta cambios.
+.IP "\fB\-x\fR, \fB--proxy\fR <host[:port]>"
+.BR iolusucker
+intentará usar como proxy de HTTP a \fIhost\fR. Si un puerto
+no se especifica entonces se usará el 1080.
+.IP "\fB-U\fR <usuario[:password]>
+usuario y contraseña para el proxy (si es que lo necesita). Si no especifica
+la password se le preguntará desde la entrada estandar. No es aconsejable
+especificar la password desde la línea de comandos.
+
+.SH "CONFIGURACION"
+.BR iolsucker 
+puede recibir sus opciones tanto desde la línea de comandos, como
+desde un archivo de configuración.
+Las opciones de la línea de comandos tiene mayor prioridad que las del
+archivo. 
+El programa, por defecto, siempre busca la configuración en el  archivo 
+\fB~/.iolrc\fR. 
+Otra archivo se puede especificar usando la opción \fB\-f\fR.
+
+El archivo de configuración tiene una estructura jerarquica:
+.PP
+<?xml version="1.0"?>
+.br
+<iolsucker>
+.br
+	<login>
+.br 
+		<user>29245511</user>
+.br
+		<pass>miPassw0rd</pass>
+.br
+		<rep>/tmp/iol</rep>
+.br
+	</login>
+.br
+	<proxy>
+.br
+		<host>192.168.12.1:1080</host>
+.br
+		<user>usuario:password</user>
+.br
+	</proxy>
+.br
+</iolsucker>
+
+Todos los nodos pueden estar ausentes: tanto login y proxy, como cualquiera de
+sus hijos.
+.PP
+Si no tiene idea de como generar como crear el archivo, use la
+utilidad 
+.BR iolwizard (1).
+
+.SH ACLARACIONES
+Usted notará que muchos (o todos!) los mensajes de errores y de comunicacion
+con el usuario estan en idioma ingles (estaré un poco loco, pero no tanto).
+La causa de esto, es que el programa esta construido sobre codigos fuentes
+que reutilizo con frecuencia y por ello el ingles, y otras librerias que salen
+de la comunidad internacional. 
+Éstas librerías en general soportan la internalización (i18n) y la
+localización, por lo que tambien estan disponibles los mensajes en español. 
+Por otro lado, todas las cadenas de mis códigos estan marcadas y listas para
+ser traducidas al español.  Asi que no todo es descabellado.
+
+El autor (y sus familiares) no esta afiliado, ni tiene conexion directa on IOL.
+El programa nacio para llenar un nicho faltante en el sistema.
+
+.SH EJEMPLOS
+
+.IP \(bu 4 
+Say you want just to set up the proxy at the port 11011 with no \
+filter.
+.EXAMPLE "pop3filter pop3.isp.net 110 11011"
+
+.IP \(bu
+Now you want to catch all request on your network going to 
+.BR pop3.isp.net 
+so the thing goes transparent. If you use Linux(\*(Tm) 2.4, with Netfilter:
+.EXAMPLE "/usr/sbin/iptables \-t nat \-A PREROUTING \-i eth0 \-p tcp \-d \
+pop3.isp.net --dport 110 -j REDIRECT --to 11011
+
+.IP  \(bu
+Now you want to leave the program running as a daemon?
+.EXAMPLE "pop3filter -f pop3.isp.net 110 11011 "
+
+
+.SH BUGS
+See the
+.I BUGS
+file in the distribution.
+
+.SH HISTORIA
+
+.BR iolsucker
+nació como un script para bash un sabado por la tarde. El script consistía de
+456 lineas. Para desperdiciar un poco de tiempo y probar algunas cosas
+(archivos de configuración xml) se escribió esta version en lenguaje C. 
+
+.SH AUTHOR
+Original written by Juan F. Codagnone <juam@users.sourceforge.net>
+
+.SH COPYRIGHT
+.PP 
+Copyright (c) 2003 Juan F. Codagnone.
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.PP
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the \s-1GNU\s0 Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``\s-1GNU\s0 General Public License'' and
+``\s-1GNU\s0 Free
+Documentation License'', with no Front-Cover Texts, and with no
+Back-Cover Texts.  A copy of the license is included in the section
+entitled ``\s-1GNU\s0 Free Documentation License''.
+
+.SH "SEE ALSO"
+.BR iolwizard (8),
