@@ -199,105 +199,105 @@ embeeded_goto_end(int c, void *data) /* @fextract@ */
 
 /* state table */
 static ST_PARSE st_start[]=
-{	{ ST_CHAR,	'<',	ST_TAG  ,	NULL },
-	{ ST_FUNC,	ELSE,	ST_START,	NULL },
+{	{ ST_CHAR,	(void *)'<',	ST_TAG  ,	NULL },
+	{ ST_FUNC,	ELSE       ,	ST_START,	NULL },
 };
 
 static ST_PARSE st_tag[]=
-{	{ ST_CHAR,	'>',	ST_START  ,	NULL	},
-	{ ST_LCHAR,	'a',	ST_ISTAG_A,	init_parser},
-	{ ST_FUNC,	ELSE,	ST_OTHERTAG,	NULL	}
+{	{ ST_CHAR,	(void *)'>',	ST_START  ,	NULL	},
+	{ ST_LCHAR,	(void *)'a',	ST_ISTAG_A,	init_parser},
+	{ ST_FUNC,	ELSE       ,	ST_OTHERTAG,	NULL	}
 };
 
 static ST_PARSE st_istag_a[]=
-{	{ ST_FUNC,	isspace,ST_TAG_A,	NULL	},
-	{ ST_CHAR,	'>',   	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_OTHERTAG,	NULL	}
+{	{ ST_FUNC,	isspace    ,	ST_TAG_A,	NULL	},
+	{ ST_CHAR,	(void *)'>',   	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_OTHERTAG,	NULL	}
 };
 
 static ST_PARSE st_othertag[]= 
-{	{ ST_CHAR,	'>',	ST_START,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_OTHERTAG,	NULL	}
+{	{ ST_CHAR,	(void *)'>',	ST_START,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_OTHERTAG,	NULL	}
 };
 
 static ST_PARSE st_tag_a[]=
-{	{ ST_LCHAR,	'h',	ST_TAG_A_H,	NULL	},
-	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	isspace,ST_TAG_A_H,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A_OTHER,	NULL	}
+{	{ ST_LCHAR,	(void *)'h',	ST_TAG_A_H,	NULL	},
+	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	isspace    ,	ST_TAG_A_H,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A_OTHER,	NULL	}
 };
 
 static ST_PARSE st_tag_a_other[]=
-{	{ ST_FUNC,	isspace,ST_TAG_A,	NULL	},
-	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A_OTHER,	NULL	}
+{	{ ST_FUNC,	isspace    ,	ST_TAG_A,	NULL	},
+	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A_OTHER,	NULL	}
 };
 
 static ST_PARSE st_tag_a_h[]=
-{	{ ST_LCHAR,	'r',	ST_TAG_A_HR,	NULL	},
-	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}  
+{	{ ST_LCHAR,	(void *)'r',	ST_TAG_A_HR,	NULL	},
+	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A,	NULL	}  
 };
 
 static ST_PARSE st_tag_a_hr[]=
-{	{ ST_LCHAR,	'e',	ST_TAG_A_HRE,	NULL	},
-	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}
+{	{ ST_LCHAR,	(void *)'e',	ST_TAG_A_HRE,	NULL	},
+	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A,	NULL	}
 };
 
 static ST_PARSE st_tag_a_hre[]=
-{	{ ST_LCHAR,	'f',	ST_TAG_A_HREF,	NULL	},
-	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}
+{	{ ST_LCHAR,	(void *)'f',	ST_TAG_A_HREF,	NULL	},
+	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A,	NULL	}
 };
 
 static ST_PARSE st_tag_a_href[]=
-{	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_CHAR,	'=',	ST_TAG_A_HREF_EQ,NULL	},
-	{ ST_FUNC,	isspace,ST_TAG_A_HREF,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}
+{	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_CHAR,	(void *)'=',	ST_TAG_A_HREF_EQ,NULL	},
+	{ ST_FUNC,	isspace    ,	ST_TAG_A_HREF,	NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A,	NULL	}
 };
 
 static ST_PARSE st_tag_a_href_eq[]=
-{	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
-	{ ST_FUNC,	isspace,ST_TAG_A_HREF_EQ, NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A_HREF_EQ_READ,	link_first_char},
+{	{ ST_CHAR,	(void *)'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	isspace    ,	ST_TAG_A_HREF_EQ, NULL	},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A_HREF_EQ_READ,link_first_char},
 };
 
 static ST_PARSE st_tag_a_href_eq_read[]=
-{	{ ST_CHAR,	'"',	ST_TAG_A,	endlink },
-	{ ST_CHAR,	'\'',	ST_TAG_A,	endlink },
-	{ ST_CHAR,	'>',	ST_TAG_A_END,	endlink },
-	{ ST_FUNC,	ELSE,	ST_TAG_A_HREF_EQ_READ,	add_char   }
+{	{ ST_CHAR,	(void *)'"' ,	ST_TAG_A,	endlink },
+	{ ST_CHAR,	(void *)'\'',	ST_TAG_A,	endlink },
+	{ ST_CHAR,	(void *)'>' ,	ST_TAG_A_END,	endlink },
+	{ ST_FUNC,	ELSE        ,	ST_TAG_A_HREF_EQ_READ,	add_char   }
 };
 
 static ST_PARSE st_tag_a_end[]=
-{	{ ST_CHAR, 	'<',	ST_TAG_A_END_IS_SLASH,	NULL        	},
-	{ ST_FUNC, 	ELSE,   ST_TAG_A_END,         	addcomment	}
+{	{ ST_CHAR, 	(void *)'<',	ST_TAG_A_END_IS_SLASH,	NULL      },
+	{ ST_FUNC, 	ELSE       ,    ST_TAG_A_END,         	addcomment}
 };
 
 static ST_PARSE st_tag_a_end_is_slash[]=
-{	{ ST_FUNC,	isspace,	ST_TAG_A_END_IS_SLASH,  	NULL },
-	{ ST_CHAR,	'/',   		ST_TAG_A_END_IS_SLASH_A,	NULL },
-	{ ST_LCHAR,	'a',   		ST_TAG_A_END_IS_A_AGAIN,	NULL },
-	{ ST_FUNC,	ELSE,    	ST_TAG_A_END,              e_is_slash},
+{	{ ST_FUNC,	isspace    ,	ST_TAG_A_END_IS_SLASH,  	NULL },
+	{ ST_CHAR,	(void *)'/',	ST_TAG_A_END_IS_SLASH_A,	NULL },
+	{ ST_LCHAR,	(void *)'a',	ST_TAG_A_END_IS_A_AGAIN,	NULL },
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A_END,              e_is_slash},
 };
 
 static ST_PARSE st_tag_a_end_is_slash_a[]=
-{	{ ST_LCHAR,	'a',	ST_TAG_A_END_IS_SLASH_A_OTHER,	NULL	},
-	{ ST_FUNC,	ELSE,	ST_TAG_A_END,                 	e_slash_a}
+{	{ ST_LCHAR,	(void *)'a',	ST_TAG_A_END_IS_SLASH_A_OTHER,	NULL},
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A_END,	e_slash_a}
 };
 
 static ST_PARSE st_tag_a_end_is_slash_a_other[]=
-{	{ ST_CHAR,'>',    	ST_START,	done_link },
-	{ ST_FUNC,isspace,    	ST_START,	done_link },
-	{ ST_FUNC,ELSE,    	ST_TAG_A_END,	e_slash_a_other}
+{	{ ST_CHAR,	(void *)'>',	ST_START,	done_link },
+	{ ST_FUNC,	isspace    ,	ST_START,	done_link },
+	{ ST_FUNC,	ELSE       ,	ST_TAG_A_END,	e_slash_a_other}
 };
 
 /* embeeded link in what is supposed to be the link text */
 static ST_PARSE st_tag_a_end_is_a_again[]=
-{ 	{ ST_FUNC,      isspace,ST_TAG_A,       done_link },
-	{ ST_FUNC,      ELSE,   ST_TAG_A_END,   embeeded_goto_end }
+{ 	{ ST_FUNC,      isspace,	ST_TAG_A,       done_link },
+	{ ST_FUNC,      ELSE   ,	ST_TAG_A_END,   embeeded_goto_end }
 };
 
 static ST_PARSE *link_table[]=
