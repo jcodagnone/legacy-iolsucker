@@ -120,6 +120,11 @@ El archivo de configuración tiene una estructura jerarquica:
 		<user>usuario:password</user>
 .br
 		<type>socks5</type>
+.br	
+		<fancy></fancy>
+.br
+                <forum/>
+.br
 	</proxy>
 .br
 </iolsucker>
@@ -129,6 +134,12 @@ como proxy, y como cualquiera de sus hijos.
 .PP
 Si no tiene idea de como generar como crear el archivo, use la utilidad 
 .BR iolwizard. 
+
+.SH CAMBIOS
+Si la pantalla no es suficiente para usted para notar los cambios (no todas
+las consolas tienen historia), puede ver los cambios en el archivo 
+.Icambios.txt
+que se encuentra en el repositorio.
 
 .SH ACLARACIONES
 Usted notará que muchos (o todos!) los mensajes de errores y de comunicación
