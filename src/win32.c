@@ -262,8 +262,8 @@ load_config_file(struct opt *opt)
 	struct config_bool table_bool[] =
 	{	{ IOL_DRY,	&(opt->dry),	0},
 		{ IOL_FANCY,	&(opt->fancy),	0},
-		{ IOL_FORUM,	&(opt->forum),	0}
-		{ IOL_WAIT,	&(opt->wait),	0}
+		{ IOL_FORUM,	&(opt->forum),	0},
+		{ IOL_WAIT,	&(opt->wait),	0},
 		{ IOL_VERBOSE,	&(opt->verbose),0}
 	};
 
