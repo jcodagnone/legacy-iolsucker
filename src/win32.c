@@ -134,6 +134,19 @@ save_config_file(struct opt *opt)
 	return r == 1 ? 0 : -1;
 }
 
+static void 
+print_verbose(const struct opt *opt)
+{	FILE *fp = stderr;
+
+	fprintf(fp,"user: %s\n",opt->username);
+	fprintf(fp,"rep: %s\n", opt->repository);
+       	fprintf(fp,"proxy_type: %s\n",opt->proxy_type);
+        if( opt->proxy ) 
+        	fprintf(fp,"proxy: %s\n",opt->proxy);
+        if( opt->proxy_user ) 
+        	fprintf(fp,"puser: %s\n",opt->proxy_user);
+}
+
 int 
 load_config_file(struct opt *opt)
 {	char buf[512];
@@ -202,6 +215,8 @@ load_config_file(struct opt *opt)
 	                        sizeof(buf) ) == TRUE )
 	 	opt->dry = buf[0] - '0' != 0;
 
+	if( opt->debug )
+		print_verbose(opt);
 	
 	return 0;
 }
