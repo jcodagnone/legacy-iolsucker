@@ -155,6 +155,7 @@ win32/iolwizard/Makefile
 win32/iolunch/Makefile
 extra/Makefile
 extra/inst/Makefile
+debian/Makefile
 iolunch/Makefile
 iolwizard/Makefile])
 

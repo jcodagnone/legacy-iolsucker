@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign dist-bzip2
 
 EXTRA_DIST = TODO NOTES
 
-SUBDIRS = bin lib src doc win32 iolwizard iolunch extra
+SUBDIRS = bin lib src doc win32 iolwizard iolunch extra debian
 
 WINPREFIX = /tmp/iol/$(distdir)
 windist:	dist	doc/iolsucker.html
