@@ -273,7 +273,7 @@ load_config_file(struct opt *opt)
 		{ IOL_PROXY_HOST, &(opt->proxy),0, 0},
 		{ IOL_PROXY_TYPE, &(proxy_type),0, 0},
 		{ IOL_PROXY_USER, &(opt->proxy_user), 0, 1 },
-		{ IOL_HOST,	&(opt->server), 0, 0 }
+		{ IOL_HOST,	&(opt->server), 0, 0 },
 		{ IOL_DUMP,	&(opt->dump), 0, 0 }
 	};
 	struct config_bool table_bool[] =
