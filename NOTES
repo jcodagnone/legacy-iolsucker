@@ -1,4 +1,29 @@
+iolsucker-2.0.16: `Versión trabajadora' (01/05/03)
 
+Features:
+  o capabilities: ahora cuando cambiamos de contexto (materia) aprovechamos la
+    info que nos manda el serves para determinar que cosas se puede hacer
+    sobre la materia (si tiene material didáctico, etc) Ahora por ejemplo se
+    detecta que el CEITBA  tiene para bajar archivos.
+
+Bugfix:
+  o reescribí el parser de links en tablas (ala eam@itba). Mucho más fácil
+    de mantener. La tabla en un principio fue la misma que antes (ver
+    siguiente ítem)
+  o Mucho de los links de las páginas de iol no están escrito dumb friendly:
+    hay por ejemplo <a href="foo"> ... <a>   
+    (sin </a>). Un caso especifico era los links para ordenar material
+    didáctico. Esto no permitía que detectaramos el primer archivo/carpeta
+    de material didáctico.
+
+   Desgraciadamente la implementación de snprintf que usábamos en windows, 
+   tenia problemas. Decidí actualizar a libtrio que tiene otras funciones 
+   útiles.  Desgraciadamente esto ha aumentado el tamaño de los binarios
+   considerablemente.
+
+   Para mas información mas detallada en los cambios
+       http://embryos.homeip.net/~juam/code/iolsucker/changelog.html
+------------------------------------------------------------------------------- 
 iolsucker-2.0.15: `viernes santo'
 
   o  Mejor empaquetamiento del proyecto del msvc. El cvs estaba corrompiendo
@@ -13,8 +38,7 @@ Introducción:
   cambios son pequeñas cosas. Lo único que realmente se nota es que ya no
   esperamos  5 segundos sin hacer nada entre cada materia (ver abajo).
 
-  Para mas información mas detallada en los cambios
-       http://embryos.homeip.net/~juam/code/iolsucker/changelog.html
+  
       
 Bugfixes:
   o  mostrar correctamente el porcentaje cuando la barra de progresión 
