@@ -64,7 +64,7 @@ struct tmp
 	GtkWidget *hwnd, *frame_proxy;
 	GtkWidget *edtUser, *edtPass, *edtRep;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
-	GtkWidget *chkDry, *chkFancy;
+	GtkWidget *chkDry, *chkFancy, *chkForum;
 	char *msg;
 };
 
@@ -194,6 +194,7 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(tmp->spnPort),(double)1080);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkDry), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkFancy), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkForum), 0);
 
 }
 
@@ -279,7 +280,13 @@ fancy_fnc( GtkWidget *widget, struct tmp *tmp )
 {
 	tmp->opt->fancy = 
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkFancy));
-	g_print("%d", tmp->opt->fancy );
+}
+
+static void
+forum_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->forum =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkForum));
 }
 
 /*
@@ -404,34 +411,43 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 static void
 create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *chkDry, *chkFancy;
+{ 	GtkWidget *chkDry, *chkFancy, *chkForum;
 	GtkWidget *vbox;
 
 	/* extra frame */
 	vbox = gtk_vbox_new(FALSE, 0);
 	chkDry   = gtk_check_button_new_with_label(_("Dry Run"));
 	chkFancy = gtk_check_button_new_with_label(_("Fancy Names"));
+	chkForum = gtk_check_button_new_with_label(_("Resync Foros"));
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
 	gtk_box_pack_start(GTK_BOX(vbox), chkDry,   FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), chkFancy, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), chkForum, FALSE, FALSE, 0);
 
 	/* signals */
 	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
 	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkFancy),"toggled",
 	                           GTK_SIGNAL_FUNC(fancy_fnc), tmp);
+	gtk_signal_connect(GTK_OBJECT(chkForum),"toggled",
+	                           GTK_SIGNAL_FUNC(forum_fnc), tmp);
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
          _("activar la ejecucion en seco: no se descarga ningun archivo"),NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkFancy,
 	 _("usar el nombre de la materia, como nombre de directorio"),NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkForum,
+	 _("resincronizar los foros? por ahora solo advierte de cambios en los"
+	   "los foros. (no baja los mensajes)"),NULL);
 	/* save data */
 	tmp->chkDry = chkDry;
 	tmp->chkFancy = chkFancy;
+	tmp->chkForum = chkForum;
 
 	/* default values */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkFancy),tmp->opt->fancy);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkForum),tmp->opt->forum);
 }
 
 
