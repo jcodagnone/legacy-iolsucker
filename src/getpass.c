@@ -22,7 +22,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * ============================================================================
  *
- * $Id: getpass.c,v 1.1 2003/02/24 18:47:28 juam Exp $
+ * $Id: getpass.c,v 1.2 2003/02/25 18:28:19 juam Exp $
  *
  * The spirit of this license is to allow use of this source code in any
  * project be it open or closed but still encourage the use of the open,
@@ -42,7 +42,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #include "../config.h"
+  #ifdef WIN32
+    #include "../configwin.h"
+  #else
+    #include "../config.h"
+  #endif
 #endif
 
 #ifndef HAVE_GETPASS_R

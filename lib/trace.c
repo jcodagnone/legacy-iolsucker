@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- library for network deltas
- * $Id: trace.c,v 1.2 2003/02/19 19:59:38 juam Exp $
+ * $Id: trace.c,v 1.3 2003/02/25 18:28:19 juam Exp $
  *
  * Copyright (C) 2000, 2001 by Martin Pool <mbp@samba.org>
  *
@@ -39,22 +39,26 @@
 #define _GNU_SOURCE
 
 
-#include <unistd.h>
 #include <stdio.h>
-#include <sys/file.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <syslog.h>
 
 #include "trace.h"
+#include "../config.h"
 
+#ifdef HAVE_UNISTD_H
+ #include <unistd.h>
+#endif
 
+#ifdef WIN32
+	#include <process.h>
+#endif
 
 rs_trace_fn_t  *rs_trace_impl = rs_trace_stderr;
-int rs_trace_fd = STDERR_FILENO;
+int rs_trace_fd = 2;
 
 int rs_trace_level = RS_LOG_INFO;
 
@@ -134,14 +138,12 @@ void rs_format_msg(char *buf,
         strcpy(buf, rs_program_name);
         len = strlen(buf);
     }
-/*
+
     if (!(flags & RS_LOG_NO_PID)) {
         sprintf(buf+len, "[%d] ", (int) getpid());
     } else if (~flags & RS_LOG_NO_PROGRAM) {
- */   
         strcat(buf+len, ": ");
- /*   }
- */
+    }
     len = strlen(buf);
 
     sv = rs_severities[level];
@@ -182,21 +184,6 @@ void rs_log0(int level, char const *fn, char const *fmt, ...)
     va_start(va, fmt);
     rs_log_va(level, fn, fmt, va);
     va_end(va);
-}
-
-
-void
-rs_trace_syslog(int flags, const char *fn, char const *fmt, va_list va)
-{
-    /* NOTE NO TRAILING NUL */
-    char buf[4090];
-
-    /* you're never going to want program or pid in a syslog message,
-     * because it's redundant. */
-    rs_format_msg(buf, sizeof buf,
-                  flags | RS_LOG_NO_PROGRAM | RS_LOG_NO_PID,
-                  fn, fmt, va);
-    syslog(flags & RS_LOG_PRIMASK, "%s", buf);
 }
 
 

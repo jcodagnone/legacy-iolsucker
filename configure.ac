@@ -102,8 +102,12 @@ doc/Makefile
 doc/iolsucker.1
 doc/iolwizard.1
 lib/Makefile
-iolwizard/Makefile
-src/Makefile]
+src/Makefile
+win32/Makefile
+win32/libmisc/Makefile
+win32/iolsucker/Makefile
+win32/iolwizard/Makefile
+iolwizard/Makefile]
 )
 
 

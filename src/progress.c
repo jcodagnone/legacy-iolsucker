@@ -31,7 +31,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #include "../config.h"
+  #ifdef WIN32
+    #include "../configwin.h"
+  #else
+    #include "../config.h"
+  #endif
 #endif
 
 #include <stdio.h>
@@ -43,6 +47,9 @@
    #include <sys/time.h>
 #endif
 
+#ifdef WIN32
+   #include <windows.h>
+#endif
 #include <glib.h>
 #include "i18n.h"
 

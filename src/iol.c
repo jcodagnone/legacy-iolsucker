@@ -20,7 +20,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #include "../config.h"
+  #ifdef WIN32
+    #include "../configwin.h"
+  #else
+    #include "../config.h"
+  #endif
 #endif
 
 #include <stdio.h>
@@ -32,7 +36,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef HAVE_ISATTY
+#ifdef HAVE_UNISTD
   #include <unistd.h>
 #else
   #define isatty(m) (1)
@@ -55,7 +59,7 @@
 
 /** User Agent string reported to the webserver */
 #define USERAGENT	"Links (0.97; Unix; 80x25)"
-#define COOKIEFILE	"cookieiol"
+#define COOKIEFILE	".iolcookie"
 
 #define IOL_HOST        "silvestre.itba.edu.ar"
 #define IOL_PATH        "itbaV"
@@ -108,10 +112,11 @@ enum TP_FLAGS
  * gets the path were we save the cookies */
 static char *
 get_cookies_file(void)
-{	char *nRet,*p;
-	size_t n;
+{	char *nRet, *p, *q = COOKIEFILE;
+	char c = SYSTEM == UNIX ? '/' : '\\';
 
-	nRet = curl_getenv("TMP"); if( nRet  == NULL ) 
+	nRet = curl_getenv("HOME"); 
+	if( nRet  == NULL ) 
 	{       if( SYSTEM == UNIX )
 			nRet = strdup("/tmp");
 		else if( SYSTEM == WINDOWS )
@@ -120,12 +125,10 @@ get_cookies_file(void)
 
 	if( nRet == NULL )
 		return NULL;
-
-	n = strlen(nRet) + strlen(COOKIEFILE) + 2; p = malloc( n );
-	if( p != NULL )
-	{ 	g_snprintf(p,n,"%s%c%s",nRet, 
-		          SYSTEM == UNIX ? '/' : '\\', COOKIEFILE);
-		p[n-1] = '\0'; free(nRet);
+	p = malloc(strlen(q) + strlen(nRet) + 1 +1);
+	if( p )
+	{ 	sprintf(p,"%s%c%s",nRet, c, q);
+		curl_free(nRet);
 	}
 
 	return p;
@@ -265,7 +268,7 @@ iol_destroy(iol_t iol)
 	g_slist_foreach(iol->courses, (GFunc)free_courses_list ,NULL);
 	g_slist_free(iol->courses);
 
-	free(iol->cookie_file);
+	g_free(iol->cookie_file);
 	free(iol->current_course);
 	free(iol->repository);
 
