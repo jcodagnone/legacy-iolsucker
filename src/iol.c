@@ -526,11 +526,11 @@ iol_set_current_course(iol_t iol, const char *course)
 /* Download Material didactico section
  */
 
-static int url_is_file(const char *url) 
+static int link_is_file(const char *url) 
 {	const char *p,*q;
 
-	p = basename(url);
-	q = basename(URL_MATERIAL);
+	p = url;
+	q = "newmaterialdid.asp";
 
 	return strncmp(p,q, strlen(q));
 }
@@ -602,14 +602,14 @@ link_files_fnc( const char *link, const char *comment, void *d )
 	if( s == NULL )
 		return;
 	
-	bFile = url_is_file(link);
+	bFile = link_is_file(link);
 	if( bFile )
 	{ 	if( t->url_prefix == NULL )
 			t->url_prefix = path_get_dirname(link);
 		t->files = g_slist_prepend(t->files, s);
 	}
 	else
-	{ 	if( is_father_folder(link,t->prefix) )
+	{ 	if( is_father_folder(s,t->prefix) )
 			g_free(s);
 		else
 			queue_enqueue(t->pending, s);
