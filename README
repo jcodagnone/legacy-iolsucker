@@ -1,5 +1,9 @@
 
 man doc/iolsocker.1.in
 
-
 :^)
+
+
+Para compilar el proyecto pueden usar el msvc: win32/iolsucker/iolsucker.dsw
+Necesitan tener el unix.zip
+
