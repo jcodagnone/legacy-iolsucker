@@ -15,6 +15,9 @@ iol_strerror(int code)
 		case E_NLOGED:
 			r = "not logued";
 			break;
+		case E_LOGINTUPLE:
+			r = "invalid login tuple";
+			break;
 		case E_NETWORK:
 			r = "network error";
 			break;

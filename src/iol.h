@@ -48,6 +48,7 @@ enum errors
 	E_INVAL,	/**< invalid arguments */
 	E_ALOGED,	/**< already logged */
 	E_NLOGED,	/**< not logued */
+	E_LOGINTUPLE,	/**< invalid login tuple */
 	E_NETWORK,	/**< network error */
 	E_MEMORY,	/**< need to take some Memorol 500 pills :) */
 	E_FS,		/**< error in the filesystem I/O */

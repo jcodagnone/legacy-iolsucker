@@ -503,6 +503,8 @@ iol_login(iol_t iol, const char *user, const char *pass)
 				nRet = E_NETWORK;
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
+			else
+				nRet = E_LOGINTUPLE;
 
 			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, "");
 			curl_easy_setopt(iol->curl,CURLOPT_POST,0L);
