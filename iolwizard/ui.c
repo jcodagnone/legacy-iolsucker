@@ -477,7 +477,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 		guint top_attach;
 		guint bottom_attach;
 
-		GCallback *fnc;     /* for connect() */
+		void *fnc;     /* for connect() */
 		int enabled;
 		const char *tooltip;
 
