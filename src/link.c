@@ -192,7 +192,7 @@ link_parser_proccess_char( link_parser_t parser, int c )
 			}
 			break;
 		case ST_TAG_A_HREF_EQ_READ:
-			if( c=='"' || c == '>' )
+			if( c=='"' || c == '>' || c=='\'' )
 			{	parser->link[parser->i]=0;
 				parser->state = ( c == '>' ) ?  ST_TAG_A_END :
 				                                ST_TAG_A;
