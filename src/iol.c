@@ -610,8 +610,11 @@ iol_set_current_course(iol_t iol, const char *course)
 	if( !IS_IOL_T(iol) )
 		return E_INVAL;
 
-	if( iol->current_course )
+	if( iol->current_course && !strcmp(iol->current_course, course) )
+		return E_OK;	
+	else if( iol->current_course )
 		free(iol->current_course);
+
 	iol->current_course = strdup(course);
 	if( iol->current_course == NULL )
 		return E_MEMORY;

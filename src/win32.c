@@ -105,6 +105,7 @@ rot13(char *data)
 #define IOL_PROXY_HOST	"proxy"
 #define IOL_PROXY_USER	"proxy_user"
 #define IOL_FANCY    	"fancy"
+#define IOL_FORUM    	"forum"
 
 int
 save_config_file(struct opt *opt)
@@ -135,7 +136,8 @@ save_config_file(struct opt *opt)
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_DRY, opt->dry ? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_FANCY, 
 	                          opt->fancy ? t : f);
-	
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_FORUM, 
+	                          opt->forum? t : f);
 	return r == 1 ? 0 : -1;
 }
 
@@ -152,6 +154,7 @@ print_verbose(const struct opt *opt)
         	fprintf(fp,"puser: %s\n",opt->proxy_user);
 	fprintf(fp,"dry: %d\n",opt->dry );
 	fprintf(fp,"fancy: %d\n",opt->fancy);
+	fprintf(fp,"forum: %d\n",opt->forum);
 }
 
 int 
@@ -251,9 +254,9 @@ load_config_file(struct opt *opt)
 	                        sizeof(buf) ) == TRUE )
 	{	
 		if( isdigit(buf[0]) )
-			opt->fancy= buf[0] - '0' != 0;
+			opt->forum = buf[0] - '0' != 0;
 		else
-			opt->fancy = 0;
+			opt->forum = 0;
 	}
 	else
 		registry_change_string(IOL_ROOT,IOL_PATH,IOL_FANCY,"");

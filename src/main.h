@@ -20,6 +20,7 @@ struct opt {
 	char *proxy_type;
 	int verbose;
 	int fancy;
+	int forum;
 };
 
 int
