@@ -969,7 +969,9 @@ is_javascript_link( const char *link)
 }
 
 /**
- * escape only spaces 
+ * escape only spaces.
+ *
+ *  \returns NULL if there is nothing to escape
  */
 static char *
 my_url_escape(const char *url)
@@ -981,17 +983,21 @@ my_url_escape(const char *url)
 			i++;
 	}
 
+	if( i == 0 )
+		return NULL;
+
 	s = g_malloc(len + i*2 + 100);
 	if( s == NULL )
 		return NULL;
 	for( j=0; *url; url++ , j++)
-		if( *url == ' ' )
+	{	if( *url == ' ' )
 		{	s[j++] = '%';
 			s[j++] = '2';
 			s[j]   = '0';
 		}
 		else
 			s[j] = *url;
+	}
 	s[j]=0;
 	assert(j == len + i*2);
 
@@ -1350,9 +1356,10 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 		 	 */
 		 	errno = 0;
 			if( mkrdir(dirname,0755) == 0 || errno == EEXIST)
-			{	char *f;
+			{	const char *f;
 				
 				f = my_url_escape(file);
+				f = f ? f : file;
 				inform_url_and_date(stdout, file);
 				inform_url_and_date(d->iol->logfp, file);
 				download = g_strdup_printf("%s/%s", dirname, 
@@ -1369,7 +1376,8 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 				}
 
 				g_free(download);
-				g_free(f);
+				if( f != file )
+					g_free((char *)f);
 			}
 		}
 		
