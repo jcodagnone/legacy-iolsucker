@@ -166,8 +166,7 @@ main( int argc, char **argv )
 	if( parseOptions(argc, argv, &opt) == -1 )
 		return EXIT_FAILURE;
 
-	if( load_config_file(&opt) == -1 )
-		return EXIT_FAILURE;
+	load_config_file(&opt);
 
 	if( validate_opt(&opt) == -1 )
 		return EXIT_FAILURE;
