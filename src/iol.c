@@ -186,7 +186,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data, int *err
 		fp = fopen(data, "wb");	
 		if( fp == NULL )
 			return E_INVAL;
-		curl_easy_setopt(curl, CURLOPT_FILE, fp);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
 
 		if( isatty(fileno(stdout)) )
@@ -200,7 +200,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data, int *err
 	else
 	{ 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
 		                       write_data_to_memory);
-		curl_easy_setopt(curl, CURLOPT_FILE, data); 
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data); 
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, TRUE);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, NULL);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, NULL);
