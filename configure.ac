@@ -47,7 +47,7 @@ AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h string.h limits.h])
 AC_CHECK_HEADERS([syslog.h unistd.h])
 AC_CHECK_HEADERS([sys/time.h sys/file.h])
-AC_CHECK_HEADERS([termio.h])
+AC_CHECK_HEADERS([termios.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -55,6 +55,8 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_TYPE_MODE_T
 AC_TYPE_SIGNAL
+AC_TYPE_PID_T
+AC_STRUCT_TM
 
 # Checks for library functions.
 AM_PATH_CURL(,,AC_MSG_ERROR([$PACKAGE requiere de libcurl]))
@@ -65,11 +67,13 @@ AM_PATH_GTK(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])
 AC_CHECK_FUNCS([memset strchr strtol strrchr])
 AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
 AC_CHECK_FUNCS([strtol isatty])
+AC_CHECK_FUNCS([memchr])
 AC_FUNC_STAT
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
+AC_FUNC_FORK
 
 CFLAGS="$CFLAGS -Wall  -I ../lib"
 
