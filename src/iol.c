@@ -40,7 +40,7 @@
   #include <unistd.h>
 #else
   #include <unix.h>
-  #define isatty(m) (1)
+  #define isatty(m) (_isatty(m))
 #endif
 
 #include <glib.h>
