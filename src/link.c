@@ -50,7 +50,8 @@ enum state {
 /*extract*/	ST_TAG_A_HRE,
 /*extract*/	ST_TAG_A_HREF,
 /*extract*/	ST_TAG_A_HREF_EQ,
-/*extract*/	ST_TAG_A_HREF_EQ_READ
+/*extract*/	ST_TAG_A_HREF_EQ_READ,
+/*extract*/	ST_TAG_A_END_IS_SLASH_A_OTHER
 };
 
 struct link_parserCDT
@@ -242,10 +243,6 @@ link_parser_process_char( link_parser_t parser, int c )
 		case ST_TAG_A_END_IS_SLASH:
 			if( isspace(c) )
 				;
-			else if( c == '>' )
-			{	parser->comment[parser->j++] = '<';
-				parser->comment[parser->j++] = '>';
-			}
 			else if( c == '/' )
 				parser->state = ST_TAG_A_END_IS_SLASH_A;
 			else
@@ -256,8 +253,16 @@ link_parser_process_char( link_parser_t parser, int c )
 			break;
 		case ST_TAG_A_END_IS_SLASH_A:
 			if( tolower(c) == 'a' )
-			{	parser->state = ST_OTHERTAG;
-				parser->comment[parser->j]=0;
+				parser->state = ST_TAG_A_END_IS_SLASH_A_OTHER;
+			else
+			{	parser->comment[parser->j++] = '<';
+				parser->comment[parser->j++] =  c;
+				parser->state = ST_TAG_A_END;
+			}
+			break;
+		case ST_TAG_A_END_IS_SLASH_A_OTHER:
+			if( c == '>' || isspace(c) )
+			{ 	parser->comment[parser->j]=0;
 				parser->j = 0;
 				if( parser->link_fnc )
 				(*parser->link_fnc)(parser->link,
@@ -266,12 +271,14 @@ link_parser_process_char( link_parser_t parser, int c )
 			}
 			else
 			{	parser->comment[parser->j++] = '<';
+				parser->comment[parser->j++] =  '/';
+				parser->comment[parser->j++] =  'a';
 				parser->comment[parser->j++] =  c;
 				parser->state = ST_TAG_A_END;
 			}
 			break;
 		default:
-			printf("%d\n",parser->state);
+			printf("unknown state: %d\n",parser->state);
 			assert(0);
 	}
 	
