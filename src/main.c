@@ -59,7 +59,8 @@ validate_opt(struct opt* opt)
 			ret = -1;
 		}
 	}
-	else if( opt->repository[0] == 0  )
+	
+	if( opt->repository[0] == 0  )
 	{ 	rs_log_info("unknown repository");
 		ret = -1;
 	}
