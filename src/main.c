@@ -114,7 +114,7 @@ main( int argc, char **argv )
 		return EXIT_FAILURE;
 	}
 
-	if( (ret=iol_resync_all(iol)) != E_OK )
+	if( (ret=iol_resync_all(iol, IOL_RF_FILE)) != E_OK )
 	{	const char *p = ret == E_NETWORK ? "resync_all(): %s: %s" :
 	 	                                   "resync_all(): %s";
 	 	                                   

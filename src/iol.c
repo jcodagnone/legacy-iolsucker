@@ -1025,10 +1025,76 @@ get_course_name( iol_t iol, const char *code )
 	return tmp.ret;
 }
 
-int 
-iol_resync(iol_t iol, const char *code)
-{	struct tmp_resync_getfile tmp;
+static int 
+iol_resync_download(iol_t iol, const char *code, const char *cname)
+{	int ret = E_OK;
 	struct stat st;
+	struct tmp_resync_getfile tmp;
+	char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
+				  IOL_MATERIAL_FOLDER);
+	char *r = g_strdup_printf("%s/%s/%s", iol->repository, cname,
+				  IOL_MATERIAL_FOLDER);
+
+	if( iol->fancy )	/* convert repository ? */
+	{	if( stat(s,&st)==0 && convertRepository(s,r) )
+		{	rs_log_error(
+			   _("error renaming repository. using old"));
+			g_free(r);
+		}
+		else
+		{	g_free(s);
+			s = r;
+		}
+	}
+	else 
+	{ 	if( stat(r,&st)==0 && convertRepository(r,s) )
+		{	rs_log_error(
+			    _("error renaming repository. using old"));
+			g_free(s);
+			s = r;
+		}
+		else
+			g_free(r);	
+	}
+
+	/* try to create course folder */ 
+	if( create_course_directory(s) == -1 ) 
+	{
+		rs_log_error(_("error creating dir `%s'"),s);
+		rs_log_error("%s",strerror(errno) ); ret = E_FS;
+	}
+	else
+	{       GSList *files = NULL;
+	
+		tmp.prefix = s;
+		tmp.iol = iol;
+		tmp.url_prefix = NULL;
+		get_current_file_list(iol, &files, &(tmp.url_prefix));
+		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
+		free(tmp.url_prefix);
+	}
+
+	g_free(s);
+
+	return ret;
+}
+
+
+static int 
+iol_resync_news(iol_t iol, const char *code, const char *cname)
+{
+	return E_INVAL;
+}
+
+static int 
+iol_resync_forum(iol_t iol, const char *code, const char *cname)
+{
+	return E_INVAL;
+}
+
+int 
+iol_resync(iol_t iol, const char *code, enum resync_flags flags)
+{	
 	int ret = E_OK;
 	const char *cname;
 
@@ -1045,51 +1111,12 @@ iol_resync(iol_t iol, const char *code)
 		ret = E_NETWORK;
 	} 
 	else
-	{	char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
-	                                  IOL_MATERIAL_FOLDER);
-		char *r = g_strdup_printf("%s/%s/%s", iol->repository, cname,
-		                          IOL_MATERIAL_FOLDER);
-
-		if( iol->fancy )	/* convert repository ? */
-		{	if( stat(s,&st)==0 && convertRepository(s,r) )
-			{	rs_log_error(
-			 	   _("error renaming repository. using old"));
-			 	g_free(r);
-			}
-			else
-			{	g_free(s);
-				s = r;
-			}
-		}
-		else 
-		{ 	if( stat(r,&st)==0 && convertRepository(r,s) )
-			{	rs_log_error(
-				    _("error renaming repository. using old"));
-				g_free(s);
-				s = r;
-			}
-			else
-				g_free(r);	
-		}
-
-		/* try to create course folder */ 
-		if( create_course_directory(s) == -1 ) 
-		{
-			rs_log_error(_("error creating dir `%s'"),s);
-			rs_log_error("%s",strerror(errno) ); ret = E_FS;
-		}
-		else
-		{       GSList *files = NULL;
-		
-			tmp.prefix = s;
-			tmp.iol = iol;
-			tmp.url_prefix = NULL;
-			get_current_file_list(iol, &files, &(tmp.url_prefix));
-			g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
-			free(tmp.url_prefix);
-		}
-
-		g_free(s);
+	{	if( flags & IOL_RF_FILE && ret == E_OK )
+			ret = iol_resync_download(iol, code, cname);
+		if( flags & IOL_RF_NEWS && ret == E_OK )
+			ret = iol_resync_news(iol, code, cname);
+		if( flags & IOL_RF_FORUM && ret == E_OK )
+			ret = iol_resync_forum(iol, code, cname);
 	}
 
 	return ret;
@@ -1101,6 +1128,7 @@ iol_resync(iol_t iol, const char *code)
 struct foreach_resync 
 {	int ret;
 	iol_t iol;
+	unsigned flags;
 };
 
 /* nice for a lambda function */
@@ -1108,11 +1136,11 @@ static void
 foreach_resync(struct course *course, struct foreach_resync *r) 
 {
 	if( course && r )
-		r->ret |= iol_resync(r->iol, course->code);
+		r->ret |= iol_resync(r->iol, course->code, r->flags);
 }
 
 int
-iol_resync_all(iol_t iol) 
+iol_resync_all(iol_t iol, enum resync_flags flags) 
 {	struct foreach_resync r;
 
 	if( !IS_IOL_T(iol) )
@@ -1120,6 +1148,7 @@ iol_resync_all(iol_t iol)
 
 	r.ret = 0;
 	r.iol = iol;
+	r.flags = flags;
 	g_slist_foreach(iol->courses,(GFunc)foreach_resync,&r);
 
 	return r.ret;

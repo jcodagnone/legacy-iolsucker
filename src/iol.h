@@ -14,6 +14,13 @@ enum iol_settings {
 	IOL_MAX
 };
 
+enum resync_flags {
+	IOL_RF_FILE,	/**< resync files */	
+	IOL_RF_NEWS,	/**< resync the news */
+	IOL_RF_FORUM,	/**< resync the forum */
+	IOL_RF_MAX
+};
+
 /** creates a new IOL object */
 iol_t iol_new(void);
 
@@ -27,10 +34,10 @@ int   iol_login(iol_t iol, const char *user, const char *pass);
 int   iol_logout(iol_t iol);
 
 /** resync all the files of the curse code @code */
-int   iol_resync(iol_t iol, const char *code);
+int   iol_resync(iol_t iol, const char *code, enum resync_flags flags);
 
 /** resync all the courses that the server says we have */
-int   iol_resync_all(iol_t iol);
+int   iol_resync_all(iol_t iol, enum resync_flags flags);
 
 /** change the setting */
 int   iol_set(iol_t iol, enum iol_settings, void *data);
