@@ -232,7 +232,7 @@ curl_debug_fnc(CURL *curl, curl_infotype type, char  *ptr, size_t size,
  * acumulate transfered bytes
  */
 static void
-count_bytes(CURL *curl)
+transfer_count_bytes(CURL *curl)
 {
 #ifdef HAVE_CURLOPT_PRIVATE	/* libcurl >= 7.10.3 */
 	double d=0 ;
@@ -329,7 +329,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data,
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	res = curl_easy_perform(curl);
-	count_bytes(curl);
+	transfer_count_bytes(curl);
 
 	if( dt.realfp )
 		fclose(dt.realfp);
