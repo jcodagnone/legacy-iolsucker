@@ -609,7 +609,7 @@ iol_set_current_course(iol_t iol, const char *course)
 
 	if( !IS_IOL_T(iol) )
 		return E_INVAL;
-	rs_log_info(_("%s"), course);
+
 	if( iol->current_course )
 		free(iol->current_course);
 	iol->current_course = strdup(course);
@@ -1106,7 +1106,8 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 	{	ret = E_INVAL;
 		rs_log_error(_("course `%s' has no name! (TODO)"),code);
 	}
-	else if( iol_set_current_course(iol, code) != E_OK ) 
+	else if( rs_log_info(_("%s (%s)"), code, cname) ,
+	         iol_set_current_course(iol, code) != E_OK )  /* C hack */
 	{ 	rs_log_error(_("setting current course to `%s'"),code);
 		ret = E_NETWORK;
 	} 
