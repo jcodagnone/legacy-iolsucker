@@ -744,7 +744,7 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 	return ret;
 }
 
-/** validates weather ::code is in the parameters in server's list */
+/** valida si `code` pertenece al charset correcto */
 static int
 is_valid_course_code( const char *code )
 {	int b = 1;
@@ -767,7 +767,7 @@ is_valid_course_code( const char *code )
 	return b;
 }
 
-/* one_space ( touper ( trim( name ) ) ) */
+/* equivalet to: one_space ( touper ( trim( name ) ) ) */
 static char *
 normalize_course_name( char *name )
 {       char *p, *q;
@@ -794,7 +794,8 @@ normalize_course_name( char *name )
 }
 
 /**
- * callback called by the html parser when procesing newmaterial.asp 
+ * callback called by the html parser: it is used to extract the user's courses
+ * codes from the html
  */
 static void 
 link_courses_fnc( unsigned const char *link, 
@@ -849,7 +850,7 @@ link_courses_fnc( unsigned const char *link,
 }
 
 /**
- * gets the list of courses that are linked from the html at ::page 
+ * gets the list of available courses, that are linked from the html at ::page 
  */
 static unsigned 
 parse_courses(GSList **listptr, struct buff *page) 
@@ -945,7 +946,9 @@ iol_logout(iol_t iol)
 	return nRet;
 }
 
-
+/** temporary structure: used to send parameters from #get_course_by_name to 
+ *  #foreach_find_cname
+ */
 struct tmp_cname
 {	const char *code;
 	struct course *ret;
