@@ -86,8 +86,10 @@ static int
 add_char(int c, void *data)
 {	link_parser_t parser = data;
 
-	parser->link[parser->i++]=c;
-	parser->link[parser->i]=0;
+	if( parser->i + 1 < sizeof(parser->link) )
+	{ 	parser->link[parser->i++]=c;
+		parser->link[parser->i]=0;
+	}
 	
 	return 0;
 }
@@ -102,8 +104,10 @@ addcomment(int c, void *data)
 	else
 	{       if( isspace(c) )
 			c = ' ';
-		parser->comment[parser->j++]=c;
-		parser->comment[parser->j]=0;
+		if( parser->j + 1 < sizeof(parser->comment) )
+		{ 	parser->comment[parser->j++]=c;
+			parser->comment[parser->j]=0;
+		}
 	}
 
 	return 0;
@@ -113,8 +117,12 @@ static int
 e_is_slash(int c, void *data)
 {	link_parser_t parser = data;
 
-	parser->comment[parser->j++] = '<';
-	parser->comment[parser->j++] = c;
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] = '<';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] = c;
+
+	parser->comment[parser->j] = 0;
 	
 	return 0;
 }
@@ -123,9 +131,14 @@ static int
 e_slash_a(int c, void *data)
 {	link_parser_t parser = data;
 
-	parser->comment[parser->j++] = '<';
-	parser->comment[parser->j++] =  '/';
-	parser->comment[parser->j++] =  c;
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] = '<';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] =  '/';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] =  c;
+
+	parser->comment[parser->j] = 0;
 
 	return 0;
 }
@@ -134,10 +147,16 @@ static int
 e_slash_a_other(int c, void *data)
 {       link_parser_t parser = data;
 
-	parser->comment[parser->j++] = '<';
-	parser->comment[parser->j++] =  '/';
-	parser->comment[parser->j++] =  'a';
-	parser->comment[parser->j++] =  c;
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] = '<';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] =  '/';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] =  'a';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++] =  c;
+
+	parser->comment[parser->j] = 0;
 
 	return 0;
 }
@@ -156,23 +175,22 @@ done_link(int c, void *data)
 }
 
 static int
-embeeded_gotoa(int c, void *data)
-{ 
-	done_link(c, data);
-
-	return 0;
-}
-
-static int
 embeeded_goto_end(int c, void *data)
 {	link_parser_t parser = data;
 
-	parser->comment[parser->j++]='<';
-	parser->comment[parser->j++]='/';
-	parser->comment[parser->j++]='a';
-	parser->comment[parser->j++]=c;
-	parser->comment[parser->j++]=0;
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++]='<';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++]='/';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++]='a';
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++]=c;
+	if( parser->j + 1 < sizeof(parser->comment) )
+		parser->comment[parser->j++]=0;
 	
+	parser->comment[parser->j] = 0;
+
 	return 0;
 }
 
