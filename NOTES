@@ -1,3 +1,12 @@
+iolsucker-2.0.22: ¿Un año de vida?
+  o bugfix: a veces los nombres de los directorios se obtenian de forma 
+    incompleta (tbol en vez de futbol).
+  o permitir el uso de gtk 1.x y glib1.x (pero sin stringsets )
+  o no salir del programa si libcurl no soportaba setear un proxy
+  o no salir del programa si ~/.iolrc no existe.
+  o permitir compilar el iolsucker en versiones viejas de libcurl (como la de
+    eiffel)
+    
 iolsucker-2.0.21: Late nights
   o faltaron algunos bits al ultimo item del 2.0.20
 

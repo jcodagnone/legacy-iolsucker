@@ -1,7 +1,7 @@
 
 
 !define PACKAGE "iolsucker"
-!define VERSION "2.0.21"
+!define VERSION "2.0.22"
 !define COMPANY "Embryos Software"
 
 SetCompressor	bzip2

@@ -1,4 +1,4 @@
-AC_INIT([iolsucker],[2.0.21])
+AC_INIT([iolsucker],[2.0.22])
 AC_CONFIG_AUX_DIR(admin)
 
 IOL_MAJOR_VERSION=2
