@@ -25,3 +25,8 @@ link_debug.c:	link.c ../bin/gen_debug.sh
 
 iolerr.c:	../bin/gen_iol_err.awk iol.h
 	../bin/gen_iol_err.awk < iol.h > iolerr.c
+
+
+ioldemo:
+	rm -f iolsucker-demo.o iolsucker-iol.o ;
+	$(MAKE) CFLAGS="-D IOLDEMO"
