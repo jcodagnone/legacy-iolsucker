@@ -834,7 +834,7 @@ iol_resync(iol_t iol, const char *code)
 			rs_log_error("%s",strerror(errno) ); ret = E_FS;
 		}
 		else
-		{       GSList *files;
+		{       GSList *files = NULL;
 		
 			tmp.prefix = s;
 			tmp.iol = iol;
