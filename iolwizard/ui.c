@@ -482,36 +482,36 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 	} chkbox[] = 
 	/* this isn't ANSI, but hell, it saves me from lots of bugs */
-	{ 	{ &tmp->chkDry,      "Dry Run",       0,1,0,1,      dryrun_fnc, 
+	{ 	{ &tmp->chkDry, "Dry Run", 0,1,0,1, (void *) dryrun_fnc, 
 		  tmp->opt->dry, 
 		  "activar la ejecucion en seco: no se descarga ningun archivo"
 		},
-		{ &tmp->chkFancy,    "Fancy Names",   1,2,0,1,        fancy_fnc,
+		{ &tmp->chkFancy, "Fancy Names",   1,2,0,1, (void *) fancy_fnc,
                   tmp->opt->fancy, 
 		  "usar el nombre de la materia, como nombre de directorio"
 		},
-		{ &tmp->chkForum,    "Resync Foros",  2,3,0,1,        forum_fnc,
+		{ &tmp->chkForum, "Resync Foros",  2,3,0,1, (void *)forum_fnc,
 		  tmp->opt->forum,
 		  "resincronizar los foros? por ahora solo advierte de cambios"
 		  " en los foros. (no baja los mensajes)"
 		},
-		{ &tmp->chkVerbose,  "Verbose",       0,1,1,2,      verbose_fnc,
+		{ &tmp->chkVerbose,  "Verbose", 0,1,1,2, (void *) verbose_fnc,
                   tmp->opt->verbose,
 		  "imprime informacion extra sobre la conexion. util cuando"
 		  " las cosas no funcionan" 
 		},
-		{ &tmp->chkWait,     "Wait",          1,2,1,2,         wait_fnc,
+		{ &tmp->chkWait,     "Wait", 1,2,1,2, (void *) wait_fnc,
 		  tmp->opt->wait,
 		  "esperar unos segundos en el cambio de contexo de materias. "
 		  "Util cuando el programa imprime el mensaje de que el server"
 		  " tiene problemas con los contextos"
 		},
-		{ &tmp->chkXenofobe, "Xenofobo",      2,3,1,2,     xenofobe_fnc,
+		{ &tmp->chkXenofobe, "Xenofobo", 2,3,1,2, (void *)xenofobe_fnc,
 		  tmp->opt->xenofobe,
 		  "Modo xenofobia: al terminar, lista los archivos que se "
 		  "encuentran en nuestro repositorio y que no existen en iol"
 		},
-		{ &tmp->chkNoCache,  "No usar Caches",0,1,2,3,     no_cache_fnc,
+		{&tmp->chkNoCache,"No usar Caches",0,1,2,3,(void *)no_cache_fnc,
 		  tmp->opt->no_cache, "No utilizar ningun cache"
 		}
 	};
