@@ -5,7 +5,7 @@
 
 /* missing mode */
 
-#include "../configwin.h"
+#include <config.h>
 
 #define	R_OK	4		/* Test for read permission.  */
 #define	W_OK	2		/* Test for write permission.  */
