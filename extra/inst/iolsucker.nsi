@@ -60,6 +60,7 @@ Section "Uninstall"
   Delete "$INSTDIR\libcurl.dll"
   Delete "$INSTDIR\libmiscdll.dll"
   Delete "$INSTDIR\iolsucker.exe"
+  Delete "$INSTDIR\iolunch.exe"
   Delete "$INSTDIR\iolwizard.exe"
   RMdir  /r "$INSTDIR\source"
 
