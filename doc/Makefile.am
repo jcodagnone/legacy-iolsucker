@@ -6,7 +6,7 @@ man_MANS = iolsucker.1
 all: @IOL_HTML_PAGES@ @IOL_PDF_PAGES@
 
 clean:
-	$(RM) -f *.html *.pdf *.ps
+	$(RM) -f *.html *.pdf *.ps iolsucker.1
 
 
 # MAN2HTML = groff -Thtml -man $< > $@
