@@ -55,6 +55,9 @@ mkrdir(const char *pathname, mode_t mode)
 	{	errno = ENOMEM ;
 		return -1;
 	}
+	
+	if( p[strlen(p)-1] == '/' )
+		p[strlen(p)-1] = '\0';
 
 	ret = 0;
 	for( q=p ; !ret && (q=strchr(q,'/')) ;  )
@@ -63,7 +66,7 @@ mkrdir(const char *pathname, mode_t mode)
 		*q = 0;
 		if( p[0] )
 		{	ret = mkdir(p,mode);
-			if( ret == -1 && errno == EEXIST )
+			if( ret == -1 && (errno == EEXIST || errno == EACCES))
 				ret = 0;
 		}
 		*q = '/';
