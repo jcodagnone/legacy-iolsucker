@@ -121,22 +121,9 @@ fi
 
 AC_DEFUN(AM_CURL_WORKING_VERSION,
 [ 
-	AC_MSG_CHECKING(for a sane libcurl)
 	l=`curl-config --version|cut -d' ' -f2`
 	MAJOR="`echo $l | cut -d. -f1`"
 	MINOR="`echo $l | cut -d. -f2`"
-	AC_MSG_RESULT($l)
-
-	if [[ "$l" ==  "7.10.3" ]] ; then
-		echo 
-		echo -n "This version ($l) has some bugs that are triggered by"
-		echo " iolsucker."a
-		echo
-		echo "Upgrade to 7.10.4 or later"
-		echo
-		echo "    http://curl.haxx.se/"
-		exit -1
-	fi
 	AC_MSG_CHECKING(for a CURLOPT_PROXYTYPE in libcurl)
 	l=""
 	test $MAJOR -ge 7 &&  test $MINOR -ge 10 && AC_DEFINE([HAVE_PROXYTYPE],[],[curl option]) 
