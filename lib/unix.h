@@ -49,5 +49,6 @@ int access(const char *pathname, int mode);
 #define S_ISBLK(m)	 ( (m) & S_ISBLK )
 #define S_ISFIFO(m)	 ( (m) & S_IFIFO )
 
-
+int mkdir(const char *path, mode_t mode);
+int write(int fd, void *data, size_t len);
 #endif

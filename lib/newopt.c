@@ -1,7 +1,7 @@
 /*
  * newopt.c -- Command line options parser inspired in getopt(3)(in behavior)
  *
- * $Id: newopt.c,v 1.5 2003/02/24 23:43:27 juam Exp $
+ * $Id: newopt.c,v 1.6 2003/02/26 00:37:48 juam Exp $
  *
  * Copyright (C) 2001 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -473,7 +473,7 @@ process( optionT *table, const char *arg )
 	return nRet;	
 }
 
-int
+EXPORT int
 GetOptions( char *const *argv, optionT *table, unsigned flags, void *reserved )
 {	struct global data;
 	int i=0;

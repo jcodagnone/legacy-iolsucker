@@ -32,7 +32,7 @@
 /* TODO: make it more generic:
  * TODO: create the dir with mode 0755 and the chmod it to `mode'
  */
-int
+EXPORT int
 mkrdir(const char *pathname, mode_t mode)
 {	struct stat s;
 	int ret = 0;

@@ -1,5 +1,5 @@
 /*
- * $Id: newopt.h,v 1.1 2003/02/19 04:44:56 juam Exp $
+ * $Id: newopt.h,v 1.2 2003/02/26 00:37:48 juam Exp $
  *
  * Command line options parser inspired in getopt(3) but unlike that,
  * this _is_ THREAD SAFE
@@ -12,6 +12,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "dll.h"
 
 /* different types of arguments
  */
@@ -88,7 +90,7 @@ typedef struct _opt
  *	>0 the index to the first non-option.
  *	-1 error.
  */
-int
+EXPORT int
 GetOptions( char *const *argv, optionT *opt, unsigned flags, void *reserved );
 
 

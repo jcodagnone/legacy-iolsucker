@@ -32,6 +32,8 @@
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
+#include <glib.h>
+
 #include <trace.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -157,7 +159,7 @@ load_config_file(struct opt *opt)
 		if( home == NULL )
 			return -1;
 
-		snprintf(opt->configfile, sizeof(opt->configfile), "%s/%s1",
+		g_snprintf(opt->configfile, sizeof(opt->configfile), "%s/%s1",
 		          home,IOL_RC);
 		opt->configfile[sizeof(opt->configfile)-1]=0;
 		if( stat(opt->configfile, &buff) == -1 )

@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- generate and apply network deltas
- * $Id: trace.h,v 1.1 2003/02/19 04:44:56 juam Exp $
+ * $Id: trace.h,v 1.2 2003/02/26 00:37:48 juam Exp $
  * 
  * Copyright (C) 2000, 2001, 2002 by Martin Pool <mbp@samba.org>
  * 
@@ -34,6 +34,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "dll.h"
 
 /*
  * trace may be turned off.
@@ -86,28 +88,28 @@ enum {
 typedef void    rs_trace_fn_t(int flags, const char *fn,
                               char const *msg, va_list);
 
-void rs_format_msg(char *buf, size_t, int, const char *,
+EXPORT void rs_format_msg(char *buf, size_t, int, const char *,
                    const char *fmt, va_list);
 
-void            rs_trace_set_level(rs_loglevel level);
+EXPORT void            rs_trace_set_level(rs_loglevel level);
 
 /** Set trace callback. */
-void            rs_trace_to(rs_trace_fn_t *);
+EXPORT void            rs_trace_to(rs_trace_fn_t *);
 
 /** Default trace callback that writes to stderr.  Implements
  * ::rs_trace_fn_t, and may be passed to rs_trace_to(). */
-void rs_trace_stderr(int level, const char *fn, char const *fmt, va_list va);
-extern int rs_trace_fd;
+EXPORT void rs_trace_stderr(int level, const char *fn, char const *fmt, va_list va);
+EXPORT extern int rs_trace_fd;
 
 
-void
+EXPORT void
 rs_trace_syslog(int level, const char *fn, char const *fmt, va_list va);
 
 /** Check whether the library was compiled with debugging trace
  * suport. */
-int             rs_supports_trace(void);
+EXPORT int             rs_supports_trace(void);
 
-void rs_log0(int level, char const *fn, char const *fmt, ...)
+EXPORT void rs_log0(int level, char const *fn, char const *fmt, ...)
 #if defined(__GNUC__)
     __attribute__ ((format(printf, 3, 4)))
 #endif /* __GNUC__ */
@@ -166,15 +168,15 @@ void rs_log0(int level, char const *fn, char const *fmt, ...)
 
 #else /* not defined HAVE_VARARG_MACROS */
 
-void rs_log_trace_nofn(char const *s, ...);
-void rs_log_info_nofn(char const *, ...);
-void rs_log_notice_nofn(char const *, ...);
-void rs_log_warning_nofn(char const *s, ...);
-void rs_log_error_nofn(char const *s, ...);
-void rs_log_critical_nofn(char const *, ...);
-void rs_log_fatal_nofn(char const *s, ...);
+EXPORT void rs_log_trace_nofn(char const *s, ...);
+EXPORT void rs_log_info_nofn(char const *, ...);
+EXPORT void rs_log_notice_nofn(char const *, ...);
+EXPORT void rs_log_warning_nofn(char const *s, ...);
+EXPORT void rs_log_error_nofn(char const *s, ...);
+EXPORT void rs_log_critical_nofn(char const *, ...);
+EXPORT void rs_log_fatal_nofn(char const *s, ...);
 
-void rs_log0_nofn(int level, char const *fmt, ...);
+EXPORT void rs_log0_nofn(int level, char const *fmt, ...);
 
 /* If we don't have gcc vararg macros, then we fall back to making the
  * log routines just plain functions.  On platforms without gcc (boo
@@ -200,7 +202,7 @@ void rs_log0_nofn(int level, char const *fmt, ...);
  * messages.
  */
 
-extern int rs_trace_level;
+EXPORT extern int rs_trace_level;
 
 #ifdef DO_RS_TRACE
 #  define rs_trace_enabled() ((rs_trace_level & RS_LOG_PRIMASK) >= RS_LOG_DEBUG)
@@ -209,7 +211,7 @@ extern int rs_trace_level;
 #endif
 
 
-extern const char *rs_program_name;
+extern EXPORT const char *rs_program_name;
 
 #ifdef __cplusplus
 }

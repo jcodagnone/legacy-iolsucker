@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- library for network deltas
- * $Id: trace.c,v 1.4 2003/02/25 18:30:30 juam Exp $
+ * $Id: trace.c,v 1.5 2003/02/26 00:37:48 juam Exp $
  *
  * Copyright (C) 2000, 2001 by Martin Pool <mbp@samba.org>
  *
@@ -47,7 +47,11 @@
 #include <stdarg.h>
 
 #include "trace.h"
-#include "../config.h"
+#ifdef WIN32
+	#include "../configwin.h"
+#else
+	#include "../config.h"
+#endif
 
 #ifdef HAVE_UNISTD_H
  #include <unistd.h>
@@ -90,7 +94,7 @@ static const char *rs_severities[] = {
  * \todo Do we really need such fine-grained control, or just yes/no
  * tracing?
  */
-void
+EXPORT void
 rs_trace_to(rs_trace_fn_t * new_impl)
 {
     rs_trace_impl = new_impl;
@@ -100,7 +104,7 @@ rs_trace_to(rs_trace_fn_t * new_impl)
 /** 
  * Set the least important message severity that will be output.
  */
-void
+EXPORT void
 rs_trace_set_level(rs_loglevel level)
 {
     rs_trace_level = level;
@@ -166,7 +170,7 @@ void rs_format_msg(char *buf,
  * Called by a macro, used on platforms where we can't determine the
  * calling function name.
  */
-void
+EXPORT void
 rs_log0_nofn(int level, char const *fmt, ...)
 {
     va_list         va;
@@ -177,7 +181,7 @@ rs_log0_nofn(int level, char const *fmt, ...)
 }
 
 
-void rs_log0(int level, char const *fn, char const *fmt, ...)
+EXPORT void rs_log0(int level, char const *fn, char const *fmt, ...)
 {
     va_list         va;
     
@@ -187,7 +191,7 @@ void rs_log0(int level, char const *fn, char const *fmt, ...)
 }
 
 
-void
+EXPORT void
 rs_trace_stderr(int flags, const char *fn, char const *fmt, va_list va)
 {
     /* NOTE NO TRAILING NUL */
@@ -211,7 +215,7 @@ rs_trace_stderr(int flags, const char *fn, char const *fmt, va_list va)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_fatal_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -224,7 +228,7 @@ rs_log_fatal_nofn(char const *s, ...)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_error_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -236,7 +240,7 @@ rs_log_error_nofn(char const *s, ...)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_warning_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -249,7 +253,7 @@ rs_log_warning_nofn(char const *s, ...)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_critical_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -261,7 +265,7 @@ rs_log_critical_nofn(char const *s, ...)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_info_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -274,7 +278,7 @@ rs_log_info_nofn(char const *s, ...)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_notice_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -287,7 +291,7 @@ rs_log_notice_nofn(char const *s, ...)
 
 /* This is called directly if the machine doesn't allow varargs
  * macros. */
-void
+EXPORT void
 rs_log_trace_nofn(char const *s, ...) 
 {
     va_list	va;
@@ -303,7 +307,7 @@ rs_log_trace_nofn(char const *s, ...)
  * If this returns false, then trying to turn trace on will achieve
  * nothing.
  */
-int
+EXPORT int
 rs_supports_trace(void)
 {
 #ifdef DO_RS_TRACE

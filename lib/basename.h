@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "dll.h"
+
 /* for GNU includes */
 #ifndef basename
 #define basename	basename_
@@ -13,7 +15,7 @@ extern "C" {
  *
  * strip directory and suffix from filenames  
  */
-const char *
+EXPORT const char *
 basename_( const char *path );
 
 #endif

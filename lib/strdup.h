@@ -1,5 +1,5 @@
 /*
- * $Id: strdup.h,v 1.1 2003/02/19 04:44:56 juam Exp $
+ * $Id: strdup.h,v 1.2 2003/02/26 00:37:48 juam Exp $
  *
  * STRDUP(3)	    Linux Programmer's Manual		STRDUP(3)
  *
@@ -50,7 +50,9 @@
    #define strdup  strdup__
  #endif
 
-char *
+ #include "dll.h"
+
+EXPORT char *
 strdup__( const char *s ); 
 
  #ifdef __cplusplus

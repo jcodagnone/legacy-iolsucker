@@ -14,7 +14,7 @@ struct queue
 	struct node *tail;
 };
 
-queue_t
+EXPORT queue_t
 queue_new(void)
 {	queue_t q;
 
@@ -27,7 +27,7 @@ queue_new(void)
 	return q;
 }
 
-void 
+EXPORT void 
 queue_free(queue_t queue)
 {	struct node *node, *next;
 
@@ -42,13 +42,13 @@ queue_free(queue_t queue)
 	}
 }
 
-int
+EXPORT int
 queue_is_empty(queue_t queue)
 {
 	return IS_QUEUE(queue) ? queue->head == NULL : 1;
 }
 
-int
+EXPORT int
 queue_enqueue(queue_t queue, void *data)
 {	struct node *node;
 	int ret = 0;
@@ -73,7 +73,7 @@ queue_enqueue(queue_t queue, void *data)
 	return ret;
 }
 
-void *
+EXPORT void *
 queue_dequeue(queue_t queue)
 {	struct node *node;
 	void *ret = NULL;

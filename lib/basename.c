@@ -1,5 +1,5 @@
 /*
- * $Id: basename.c,v 1.1 2003/02/19 19:59:38 juam Exp $
+ * $Id: basename.c,v 1.2 2003/02/26 00:37:48 juam Exp $
  *
  * basename(1) implementation
  */
@@ -7,7 +7,7 @@
 #include "basename.h"
 
 #ifdef WIN32
-const char *
+EXPORT const char *
 basename( const char *path )
 {	char *back,*slash,*gr;
 	char *r;
