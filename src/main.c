@@ -17,19 +17,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
 #include "iol.h"
 
 #ifdef HAVE_CONFIG_H
   #include <config.h>
 #endif
 
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <libmisc/trace.h>
 #include <libmisc/basename.h>
 #include <libmisc/i18n.h>
+#include <libcrash/sigsegv.h>
 
 #include "main.h"
 #include "fconfig.h"
@@ -181,6 +182,9 @@ main( int argc, char **argv )
 	rs_program_name = basename(argv[0]);
 	rs_trace_to(rs_trace_stderr);
 
+	#ifdef HAVE_SIGSEGV
+	signal(SIGSEGV, sigsegv_handler_fnc);
+	#endif
 	if( parseOptions(argc, argv, &opt) == -1 )
 		return EXIT_FAILURE;
 

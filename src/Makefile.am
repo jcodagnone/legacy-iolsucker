@@ -23,7 +23,8 @@ iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
 		    common.h common.c cache.c cache.h
 
 iolsucker_CFLAGS = $(AM_CFLAGS) @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@ 
-iolsucker_LDADD = ../lib/libmisc/libmisc.a @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
+iolsucker_LDADD = ../lib/libmisc/libmisc.a ../lib/libcrash/libcrash.a \
+                  @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
 iolsucker_DEPENDENCIES = ../lib/libmisc/libmisc.a  ../lib/libcrash/libcrash.a
 
 ################
