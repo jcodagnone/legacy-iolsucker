@@ -103,6 +103,7 @@ dnl --------------------------------------------------------------------------
 AC_DEFINE_UNQUOTED(UNIX,1, [a plataform])
 AC_DEFINE_UNQUOTED(WINDOWS,2, [a plataform])
 AC_DEFINE_UNQUOTED(SYSTEM, UNIX, [2nd dlopen parameter])
+AC_DEFINE_UNQUOTED(HAVE_SIGSEGV, 1, [we have SIGSEGV])
 
 if [[  $iolsucker_gtk == "yes" ]] ; then
     IOLWIZARD="iolwizard"
