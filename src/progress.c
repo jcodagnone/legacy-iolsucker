@@ -964,13 +964,13 @@ dot_progress_callback(struct progress *progress,
 
 	if( progress->data == NULL )
  	{
-		progress->data = dot_create(0,dltotal);
+		progress->data = dot_create(0L,(long)dltotal);
 		progress->dllast = 0;
 	}
-	dot_update(progress->data, dlnow - progress->dllast,
+	dot_update(progress->data, ((long)dlnow) - progress->dllast,
 	                                  wtimer_elapsed(progress->timer));
 
-	progress->dllast = dlnow;
+	progress->dllast = (long) dlnow;
 	fflush(stdout);
 	return 0;
 }
@@ -984,13 +984,13 @@ bar_progress_callback( struct progress *progress,
  	assert(progress->dllast<= dlnow);
 
 	if( progress->data == NULL )
- 	{ 	progress->data = bar_create(0,dltotal);
-		progress->dllast = 0;
+ 	{ 	progress->data = bar_create(0L,(long)dltotal);
+		progress->dllast = (long) 0;
 	}
-	bar_update(progress->data, dlnow - progress->dllast,
+	bar_update(progress->data, ((long)dlnow) - progress->dllast,
 	                                   wtimer_elapsed(progress->timer));
 
-	progress->dllast = dlnow;
+	progress->dllast = (long) dlnow;
 	fflush(stdout);
 	return 0;
 }

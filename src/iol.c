@@ -51,6 +51,7 @@
 #include <mkrdir.h>
 #include <dirname.h>
 #include <queue.h>
+#include <unix.h>
 
 #include "i18n.h"
 #include "iol.h"

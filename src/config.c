@@ -40,7 +40,7 @@
 
 #include "main.h"
 #include "i18n.h"
-
+#include "win32.h"
 
 #define IOL_RC ".iolrc"
 
@@ -85,8 +85,7 @@ parse_proxy (xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 { 	xmlChar *key;
 	cur = cur->xmlChildrenNode;
 	while (cur != NULL) 
-	{	/** \todo support strdup error condition  */
-		if ((!xmlStrcmp(cur->name, (const xmlChar *)"host"))) 
+	{ 	if ((!xmlStrcmp(cur->name, (const xmlChar *)"host"))) 
 		{	key = xmlNodeListGetString(doc,cur->xmlChildrenNode, 1);
 			if( key )
 				opt->proxy = strdup(key);
@@ -172,3 +171,8 @@ load_config_file(struct opt *opt)
 	return ret;
 }
 
+int
+save_config_file(struct opt *opt)
+{
+	return 0;
+}
