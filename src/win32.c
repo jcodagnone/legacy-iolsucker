@@ -273,8 +273,8 @@ load_config_file(struct opt *opt)
 		{ IOL_FANCY,	&(opt->fancy),	0},
 		{ IOL_FORUM,	&(opt->forum),	0},
 		{ IOL_WAIT,	&(opt->wait),	0},
-		{ IOL_VERBOSE,	&(opt->verbose),0}
-		{ IOL_XENOFOBE,	&(opt->xenofobe),0},
+		{ IOL_VERBOSE,	&(opt->verbose),0},
+		{ IOL_XENOFOBE,	&(opt->xenofobe),0}
 	};
 
 	#define NELEM(q) (sizeof(q)/sizeof(*(q)))

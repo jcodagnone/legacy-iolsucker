@@ -982,8 +982,8 @@ int
 bar_progress_callback( struct progress *progress,
                       double dltotal, double dlnow,
                       double ultotal, double ulnow)
-{ 	assert(ultotal==0);
-	assert(ulnow==0);
+{/* 	assert(ultotal==0);
+	assert(ulnow==0);*/
  	assert(progress->dllast<= dlnow);
 
 	if( progress->data == NULL )

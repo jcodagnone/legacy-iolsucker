@@ -90,13 +90,6 @@ SOURCE=..\..\lib\trio\compare.c
 # Begin Source File
 
 SOURCE=..\..\lib\trio\strio.h
-
-!IF  "$(CFG)" == "libmisc - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "libmisc - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -141,6 +134,14 @@ SOURCE=..\..\lib\basename.h
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\lib\dirent.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\lib\dirent_.h"
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\lib\dirname.c
 # End Source File
 # Begin Source File
@@ -149,7 +150,23 @@ SOURCE=..\..\lib\dirname.h
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\lib\dirstack.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\lib\dirstack.h"
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\lib\dll.h
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\lib\ftw_.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\lib\ftw_.h"
 # End Source File
 # Begin Source File
 
