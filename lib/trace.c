@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- library for network deltas
- * $Id: trace.c,v 1.8 2003/04/11 02:05:28 juam Exp $
+ * $Id: trace.c,v 1.9 2003/04/12 18:37:29 juam Exp $
  *
  * Copyright (C) 2000, 2001 by Martin Pool <mbp@samba.org>
  *
@@ -47,10 +47,13 @@
 #include <stdarg.h>
 
 #include "trace.h"
-#ifdef WIN32
-	#include "../configwin.h"
-#else
-	#include "../config.h"
+
+#ifdef HAVE_CONFIG_H
+  #ifdef WIN32
+    #include "../configwin.h"
+  #else
+    #include "../config.h"
+  #endif
 #endif
 
 #ifdef HAVE_UNISTD_H
