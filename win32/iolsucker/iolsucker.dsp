@@ -84,11 +84,11 @@ LINK32=link.exe
 # Name "iolsucker - Win32 Debug"
 # Begin Source File
 
-SOURCE="..\..\src\cache.c"
+SOURCE="..\..\src\common.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\src\cache.h"
+SOURCE="..\..\src\common.h"
 # End Source File
 # Begin Source File
 
@@ -157,6 +157,14 @@ SOURCE=..\..\src\progress.c
 # Begin Source File
 
 SOURCE=..\..\src\progress.h
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\src\stringset.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\src\stringset.h"
 # End Source File
 # Begin Source File
 
