@@ -7,19 +7,25 @@ srcdir = @srcdir@
 
 EXTRA_DIST = win32.h win32.c cache_db.c cache_dummy.c
 
-EXTRA_PROGRAMS = link
+EXTRA_PROGRAMS = link testuri
 bin_PROGRAMS = iolsucker 
 
 #########
 
 link_SOURCES = link.c link.h link_debug.c 
-link_CFLAGS = -D LINK_TEST
+link_CFLAGS = -D LINK_TEST 
 link_LDADD = ../lib/libmisc/libmisc.a  ../lib/libcrash/libcrash.a
 iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
                     link.c link.h getpass.c getpass.h progress.c \
                     progress.h  iolerr.c opt.c forum.c \
                     forum.h demo.c  link_debug.c stringset.c stringset.h \
-		    common.h common.c cache.h course.c course.h
+		    common.h common.c cache.h course.c course.h urihelper.h \
+		    urihelper.c
+
+testuri_SOURCES = urihelper.c urihelper.h
+testuri_CFLAGS  = -D URIHELPER_DRIVER @GLIB_CFLAGS@  -g
+testuri_LDFLAGS = @GLIB_LIBS@ -g
+	    
 if LIBDB
 iolsucker_SOURCES += cache_db.c
 else

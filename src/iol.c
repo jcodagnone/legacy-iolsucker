@@ -59,6 +59,7 @@
 #include "common.h"
 #include "cache.h"
 #include "course.h"
+#include "urihelper.h"
 
 #ifndef CURLOPT_WRITEDATA
   #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
@@ -836,20 +837,14 @@ iol_set_current_course(iol_t iol, const char *course)
  */
 
 static int
-link_is_iol_file(const char *url) 
+link_is_iol_folder(urihelper_t uh) 
 {	const char *p, *q;
 
-	p = url;
+	p = urihelper_getbase(uh);
 	q = "newmaterialdid.asp";
 
-	return (strncmp(p,q,strlen(q))!=0);
-}
-
-
-static int
-link_is_sort_link( const char *url)
-{
-	return !link_is_iol_file(url) && (strstr(url,"&ordenX="));
+	return !strncmp(p,q,strlen(q)) && urihelper_has_param(uh, "path") && 
+		urihelper_size(uh)== 1;
 }
 
 static int
@@ -943,10 +938,10 @@ static void
 link_files_fnc( const unsigned char *link, 
                 const unsigned char *comment, void *d ) 
 {	struct  tmp *t = (struct tmp *)d;
-	int bFile;
-	char *s, *q ;
-
-	if( (is_external_link(link) &&!is_localhost_link(t->iol->host, link))|| 
+	char *s;
+	urihelper_t uh;
+	
+	if( (is_external_link(link) && !is_localhost_link(t->iol->host, link))|| 
 	    is_javascript_link(link) || link_is_special_download(link) )
 		return ;
 
@@ -958,6 +953,8 @@ link_files_fnc( const unsigned char *link,
 		return;
 	}
 	
+	uh =  urihelper_new(link);
+	
 	if( !is_localhost_link(t->iol->host, link) )
 		s = g_strdup(iol_get_url(t->iol, link) );
 	else
@@ -966,26 +963,17 @@ link_files_fnc( const unsigned char *link,
 	if( s == NULL )
 		return;
 
-	bFile = link_is_iol_file(link);
-	if( bFile )
-	{
-		q = NULL;
-		if( bFile )	/* direct link scheme */
-			q = s;
-		else
-			assert(0);
-
-		if( q )
-			t->files = g_slist_prepend(t->files, q);
-		if( q != s ) 
+	if( link_is_iol_folder(uh) ) {
+		if( is_father_folder(s,t->prefix) ) {
 			g_free(s);
+		} else { 
+			queue_enqueue(t->pending, s);
+		}
+	} else {
+		g_free(s);
 	}
-	else if( link_is_sort_link(link) )
-		g_free(s);
-	else if( is_father_folder(s,t->prefix) )
-		g_free(s);
-	else
-		queue_enqueue(t->pending, s);
+
+	urihelper_destroy(uh);
 }
 
 /** 
