@@ -37,9 +37,35 @@
 #include "i18n.h"
 #include "main.h"
 #include "config.h"
+#include "getpass.h"
 
 const char *rs_program_name;
 
+static int
+validate_opt(struct opt* opt)
+{	int ret = 0;
+
+	if( opt->username[0] == 0 )
+	{	rs_log_info("unknown username");
+		ret = -1;
+	}
+	else if( opt->password[0] == 0 )
+	{	char *s;
+	
+	        s =  getpass_r(_("iol password: "),opt->password, 
+	                        sizeof(opt->password));
+	        if( s == NULL || *s == 0 )
+		{	rs_log_info("unknown password");
+			ret = -1;
+		}
+	}
+	else if( opt->repository[0] == 0  )
+	{ 	rs_log_info("unknown repository");
+		ret = -1;
+	}
+
+	return ret;
+}
 
 /* Usually i include the function that parse the command line options
  * in the main.c, but this time the function is share with iolwizard
@@ -57,6 +83,9 @@ main( int argc, char **argv )
 		return EXIT_FAILURE;
 
 	if( load_config_file(&opt) == -1 )
+		return EXIT_FAILURE;
+
+	if( validate_opt(&opt) == -1 )
 		return EXIT_FAILURE;
 
 	iol = iol_new();

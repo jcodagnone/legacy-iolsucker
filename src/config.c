@@ -40,7 +40,7 @@
 
 #include "main.h"
 #include "i18n.h"
-#include "getpass.h"
+
 
 #define IOL_RC ".iolrc"
 
@@ -166,27 +166,9 @@ load_config_file(struct opt *opt)
 			opt->configfile[0]=0;
 	}
 
+
 	if( opt->configfile[0] && parse_config(opt->configfile,opt) )
 		ret = -1;
-	else if( opt->username[0] == 0 )
-	{	rs_log_info("unknown username");
-		ret = -1;
-	}
-	else if( opt->password[0] == 0 )
-	{	char *s;
-	
-	        s =  getpass_r(_("iol password: "),opt->password, 
-	                        sizeof(opt->password));
-	        if( s == NULL || *s == 0 )
-		{	rs_log_info("unknown password");
-			ret = -1;
-		}
-	}
-	else if( opt->repository[0] == 0  )
-	{ 	rs_log_info("unknown repository");
-		ret = -1;
-	}
-
 	return ret;
 }
 

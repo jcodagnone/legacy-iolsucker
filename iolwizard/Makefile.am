@@ -8,6 +8,7 @@ EXTRA_PROGRAMS = iolwizard
 bin_PROGRAMS = @IOLWIZARD@
 
 noinst_HEADERS = ui.h dirbrowser.h
-iolwizard_SOURCES = main.c ui.c dirbrowser.c
-iolwizard_LDADD = ../lib/libmisc.a
+iolwizard_SOURCES = main.c ui.c dirbrowser.c 
+iolwizard_CFLAGS = $(AM_CFLAGS)
+iolwizard_LDADD = ../src/iolsucker-opt.o ../src/iolsucker-config.o ../lib/libmisc.a 
 iolwizard_DEPENDENCIES = ../lib/libmisc.a
