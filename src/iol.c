@@ -1213,14 +1213,11 @@ static void
 foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 {	size_t len;
 	char *local, *dirname, *download;
-	const char *q, *unquote;
+	const char  *unquote;
 	struct stat st;
-
-	q = URL_BASE;
-	if( file && d && d->url_prefix )
-	{	size_t len_q = strlen(q);
-		size_t len_url = strlen(d->url_prefix);
-
+	
+	if( file && d )
+	{
 		/* server race happenend ? */
 		if(strstr(file,d->iol->current_course->code) == NULL)
 		{	rs_log_error(_("No se ha podido cambiar de materia. "
@@ -1229,12 +1226,9 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 		                       "archivos, estaría mezclando carpetas"));
 		        return ;
 		}
-		
-		assert(len_url>0);
-		len =  len_q   + (q[len_q-1]!='/')  + 
-		       len_url + (d->url_prefix[len_url - 1] != '/');
-		assert( strlen(file) > len );
-
+		len = strlen(d->url_prefix);
+		if( *(file+len) == '/' )
+			len++;
 		unquote = file + len;
 		local = g_strdup_printf("%s/%s", d->prefix, unquote);
 		dirname = my_path_get_dirname(local);
@@ -1339,7 +1333,7 @@ iol_resync_download(iol_t iol, const struct course *course)
 		tmp.prefix = s;
 		tmp.iol = iol;
 		tmp.url_prefix = NULL;
-		
+
 		ret=get_file_list_from_current(iol, &files, &(tmp.url_prefix));
 		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
 
