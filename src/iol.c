@@ -4,18 +4,19 @@
  * Copyright (C) 2003 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2.1 of the License, or
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -38,6 +39,8 @@
 #include <trace.h>
 #include <strdup.h>
 #include <basename.h>
+#include <mkrdir.h>
+#include <progress.h>
 
 #include "i18n.h"
 #include "iol.h"
@@ -60,6 +63,9 @@
 #define URL_MATERIAL	URL_BASE"/newmaterialdid.asp" 
 #define IOL_COURSE_PARAMETER	"nivel=4"
 
+#define IOL_MATERIAL_FOLDER	"material"
+#define IOL_MATERIAL_TMPFILE	".download.tmp"
+
 struct buff 
 { 	char *data;
 	size_t size;
@@ -69,6 +75,7 @@ struct course
 {       char *code;
 	char *name;
 };
+
 
 /**
  * Concrete data type for the IOL object */
@@ -81,8 +88,11 @@ struct iolCDT
 	char *repository;	/**< repository directory */
 };
 
-
 #define IS_IOL_T( iol ) ( iol != NULL  )
+
+enum TP_FLAGS 
+{	TP_FILE	= 1 << 0
+};
 
 /**
  * gets the path were we save the cookies */
@@ -132,21 +142,58 @@ write_data_to_memory (void *ptr, size_t size, size_t nmemb, void *data)
 	return nmemb;
 }
 
+static size_t
+write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
+{	FILE *fp = data;
+
+	
+	return fwrite(ptr, size, nmemb, fp);
+}
+                                            
 /**
  *  wraper to libcurl. Transfer the url, and saves it in the buffer page
- * */
+ */
 static int
-transfer_page( CURL *curl, const char *url, unsigned flags, struct buff *page ) {	    CURLcode res;
+transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
+{	CURLcode res;
+	FILE *fp = NULL;
+	struct progress progress;
 
 	if( curl == NULL || url == 0 || url[0]==0)
 		return E_INVAL;
 
-	rs_log_info(_("downloading %s"),url); 
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1); 
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data_to_memory);
-	curl_easy_setopt(curl, CURLOPT_FILE, page); 
-	curl_easy_setopt(curl, CURLOPT_URL, url);
+	/*rs_log_info(_("downloading %s"),url); 
+	 */
+	
+	/*if( flags & TP_FILE )*/
+	{	
+		curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data_to_file);
+		fp = fopen(/*data*/"/tmp/pepe","wb");	
+		if( fp == NULL )
+			return E_NETWORK;
+		curl_easy_setopt(curl, CURLOPT_FILE, fp);
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, 
+		                  dot_progress_callback);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progress);
+		memset(&progress,0,sizeof(progress));
+	}
+	/*else
+	{ 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+		                       write_data_to_memory);
+		curl_easy_setopt(curl, CURLOPT_FILE, data); 
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, TRUE);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, NULL);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, NULL);
+	}*/
+	
+	curl_easy_setopt(curl, CURLOPT_URL, /*url*/ "http://mini/1");
 	res = curl_easy_perform(curl);
+
+	if( fp )
+		fclose(fp);
+	if( progress.data )
+		dot_finish(progress.data, time(NULL));
 
 	return res == 0 ? E_OK : E_NETWORK;
 }
@@ -412,6 +459,7 @@ struct tmp
 { 	GQueue	*pending;
 	GSList  *files;
 	char *prefix;
+	char *url_prefix;
 };
 
 static int
@@ -473,10 +521,13 @@ link_files_fnc( const char *link, const char *comment, void *d )
 	free(p);
 	if( s == NULL )
 		return;
-	rs_log_info("adding `%s'",link);
+	
 	bFile = url_is_file(link);
 	if( bFile )
+	{ 	if( t->url_prefix == NULL )
+			t->url_prefix = g_path_get_dirname(link);
 		t->files = g_slist_prepend(t->files, s);
+	}
 	else
 	{ 	if( is_father_folder(link,t->prefix) )
 			free(s);
@@ -486,7 +537,7 @@ link_files_fnc( const char *link, const char *comment, void *d )
 }
 
 static int
-get_current_file_list(iol_t iol, GSList **l)
+get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 {	struct buff webpage = { NULL, 0 };
 	char *url; 
 	struct tmp t;
@@ -494,6 +545,7 @@ get_current_file_list(iol_t iol, GSList **l)
 
 	t.pending = g_queue_new(); 
 	t.files = NULL;
+	t.url_prefix = NULL;
 	g_queue_push_head(t.pending, strdup(URL_MATERIAL));
 
 	while( ! g_queue_is_empty(t.pending) )
@@ -521,6 +573,7 @@ get_current_file_list(iol_t iol, GSList **l)
 			     ;
 			link_parser_destroy(parser);
 		}
+		*url_prefix = t.url_prefix;
 		free(url);
 		free(webpage.data);
 	}
@@ -539,7 +592,7 @@ create_course_directory(const char *dir)
 
 	if( stat(dir,&buf) == -1 )
 	{	if( errno == ENOENT )
-		{	if(mkdir(dir,0755) == -1 )
+		{	if(mkrdir(dir,0755) == -1 )
 				ret = -1;
 		}
 		else
@@ -549,16 +602,68 @@ create_course_directory(const char *dir)
 	return ret;
 }
 
+/** structure for passing data across the  g_slist_foreach function
+ */
+struct tmp_resync_getfile
+{	char *prefix;
+	char *url_prefix;
+	iol_t iol;
+};
+
 static void
-foreach_printdebug(char *file, void *user_data) 
-{
-	if( file )
-		printf("%s\n",file);
+foreach_getfile(char *file, struct tmp_resync_getfile *d)
+{	size_t len;
+	char *local, *dirname, *download, *unquote, *q;
+	struct stat st;
+
+	q = URL_BASE;
+	if( file && d && d->url_prefix )
+	{	size_t len_q = strlen(q);
+		size_t len_url = strlen(d->url_prefix);
+		
+		len =  len_q   + (q[len_q-1]!='/')  + 
+		       len_url + (d->url_prefix[len_url - 1] != '/');
+		assert( strlen(file) > len );
+
+		unquote = curl_unescape(file+len,0);
+		if( !unquote )
+			return;
+
+		local = g_strdup_printf("%s/%s", d->prefix, unquote);
+		dirname = g_path_get_dirname(local);
+		curl_free(unquote);
+
+		if( stat(local,&st) == -1 )
+		{	/** \todo 
+		 	 * if a deeper directory  has been created
+		 	 *  recently, don't try to create the dir
+		 	 */
+		 	errno = 0;
+			if( mkrdir(dirname,0755) == 0 || errno == EEXIST)
+			{
+				download = g_strdup_printf("%s/%s", dirname, 
+				                          IOL_MATERIAL_TMPFILE);
+				if( transfer_page(d->iol->curl, file, TP_FILE,
+				             download) == 0 )
+					rename(download,local);
+				else
+				{	remove(download);
+					rs_log_error("downloading %s",file);
+				}
+
+				g_free(download);
+			}
+		}
+		
+		g_free(dirname);
+		g_free(local);
+	}
 }
 
 int 
 iol_resync(iol_t iol, const char *code)
-{	int ret = E_OK;
+{	struct tmp_resync_getfile tmp;
+	int ret = E_OK;
 
 	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
 		ret = E_INVAL;
@@ -569,7 +674,8 @@ iol_resync(iol_t iol, const char *code)
 		ret = E_NETWORK;
 	} 
 	else
-	{       char *s = g_strdup_printf("%s/%s", iol->repository, code);
+	{       char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
+	                                  IOL_MATERIAL_FOLDER);
 		struct stat buf;
 
 		/* try to create course folder */ 
@@ -580,8 +686,13 @@ iol_resync(iol_t iol, const char *code)
 		}
 		else
 		{       GSList *files;
-			get_current_file_list(iol, &files);
-			g_slist_foreach(files, (GFunc)foreach_printdebug, NULL);
+		
+			tmp.prefix = s;
+			tmp.iol = iol;
+			tmp.url_prefix = NULL;
+			get_current_file_list(iol, &files, &(tmp.url_prefix));
+			g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
+			g_free(tmp.url_prefix);
 		}
 
 		g_free(s);
