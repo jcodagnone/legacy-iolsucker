@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
+#include <stdlib.h>
 #include <string.h>
 #include <glib.h>
 
@@ -52,7 +52,7 @@ foreach_getprefix( const char *file, struct get_prefix *d)
 char *
 get_common_startpath(GSList *list)
 {	struct get_prefix d;
-	char *ret;
+	char *ret, *s;
 	
 	memset(&d, 0, sizeof(d));
 	g_slist_foreach(list, (GFunc)foreach_getprefix, &d);
@@ -62,7 +62,8 @@ get_common_startpath(GSList *list)
 	else if( d.prefix[d.len]  == '/' )
 		ret = d.prefix;
 	else {
-		ret = g_strdup_printf("%s/", my_path_get_dirname(d.prefix));
+		ret = g_strdup_printf("%s/", (s=my_path_get_dirname(d.prefix)));
+		free(s);
 		g_free(d.prefix);
 	}
 
