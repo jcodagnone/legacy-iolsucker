@@ -1254,7 +1254,7 @@ inform_url_and_date( FILE *fp, const char *url )
 	fprintf(fp,"--");
 	if( !bTTY )
 		fprintf(fp, "%02d/%02d/%d ",
-		        tm->tm_mday, tm->tm_mon+1, tm->tm_year - 1900);
+		        tm->tm_mday, tm->tm_mon+1, tm->tm_year + 1900);
 		
 	fprintf(fp, "%02d:%02d:%02d-- ", tm->tm_hour, tm->tm_min,tm->tm_sec);
 	if( bTTY )
