@@ -306,7 +306,7 @@ iol_set_repository(iol_t cdt, const char *path)
 			 	  abort();
 			}
 			else
-			{	g_strdup_printf("%s/%s", cdt->repository,
+			{	s = g_strdup_printf("%s/%s", cdt->repository,
 				                         IOL_FILE_DB);
 				mkrdir(cdt->repository, 0755);
 				cdt->fcache = cache_new(s);
@@ -980,7 +980,8 @@ inform_url_and_date( FILE *fp, const char *url )
 	struct tm *tm = localtime(&now);
 	static unsigned columns;
 	unsigned n = 0, len = strlen(url), off=0;
-
+	int bTTY = isatty(fileno(fp)) != 0;
+	
 	/* nice printing:
 	 *   do go ahead of $COLUMNS or 80
 	 */
@@ -990,17 +991,22 @@ inform_url_and_date( FILE *fp, const char *url )
 	if( columns == 0 )
 		columns = get_tty_columns();
 
-	fprintf(fp, "--%02d:%02d:%02d-- ", tm->tm_hour, tm->tm_min,tm->tm_sec);
-	if( isatty(fileno(stdout)) )
+	fprintf(fp,"--");
+	if( !bTTY )
+		fprintf(fp, "%02d/%02d/%d ",
+		        tm->tm_mday, tm->tm_mon+1, tm->tm_year - 1900);
+		
+	fprintf(fp, "%02d:%02d:%02d-- ", tm->tm_hour, tm->tm_min,tm->tm_sec);
+	if( bTTY )
 	{
-		n = 2+2+2+2+4+1;
+		n = 2+2+2+2+4+1; 
 
 		if( n + len + 1 > columns )
 		{	off = len - (columns - 1 - n - 4);
 			fprintf(fp, "... ");
 		}
 	}
-
+	
 	fprintf(fp, "%s\n",url + off);
 }
 
