@@ -84,11 +84,11 @@ LINK32=link.exe
 # Name "iolsucker - Win32 Debug"
 # Begin Source File
 
-SOURCE="..\..\src\cache.c"
+SOURCE="..\..\src\cache.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\src\cache.h"
+SOURCE="\iol\iolsucker-2.0.28\compile\iolsucker-2.0.28\src\cache_db.c"
 # End Source File
 # Begin Source File
 
@@ -101,6 +101,10 @@ SOURCE="..\..\src\common.h"
 # Begin Source File
 
 SOURCE=..\..\src\config.h
+# End Source File
+# Begin Source File
+
+SOURCE="\iol\iolsucker-2.0.28\compile\iolsucker-2.0.28\src\course.c"
 # End Source File
 # Begin Source File
 
@@ -173,10 +177,6 @@ SOURCE="..\..\src\stringset.c"
 # Begin Source File
 
 SOURCE="..\..\src\stringset.h"
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\lib\trace.c
 # End Source File
 # Begin Source File
 
