@@ -997,7 +997,7 @@ static char *
 _iol_get_url_from_fid(iol_t iol, unsigned long fid, const char *fid_sz)
 {	char * url, *s, *p, tmp[64];
 	char *ret = 0;
-	char needle[]="\"fileviewer\" SRC=\"";
+	char needle[]="<FRAME SRC=\"showfile_header.asp?name=";
 	
 	 if( !iol->no_cache && (s=cache_get_file(iol->fid_cache, fid_sz)) )
 	 	ret = g_strdup(s);
@@ -1017,20 +1017,36 @@ _iol_get_url_from_fid(iol_t iol, unsigned long fid, const char *fid_sz)
 				 *    1. contiene la descripcion 
 				 *       del archivo y un form con acciones
 				 *       (imprimir, marcar como leido, volver);
-				 *    2. contiene la direccion del archivo
-				 *       El frame se llama fileviewer
+				 *    2. contiene un background feo sin datos
 				 * 
-				 *  Solo nos interesa encontrar el segundo
+				 *  Solo nos interesa un link que tiene el 1ero
+				 *  <FRAME SRC="showfile_header.asp?name=
+				 *     administrativos/Planclases-II 2004.doc..
 				 */
 				 s = strstr(buf.data, needle);
 				 if( s )
 				 {	s += sizeof(needle) - 1;
-				 	p = strchr(s, '"');
+				 	p = strchr(s, '&');
 					if( p )
+					{	/* TODO no harcodear url */
 						*p = '\0';
-
-					ret = g_strdup(s);
-					cache_add_file(iol->fid_cache,fid_sz,s);
+						ret = g_strdup_printf(
+						  "http://%s/lockers/4/%s/%s",
+						  iol->host,
+					 	  iol->current_course->code, s);
+						cache_add_file(iol->fid_cache,
+						               fid_sz,ret);
+					}
+					else {
+					 	rs_log_warning(
+						"_iol_get_url_from_fid: "
+						"Problemas! "
+						 "Contacte al mantainer! "
+						 "(Juan?). Asegurese de "
+						 "enviarle unas cervezas ;)");
+					}
+					
+					
 				 }
 				 else
 				 	rs_log_warning("_iol_get_url_from_fid: "
@@ -1245,12 +1261,15 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 	
 	if( file && d )
 	{
-		/* server race happenend ? */
+		/* mmmm. watchdog! */
 		if(strstr(file,d->iol->current_course->code) == NULL)
-		{	rs_log_error(_("No se ha podido cambiar de materia. "
-		                       "La teoria del autor es que existe una "
-		                       "race en el servidor. Si bajase los "
-		                       "archivos, estaría mezclando carpetas"));
+		{	rs_log_error(_("Hay un problema con la URL del archivo"
+		                       " que vamos a bajar (%s). No contiene "
+				       "el codigo de la materia. Seguramente "
+				       "IOL cambio algo. Comuniquese con el "
+				       "mantainer, y enviele cervezas "
+				       "^W comentarios sobre el problema"),
+				       file);
 		        return ;
 		}
 		
