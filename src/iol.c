@@ -1284,6 +1284,10 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 	{	ret = E_INVAL;
 		rs_log_error(_("course `%s' has no name! (TODO)"),code);
 	}
+	else if( c->type != CT_COURSE && !(flags&(IOL_RF_NEWS|IOL_RF_FORUM)))
+	{	if( flags & IOL_RF_FILE && ret == E_OK )
+			ret = iol_resync_download(iol, c);
+	}
 	else if( rs_log_info(_("%s (%s)"), code, c->name) ,
 	         iol_set_current_course(iol, code) != E_OK )  /* C hack */
 	{ 	rs_log_error(_("setting current course to `%s'"),code);
