@@ -54,7 +54,6 @@
 #include "iol.h"
 #include "link.h"
 #include "progress.h"
-#include "cache.h"
 #include "forum.h"
 
 #ifndef CURLOPT_WRITEDATA
@@ -84,7 +83,6 @@
 #define URL_CHANGE_COU 	"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
 #define URL_CHANGE_DPT	"/mynav.asp?cmd=ChangeContext&nivel=3&snivel=%s"
 #define URL_MATERIAL	"/newmaterialdid.asp" 
-#define URL_DOWNLOAD	"/download.asp" 
 #define IOL_FORUM  	"/foroDis.asp"
 #define IOL_NEWS	"/novlistall.asp"
 
@@ -132,7 +130,6 @@ struct iolCDT
 	int fancy;		/**< use fancy names */
 	int wait;		/**< seconds to wait when changing context */
 
-	cache_t fcache;		/**< cache of files for download.asp **/
 	FILE *logfp;		/**< logfile filepointer */
 
 	char url_tmp[256];
@@ -397,8 +394,6 @@ iol_destroy(iol_t iol)
 	free(iol->repository);
 	free(iol->url_tmp_pt);
 	
-	if( iol->fcache )
-		cache_destroy(iol->fcache);
 	free(iol);
 }
 
@@ -413,21 +408,10 @@ iol_set_repository(iol_t cdt, const char *path)
 	{ 	cdt->repository= strdup(path); 
 		if( cdt->repository == NULL )
 			ret = E_MEMORY;
+		else if( mkrdir(cdt->repository, 0755) != 0 && errno!=EEXIST)
+			ret = E_FS;
 		else
-		{	if( cdt->fcache )
-			{	/** \todo  close and reopen the db ? 
-			 	  * mmmm
-			 	  */
-			 	  abort();
-			}
-			else
-			{	s = g_strdup_printf("%s/%s", cdt->repository,
-				                         IOL_FILE_DB);
-				mkrdir(cdt->repository, 0755);
-				cdt->fcache = cache_new(s);
-				g_free(s);
-			}
-
+		{
 			if( cdt->logfp )
 				fclose(cdt->logfp);
 			s = g_strdup_printf("%s/%s", cdt->repository,
@@ -926,13 +910,12 @@ iol_set_current_course(iol_t iol, const char *course)
 
 static int
 link_is_iol_file(const char *url) 
-{	const char *p, *q, *r;
+{	const char *p, *q;
 
 	p = url;
-	q = "download.asp";
-	r = "newmaterialdid.asp";
+	q = "newmaterialdid.asp";
 
-	return (strncmp(p,q, strlen(q))==0) ? 1 : (strncmp(p,r,strlen(r))!=0) * 2;
+	return (strncmp(p,q,strlen(q))!=0);
 }
 
 
@@ -1004,111 +987,6 @@ my_url_escape(const char *url)
 	return s;
 }
 
-/**
- * \returns true if ::url contains a file id (download.asp scheme).
- * Also copy the fid to ::buf
- */
-static int
-url_has_fid(const char *url, char *buf, size_t size)
-{	size_t i;
-	char *p, *q;
-
-	p = strchr(url,'?');
-	if( p )
-	{	/** \todo a url_crack function  */
-		p++;
-		p = strstr(p,"id=");
-		p += sizeof("id=") -1;
-		q = strchr(p,'&');
-		if( q == NULL )
-			for( q=p; *q; q++)
-				;
-
-		for( i=0 ; i < size - 1 && p != q && isdigit(p[i]) ; i++ )
-			buf[i] = p[i];
-		buf[i]=0;
-	}
-
-	return -(p!=q);
-}
-
-/*
- * #    #    ##    #####   #    #     #    #    #   ####
- * #    #   #  #   #    #  ##   #     #    ##   #  #    #
- * #    #  #    #  #    #  # #  #     #    # #  #  #
- * # ## #  ######  #####   #  # #     #    #  # #  #  ###
- * ##  ##  #    #  #   #   #   ##     #    #   ##  #    #
- * #    #  #    #  #    #  #    #     #    #    #   ####
- * Mon, 24 Mar 2003 14:21:36 -0300
- * this is a tempory ugly hack, until i get a javascript parser
- *
- * get the filename url from the redirect page (download.asp scheme)
- */
-static char *
-javascript_get_refresh_link( iol_t iol,  struct buff *page )
-{	char *p, *q, *ret = NULL;
-
-	/* como diria un amigo.....a lo cabeza!!! 
-	 * niños, no intenten esto en sus casas
-	 */
-	page->data[page->size-1] = 0 ;
-	p = strstr(page->data,"javascript:window.open"); 
-	if( p )
-	{ 	p += sizeof("javascript:window.open");
-		p = strchr(p, '"' );
-		if( p )
-		{	p++;
-			q = strchr(p, '"' );
-			if( q )
-			{	*q = 0;
-				ret = g_strdup( iol_get_url(iol, p) );
-			}
-		}	
-	}
-
-	return ret;
-}
-
-/** 
- * returns the url for the (real) file that we need to download in the 
- * download.asp scheme.
- */
-static char *
-get_real_download_file( iol_t iol,  const char *url )
-{	char buff[12]={0};
-	char *file;
-	char *ret = NULL;
-	
-	if( url_has_fid(url, buff, sizeof(buff)) == 0 )
-		;
-	else
-	{	
-		if( (file = cache_get_file(iol->fcache, buff)) )
-			ret = file;
-		else
-		{	struct buff page = {NULL, 0}; 
-			const char *eurl;
-
-			eurl = my_url_escape(url);
-			eurl = eurl ? eurl :  url;
-
-			if( transfer_page(iol->curl, eurl, 0, &page) != E_OK)
-				;
-			else
-			{ 	ret = javascript_get_refresh_link(iol, &page);
-				if( ret )
-					cache_add_file(iol->fcache, buff,ret);
-				free(page.data);
-			}
-
-			if( eurl != url )
-				g_free( (char *)eurl);
-		}
-	}
-
-	return ret;
-}
-
 static int
 link_is_rare_for_file( const char *link )
 {
@@ -1145,15 +1023,7 @@ link_files_fnc( const unsigned char *link,
 	if( bFile )
 	{
 		q = NULL;
-		if( bFile == 1 )	/* download.asp scheme */
-		{	q = get_real_download_file(t->iol, s);
-			if( q )
-			{	if( t->url_prefix == NULL )
-					t->url_prefix = my_path_get_dirname(
-					   q+strlen(iol_get_url(t->iol,"")));
-			}
-		}
-		else if( bFile == 2 )	/* direct link scheme */
+		if( bFile )	/* direct link scheme */
 		{	if( t->url_prefix == NULL )
 				t->url_prefix = my_path_get_dirname(link);
 			q = s;

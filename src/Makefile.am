@@ -17,7 +17,7 @@ link_CFLAGS = -D LINK_TEST
 link_LDADD = ../lib/libmisc.a 
 iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
                     link.c link.h getpass.c getpass.h progress.c \
-                    progress.h  iolerr.c opt.c cache.c cache.h forum.c \
+                    progress.h  iolerr.c opt.c forum.c \
                     forum.h demo.c  link_debug.c
 iolsucker_CFLAGS = $(AM_CFLAGS) @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@ 
 iolsucker_LDADD = ../lib/libmisc.a @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
