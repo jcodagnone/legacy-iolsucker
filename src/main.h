@@ -18,6 +18,7 @@ struct opt {
 	char *proxy_user;
 	int dry;
 	char *proxy_type;
+	int verbose;
 };
 
 int

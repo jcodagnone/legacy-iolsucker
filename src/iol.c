@@ -103,6 +103,7 @@ struct iolCDT
 
 	int dry;		/**< dry run ? */
 	int neterr;
+	int verbose;
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -208,7 +209,7 @@ iol_new(void)
 	curl_easy_setopt(cdt->curl,CURLOPT_COOKIEJAR, "");
 	curl_easy_setopt(cdt->curl,CURLOPT_USERAGENT,USERAGENT);
 	curl_easy_setopt(cdt->curl,CURLOPT_FAILONERROR, 1);
-	/* curl_easy_setopt(cdt->curl,CURLOPT_VERBOSE, 1); */
+
 
 	return cdt;
 }
@@ -302,6 +303,20 @@ iol_set_proxy_user(iol_t cdt, const char *proxy_user)
 	return ret;
 }
 
+static int 
+iol_set_verbose( iol_t cdt, int *b)
+{	int ret = E_OK;
+
+	if( b )
+	{	cdt->verbose = *b !=0;
+		curl_easy_setopt(cdt->curl,CURLOPT_VERBOSE, cdt->verbose);
+	}
+	else
+		ret = E_INVAL;
+	
+	return ret;
+}
+
 static int
 iol_set_download(iol_t cdt, int *download)
 {	int ret = E_OK;
@@ -327,7 +342,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_PROXY_TYPE, (iol_set_fnc) iol_set_proxy_type },
 		{	IOL_PROXY_HOST, (iol_set_fnc) iol_set_proxy_host },
 		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user },
-		{	IOL_DOWNLOAD,   (iol_set_fnc) iol_set_download   }
+		{	IOL_DOWNLOAD,   (iol_set_fnc) iol_set_download   },
+		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )

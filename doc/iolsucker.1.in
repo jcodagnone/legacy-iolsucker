@@ -25,9 +25,10 @@ iolsucker \- cliente no interactivo para IOL
 .SH SYNOPSIS
 .HP 10
 .BR iolsucker
-.RB [ \-hnV ]
+.RB [ \-hnVv ]
 .RB [ \-\-help ] 
 .RB [ \-\-version ]
+.RB [ \-\-verbose ]
 .RB [ \-\-dry\-run ]
 .RB [ \-\-user\  username]
 .RB [ \-f\  filename ]
@@ -52,6 +53,10 @@ didáctico, y por cada carpeta que allí existe, ver si hay algún archivo nuevo.
 muestra la ayuda y muere.
 .IP "\fB\-V\fR, \fB\-\-version\fR"
 muestra la información de la versión y muere.
+.IP "\fB\-v\fR, \fB\-\-verbose\fR"
+imprime información extra (util cuando las cosas no funcionan).
+Antes de envierle esta informacion a otra persona, para que lo ayude, 
+fijese que no exista informacion confidencial.
 .IP "\fB\-n\fR, \fB\-\-dry\-run\fR"
 corre en seco: no descarga ningún archivo. Solo reporta cambios.
 .IP "\fB\-f\fR"

@@ -49,6 +49,7 @@ _("Usage: %s [OPTION]\n"
 /* X   X                      X */
 " -V   --version              prints the version info and dies\n"
 " -h   --help                 prints this message\n"
+" -v   --verbose              prints verbose information\n"
 " -u   --user username        specify the login username\n"
 " -n   --dry-run              dry-run: don't download any files. just report\n"
 " -t   --proxy-type type      proxy type. http is the default (other: socks5)\n"
@@ -66,7 +67,8 @@ _("Usage: %s [OPTION]\n"
 static void 
 usage ( void )
 {
-	printf("Usage: %s [-hnV] [--help] [--version] [--dry-run] [-u username]"
+	printf("Usage: %s [-hnVv] [--help] [--version] [--dry-run]"
+	       " [-u username]"
 	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>"
 	       " [-t proxy-type ] [--proxy-type proxy-type]\n",
 	       rs_program_name);
@@ -105,6 +107,8 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*11*/ {"dry-run",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL },
 	 /*12*/ {"t",           OPT_NORMAL, 1,  OPT_T_GENER,  NULL },
 	 /*13*/ {"proxy-type",  OPT_NORMAL, 1,  OPT_T_GENER,  NULL },
+	 /*14*/ {"v",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL  },
+	 /*15*/ {"verbose",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL  },
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
@@ -112,7 +116,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	   lopt[8].data = lopt[9].data = &(opt->proxy);
 	   lopt[10].data = lopt[11].data = &(opt->dry);
 	   lopt[12].data = lopt[13].data = &(proxy_type);
-
+	   lopt[14].data = lopt[15].data = &(opt->verbose);
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
 	i = GetOptions( argv, lopt, 0, NULL);
@@ -141,7 +145,6 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 		opt->proxy_user = strdup(opt->proxy_user);
 	if( opt->proxy )
 		opt->proxy = strdup(opt->proxy);
-	/** \todo support strdup error condition */
 
 	return 0;
 }

@@ -9,6 +9,7 @@ enum iol_settings {
 	IOL_PROXY_HOST, /**< sets the host proxy setting. data: <host[:port]> */
 	IOL_PROXY_USER, /**< stes the user proxy setting. data: <user[:pass]> */
 	IOL_DOWNLOAD,	/**< download files? default TRUE. data: (int *) */
+	IOL_VERBOSE,	/**< verbose information. default FALSE. data: (int *)*/
 	IOL_MAX
 };
 
