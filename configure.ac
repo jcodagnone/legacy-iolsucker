@@ -49,6 +49,7 @@ AC_C_INLINE
 
 # Checks for library functions.
 AM_PATH_CURL
+AM_PATH_XML2
 AC_CHECK_FUNCS([memset strchr strtol])
 AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strtol])

@@ -1,9 +1,8 @@
-AM_CFLAGS = @CFLAGS@ -I../lib @CURL_CFLAGS@  `xml2-config  --cflags`
+AM_CFLAGS = @CFLAGS@ -I../lib @CURL_CFLAGS@  @XML_CFLAGS@
 
-AM_LDFLAGS = @LDFLAGS@
+AM_LDFLAGS = @LDFLAGS@  -L../lib -L. 
 
-LIBS =  -lmisc @CURL_LIBS@ @LIBS@ -lefence  `xml2-config --libs`
-LDFLAGS = -L../lib -L. 
+LIBS =  -lmisc @CURL_LIBS@ @LIBS@ -lefence  @XML_LIBS@
 
 bin_PROGRAMS = iolsuck link
 
