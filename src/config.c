@@ -97,6 +97,23 @@ parse_proxy (xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 				opt->proxy_user = strdup(key);
 			xmlFree(key);
 		}
+		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"type")))
+		{	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
+			if( key )
+			{	if( !strcmp(key, "socks5") )
+					opt->proxy_type ="socks5";
+				else if( !strcmp(key, "http" ) )
+					opt->proxy_type = "http";
+				else
+					opt->proxy_type = "";
+			}
+			xmlFree(key);
+		}
+		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"text")))
+			;
+		else
+			rs_log_warning(_("unknown tag: `%s'"),cur->name);
+
 		cur = cur->next;
 	}
 	
@@ -177,9 +194,11 @@ save_config_file( const struct opt *opt)
 	rs_log_info("user:  %s", opt->username);
 	rs_log_info("pass:  %s", opt->password);
 	rs_log_info("rep:  %s", opt->repository);
+	rs_log_info("proxy_type:   %s", opt->proxy_type);
 	rs_log_info("proxy: %s", opt->proxy);
 	rs_log_info("puser: %s", opt->proxy_user);
 	rs_log_info("dry:   %d", opt->dry);
+	
 
 	return 0;
 }

@@ -294,6 +294,17 @@ iol_set_repository(iol_t cdt, const char *path)
 	return ret;
 }
 
+static int 
+iol_set_proxy_type(iol_t cdt, const char *type)
+{	
+	if( !strcmp(type, "http" ) )
+		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_HTTP);
+	else if( strcmp(type, "socks5") )
+		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_SOCKS5);
+
+	return E_OK;
+}
+
 static int
 iol_set_proxy_host(iol_t cdt,  const char *proxy)
 {	int ret = E_OK;
@@ -347,7 +358,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 	{	enum iol_settings id;
 		iol_set_fnc fnc;
 	}  table [] = 
-	{	{	IOL_REPOSITORY,	(iol_set_fnc) iol_set_repository }, 
+	{	{	IOL_REPOSITORY,	(iol_set_fnc) iol_set_repository },
+		{	IOL_PROXY_TYPE, (iol_set_fnc) iol_set_proxy_type },
 		{	IOL_PROXY_HOST, (iol_set_fnc) iol_set_proxy_host },
 		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user },
 		{	IOL_DOWNLOAD,   (iol_set_fnc) iol_set_download   }

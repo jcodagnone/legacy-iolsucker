@@ -51,6 +51,7 @@ _("Usage: %s [OPTION]\n"
 " -h   --help                 prints this message\n"
 " -u   --user username        specify the login username\n"
 " -n   --dry-run              dry-run: don't download any files. just report\n"
+" -t   --proxy-type type      proxy type. http is the default (other: socks5)\n"
 " -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
 " -U <user[:password]>        specify proxy authentication\n"
 " -f filename                 load settings from file\n"
@@ -66,7 +67,8 @@ static void
 usage ( void )
 {
 	printf("Usage: %s [-hnV] [--help] [--version] [--dry-run] [-u username]"
-	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>\n",
+	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>"
+	       " [-t proxy-type ] [--proxy-type proxy-type]\n",
 	       rs_program_name);
 
 	exit( EXIT_SUCCESS );
@@ -87,7 +89,7 @@ version( void )
 int
 parseOptions( int argc, char * const * argv, struct opt *opt)
 {	int i;
-	const char *user = 0, *configfile = 0;
+	const char *user = 0, *configfile = 0, *proxy_type = "";
 	static optionT lopt[]=
 	{/*00*/	{"help",	OPT_NORMAL, 0,	OPT_T_FUNCT, (void *) help },
 	 /*01*/	{"h",		OPT_NORMAL, 1,  OPT_T_FUNCT, (void *) help },
@@ -101,12 +103,15 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*09*/ {"proxy",       OPT_NORMAL, 0,  OPT_T_GENER, NULL },
 	 /*10*/ {"n",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL },
 	 /*11*/ {"dry-run",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL },
-	 	{NULL,          OPT_NORMAL, 0,  OPT_T_FUNCT, 0 }
+	 /*12*/ {"t",           OPT_NORMAL, 1,  OPT_T_GENER,  NULL },
+	 /*13*/ {"proxy-type",  OPT_NORMAL, 1,  OPT_T_GENER,  NULL },
+	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
 	   lopt[7].data = &(opt->proxy_user);
 	   lopt[8].data = lopt[9].data = &(opt->proxy);
 	   lopt[10].data = lopt[11].data = &(opt->dry);
+	   lopt[12].data = lopt[13].data = &(proxy_type);
 
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
@@ -121,7 +126,16 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 		strncpy(opt->username, user, sizeof(opt->username)-1);
 	if( configfile )
 		strncpy(opt->configfile, configfile, sizeof(opt->configfile)-1);
-
+	if( *proxy_type )
+	{	if( !strcmp(proxy_type, "socks5") )
+			opt->proxy_type = "socks5";
+		else if( !strcmp(proxy_type, "http") )
+			opt->proxy_type = "http";
+		else
+		{	rs_log_error(_("unknown proxy-type `%s'"),proxy_type);
+			return -1;
+		}
+	}
 	if( opt->proxy_user )
 		opt->proxy_user = strdup(opt->proxy_user);
 	if( opt->proxy )

@@ -5,6 +5,7 @@ typedef struct iolCDT *iol_t;
 
 enum iol_settings {
 	IOL_REPOSITORY,	/**< sets the file repository dir. data: path for dir */
+	IOL_PROXY_TYPE, /**< sets the type of the proxy. data: <http|sock5>*/
 	IOL_PROXY_HOST, /**< sets the host proxy setting. data: <host[:port]> */
 	IOL_PROXY_USER, /**< stes the user proxy setting. data: <user[:pass]> */
 	IOL_DOWNLOAD,	/**< download files? default TRUE. data: (int *) */

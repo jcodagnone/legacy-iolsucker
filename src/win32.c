@@ -100,6 +100,7 @@ rot13(char *data)
 #define IOL_PASS	"password"
 #define IOL_REPO	"repository"
 #define IOL_DRY 	"dry_run"
+#define IOL_PROXY_TYPE  "proxy_type"
 #define IOL_PROXY_HOST	"proxy"
 #define IOL_PROXY_USER	"proxy_user"
 
@@ -107,7 +108,8 @@ int
 save_config_file(struct opt *opt)
 {	int r = 1;
 	char *t = "1", *f = "0";
-	
+
+	assert(opt->proxy_type);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,opt->username); 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_REPO,opt->repository);
 	rot13(opt->password);

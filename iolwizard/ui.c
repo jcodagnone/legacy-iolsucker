@@ -21,6 +21,17 @@
  * Yes! you will see the function and say: `WTF! this is horrible!' and i will
  * answer you: `yeah, but is linear. give me some TNT!'
  */
+
+#ifdef HAVE_CONFIG_H
+  #ifdef WIN32
+    #include "../configwin.h"
+  #else
+    #include <config.h>
+  #endif
+#endif
+
+#
+ 
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,16 +52,11 @@
 #include "dirbrowser.h"
 #include "error_dlg.h"
 
-#ifdef HAVE_CONFIG_H
-  #ifdef WIN32
-    #include "../configwin.h"
-  #else
-    #include <config.h>
-  #endif
-#endif
-
 #define SIZE_X	320
 #define SIZE_Y	320
+
+#define STYPE_HTTP	"http"
+#define STYPE_SOCK5	"socks5"
 
 static int exec_iolwizard(void);
 
@@ -58,7 +64,7 @@ struct tmp
 { 	struct opt *opt;
 	GtkWidget *hwnd, *frame_proxy;
 	GtkWidget *edtUser, *edtPass, *edtRep;
-	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass;
+	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
 	GtkWidget *chkDry;
 	char *msg;
 };
@@ -100,6 +106,14 @@ sync_data(struct tmp *tmp)
 	tmp->opt->username[sizeof(tmp->opt->username)-1] = 0;
 	tmp->opt->password[sizeof(tmp->opt->password)-1] = 0;
 	tmp->opt->repository[sizeof(tmp->opt->repository)-1] = 0;
+
+	s = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(tmp->cmbType)->entry));
+	if( !strcmp(s, STYPE_HTTP) )
+		tmp->opt->proxy_type = STYPE_HTTP;
+	else if (!strcmp(s, STYPE_SOCK5) )
+		tmp->opt->proxy_type = STYPE_SOCK5;
+	else if( *s != 0 ) 
+		assert(0);
 
 	s = gtk_entry_get_text(GTK_ENTRY(tmp->edtHost));
 	if( *s )
@@ -144,9 +158,8 @@ resync_fnc( GtkWidget *widget, struct tmp *tmp )
 	if( access(tmp->opt->repository, W_OK|X_OK) == -1 )
 		show_error(_("el directorio del repositorio no existe,\n"
 		             "o usted no tiene suficientes permisos sobre el"));
-	else if( tmp->opt->username[0]==0 || tmp->opt->password[0]==0 )
-		show_error(
-		_("el nombre de usuario o la password estan vacias"));
+	else if( tmp->opt->username[0]==0 )
+		show_error( _("el nombre de usuario es nulo!"));
 	else
 	{
 		sync_data(tmp);
@@ -197,6 +210,22 @@ repbrowse_fnc( GtkWidget *widget, struct tmp *tmp )
 	browse = xmms_create_dir_browser(_("Select repository directory"),s,
 	         GTK_SELECTION_SINGLE, (void *)handler, tmp);
 	gtk_widget_show(browse);
+}
+
+/* COMBOS
+ */
+static void
+changed_combo_fnc( GtkCombo *widget, struct tmp *tmp)
+{	gchar *s;
+
+	s = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(tmp->cmbType)->entry));
+
+	if( !strcmp(s,STYPE_HTTP) )
+		tmp->opt->proxy_type = STYPE_HTTP;
+	else if( !strcmp(s,STYPE_SOCK5) )
+		tmp->opt->proxy_type = STYPE_SOCK5;
+	else if( *s == 0 )
+		tmp->opt->proxy_type = "";
 }
 
 /*  CHECK-BOXES
@@ -354,11 +383,23 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 
 static void
+fill_proxy_type_combo( GtkCombo *combo )
+{	GList *l = NULL;
+
+	l = g_list_append(l, "");
+	l = g_list_append(l, STYPE_HTTP);
+	l = g_list_append(l, STYPE_SOCK5);
+
+	 gtk_combo_set_popdown_strings(combo, l);
+	 g_list_free(l);
+}
+
+static void
 create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass;
+{ 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
 	GtkWidget *vbox, *hbox, *label;
 	GtkObject *adj;
-
+	
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
 
@@ -367,8 +408,16 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	spnPort  = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0.5, 0);
 	edtPUser = gtk_entry_new();
 	edtPPass = gtk_entry_new();
+	cmbType  = gtk_combo_new();
 	gtk_entry_set_visibility(GTK_ENTRY(edtPPass), 0);
+	fill_proxy_type_combo(GTK_COMBO(cmbType));
 
+	hbox = gtk_hbox_new(FALSE, 0);
+	label = gtk_label_new(_("Type:"));
+	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(hbox),cmbType, TRUE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
+	
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Host:"));
 	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
@@ -388,6 +437,7 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_box_pack_start(GTK_BOX(hbox),edtPPass, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
 
+
 	/* signals */
 	gtk_signal_connect(GTK_OBJECT(edtPUser), "insert-text",
 	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
@@ -395,7 +445,9 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
 	gtk_signal_connect(GTK_OBJECT(edtHost), "changed", 
 	                   GTK_SIGNAL_FUNC(edtHost_changed), tmp);
-
+	gtk_signal_connect(GTK_OBJECT(GTK_COMBO(cmbType)->entry),"changed",
+	                   GTK_SIGNAL_FUNC(changed_combo_fnc),tmp);
+	                   
 	/* tooltips */
 
 	/* save data */
@@ -403,7 +455,8 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	tmp->spnPort = spnPort;
 	tmp->edtPUser = edtPUser; 
 	tmp->edtPPass = edtPPass;
-
+	tmp->cmbType = cmbType;
+	
 	/* default values */
 	if( tmp->opt->proxy) 
 	{	char *s;
@@ -426,6 +479,17 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	}
 	else
 		gtk_entry_set_text(GTK_ENTRY(edtHost),"");
+
+	if( !strcmp(tmp->opt->proxy_type, STYPE_HTTP ) )
+		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(cmbType)->entry),
+		                   STYPE_HTTP);
+	else if( !strcmp(tmp->opt->proxy_type, STYPE_SOCK5) )
+		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(cmbType)->entry),
+		                   STYPE_SOCK5);
+	else if( !strcmp(tmp->opt->proxy_type, "" ))
+		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(cmbType)->entry), "");
+	else
+		assert(0);
 
 	if( tmp->opt->proxy_user )
 	{	char *s;

@@ -99,6 +99,7 @@ main( int argc, char **argv )
 	iol_set(iol, IOL_REPOSITORY, opt.repository);
 	iol_set(iol, IOL_PROXY_HOST, opt.proxy);
 	iol_set(iol, IOL_PROXY_USER, opt.proxy_user);
+	iol_set(iol, IOL_PROXY_USER, opt.proxy_type == 0 ? "html" : "socks5");
 
 	rs_log_info(_("login on as `%s'"), opt.username);
 	if( (ret = iol_login(iol, opt.username, opt.password)) != E_OK )
