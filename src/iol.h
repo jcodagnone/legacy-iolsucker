@@ -32,6 +32,9 @@ int   iol_resync_all(iol_t iol);
 /** change the setting */
 int   iol_set(iol_t iol, enum iol_settings, void *data);
 
+const char *iol_get_last_network_error(iol_t iol);
+
+const char *iol_strerror(int code);
 
 /**
  * errors

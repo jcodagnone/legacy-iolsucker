@@ -100,6 +100,7 @@ struct iolCDT
 	char *repository;	/**< repository directory */
 
 	int dry;		/**< dry run ? */
+	int neterr;
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -167,7 +168,7 @@ write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
  *  wraper to libcurl. Transfer the url, and saves it in the buffer page
  */
 static int
-transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
+transfer_page( CURL *curl, const char *url, unsigned flags, void *data, int *error)
 {	CURLcode res;
 	FILE *fp = NULL;
 	struct progress *progress = NULL;
@@ -183,7 +184,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 		curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data_to_file);
 		fp = fopen(data, "wb");	
 		if( fp == NULL )
-			return E_NETWORK;
+			return E_INVAL;
 		curl_easy_setopt(curl, CURLOPT_FILE, fp);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
 
@@ -212,6 +213,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 	if( progress )
 		destroy_progress_callback(progress);
 
+	*error = res;
 	return res == 0 ? E_OK : E_NETWORK;
 }
 
@@ -466,21 +468,19 @@ iol_login(iol_t iol, const char *user, const char *pass)
 	else
 	{       struct buff buf = {NULL, 0};
 
-		/* yummm!!! get a cookie */ if(
-		transfer_page(iol->curl, URL_LOGIN, 0, NULL)!= E_OK )
-		{	rs_log_error(_("login(): network error"));
+		/* yummm!!! get a cookie */ 
+		if( transfer_page(iol->curl, URL_LOGIN, 0, NULL, 
+		    &(iol->neterr))!= E_OK )
 			nRet = E_NETWORK;
-		} 
 		else
 		{       char *s = g_strdup_printf(URL_LOGIN_ARG,user,pass);
 
 			/* login */
 			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, s);
 
-			if(transfer_page(iol->curl, URL_LOGIN_1,0,&buf) != E_OK)
-			{	rs_log_error(_("login(): network error"));
+			if(transfer_page(iol->curl, URL_LOGIN_1,0,&buf,
+			                 &(iol->neterr)) != E_OK)
 				nRet = E_NETWORK;
-			} 
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
 
@@ -500,7 +500,7 @@ iol_logout(iol_t iol)
 	if( !IS_IOL_T(iol)  )
 		nRet = E_INVAL;
 	else if( iol->bLogged  )
-	{	 transfer_page(iol->curl, URL_LOGOUT,0,NULL);
+	{	transfer_page(iol->curl, URL_LOGOUT,0,NULL,&(iol->neterr));
 		iol->bLogged = 0;
 	}
 	else
@@ -533,7 +533,7 @@ iol_set_current_course(iol_t iol, const char *course)
 
 	s = g_strdup_printf(URL_CHANGE,course);
 
-	if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
+	if( transfer_page(iol->curl, s, 0, NULL, &(iol->neterr)) != E_OK )
 		ret = E_NETWORK;
 
 	return	ret;
@@ -656,7 +656,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 		webpage.data = NULL;
 		webpage.size = 0;
 
-		if( transfer_page(iol->curl, url,0,&webpage) != E_OK )
+		if(transfer_page(iol->curl,url,0,&webpage,&(iol->neterr))!=E_OK)
 			ret = E_NETWORK;
 		else
 		{	link_parser_t parser;
@@ -741,11 +741,14 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		 	 */
 		 	errno = 0;
 			if( mkrdir(dirname,0755) == 0 || errno == EEXIST)
-			{
+			{	time_t now =  time(NULL);
+				struct tm *tm = localtime(&now);
+				printf("--%02d:%02d:%02d-- %s" ,tm->tm_hour,
+				                   tm->tm_min,tm->tm_sec,file);
 				download = g_strdup_printf("%s/%s", dirname, 
 				                          IOL_MATERIAL_TMPFILE);
 				if( transfer_page(d->iol->curl, file, TP_FILE,
-				             download) == 0 )
+				             download, &(d->iol->neterr)) == 0 )
 					rename(download,local);
 				else
 				{	remove(download);
@@ -829,4 +832,16 @@ iol_resync_all(iol_t iol)
 	g_slist_foreach(iol->courses,(GFunc)foreach_resync,&r);
 
 	return r.ret;
+}
+
+const char * curl_strerror(CURLcode code);
+
+const char *
+iol_get_last_network_error(iol_t iol)
+{	const char *ret = NULL;
+
+	if( IS_IOL_T(iol) )
+		ret = curl_strerror(iol->neterr);
+	
+	return ret ;
 }
