@@ -146,7 +146,7 @@
 #define UNIX 1
 
 /* Version number of package */
-#define VERSION "2.0.8"
+#define VERSION "2.0.9"
 
 /* a plataform */
 #define WINDOWS 2
