@@ -18,9 +18,9 @@ SUFFIXES = .1 .html .pdf
 	$(MAN2HTML)
 
 %.ps:	%.1
-	groff -Tps -man $< > $@
+	- groff -Tps -man $< > $@
 
 %.pdf: %.ps
-	ps2pdf $< $@
+	- ps2pdf $< $@
 
 
