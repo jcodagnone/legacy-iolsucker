@@ -272,6 +272,30 @@ free_courses_list( struct course *data, gpointer user_data )
 	}
 }
 
+static void
+show_curl_info( CURL *curl)
+{	static const char *unit[]={"bytes","KB","MB","GB","TB"};
+	double d=0 ;
+	long header, request;
+	unsigned i;
+	const char *u;
+	
+	curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &d);
+	curl_easy_getinfo(curl, CURLINFO_REQUEST_SIZE, &request);
+	curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &header);
+
+	d+=request+header;
+	for( i=0; d > 1024; i++ )
+		d/=1024;
+
+	if( i >= sizeof(unit)/sizeof(*unit) )
+		u = "unknown";
+	else
+		u = unit[i];
+
+	rs_log_info(_("%.2f %s transfered"),d,u);
+}
+
 void
 iol_destroy(iol_t iol) 
 {
@@ -281,6 +305,7 @@ iol_destroy(iol_t iol)
 	if( iol->bLogged )
 		iol_logout(iol);
 
+	show_curl_info(iol->curl);
 	curl_easy_cleanup(iol->curl); 
 	curl_global_cleanup();
 
