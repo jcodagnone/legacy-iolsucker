@@ -1149,17 +1149,16 @@ link_files_fnc( const unsigned char *link,
 }
 
 /**
- * retrives all the files available for the current course.
- * They are stored in the list ::l. (not an url: just the path in the
- * server).
+ * retrives all the url for the available files in the current course.
+ * They are stored in the list ::l.
  */
 static int
 get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
-{	struct buff webpage = { NULL, 0 };
-	char *url; 
-	struct tmp t;
+{	struct buff webpage; 
 	int ret = E_OK;
-
+	struct tmp t;
+	char *url; 
+	
 	t.pending = queue_new(); 
 	if( t.pending == NULL || (url=iol_get_url(iol, URL_MATERIAL))== NULL )
 		return E_MEMORY;
@@ -1168,20 +1167,19 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 	t.iol = iol;
 	queue_enqueue(t.pending, g_strdup(url));
 
-	while( ! queue_is_empty(t.pending) )
+	while( !queue_is_empty(t.pending) && ret == E_OK )
 	{	
 		url = queue_dequeue(t.pending);
 		t.prefix = url;
 		webpage.data = NULL;
 		webpage.size = 0;
 
-		if(transfer_page(iol->curl,url,0,&webpage)!=E_OK)
+		if(transfer_page(iol->curl, url, 0, &webpage)!=E_OK)
 			ret = E_NETWORK;
 		else
 		{	link_parser_t parser;
 			unsigned i;
 
-			/* get and analize links */
 			parser = link_parser_new();
 			if( parser == NULL )
 				return 0;
@@ -1198,12 +1196,15 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 		g_free(url);
 		free(webpage.data);
 	}
+
+	/* in case something has failed, we clean the memory */
+	while( !queue_is_empty(t.pending) )
+		g_free( queue_dequeue(t.pending) );
 	
-	assert(queue_is_empty(t.pending));
 	queue_free(t.pending); 
 	*l = t.files;
 
-	return 0;
+	return ret;
 }
 
 static int
@@ -1286,8 +1287,8 @@ inform_url_and_date( FILE *fp, const char *url )
 static void
 foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 {	size_t len;
-	char *local, *dirname, *download, *unquote;
-	const char *q;
+	char *local, *dirname, *download;
+	const char *q, *unquote;;
 	struct stat st;
 
 	q = URL_BASE;
