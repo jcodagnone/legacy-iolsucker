@@ -36,9 +36,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef HAVE_UNISTD
+#ifdef HAVE_UNISTD_H
   #include <unistd.h>
 #else
+  #include <unix.h>
   #define isatty(m) (1)
 #endif
 
@@ -51,7 +52,6 @@
 #include <mkrdir.h>
 #include <dirname.h>
 #include <queue.h>
-#include <unix.h>
 
 #include "i18n.h"
 #include "iol.h"

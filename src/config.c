@@ -172,7 +172,13 @@ load_config_file(struct opt *opt)
 }
 
 int
-save_config_file(struct opt *opt)
+save_config_file( const struct opt *opt)
 {
+	rs_log_info("user:  %s", opt->username);
+	rs_log_info("pass:  %s", opt->password);
+	rs_log_info("proxy: %s", opt->proxy);
+	rs_log_info("puser: %s", opt->proxy_user);
+	rs_log_info("dry:   %d", opt->dry);
+
 	return 0;
 }

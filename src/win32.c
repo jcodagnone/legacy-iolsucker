@@ -78,17 +78,21 @@ registry_change_string( HKEY root, const char *path, const char *item,
 #define IOL_DRY 	"dry_run"
 #define IOL_PROXY_HOST	"proxy"
 #define IOL_PROXY_USER	"proxy_user"
-
+#define IOL_PROXY_SAVE	"save_data"
 
 int
 save_config_file(struct opt *opt)
 {	int r = 1;
-
+	char *t = "1", *f = "0";
+	
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,opt->username); 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PASS,opt->password); 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_HOST,opt->proxy);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_USER,
-	                                                       opt->proxy_user); 
+	                          opt->proxy_user); 
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_DRY, opt->dry ? t : f);
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_SAVE,opt->save ? t : f);
+	
 	return r == 1 ? 0 : -1;
 }
 
@@ -132,6 +136,14 @@ load_config_file(struct opt *opt)
 			}
 	}
 
+	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_DRY, buf,
+	                        sizeof(buf) ) == TRUE )
+	 	opt->dry = buff[0] - '0' != 0:
+
+	
+	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_SAVE, buf,
+	                        sizeof(buf) ) == TRUE )
+	 	opt->save = buff[0] - '0' != 0:
+
 	return 0;
-}
 

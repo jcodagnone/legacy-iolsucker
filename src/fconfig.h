@@ -6,5 +6,7 @@
 int
 load_config_file(struct opt *opt);
 
+int
+save_config_file(const struct opt *opt);
 
 #endif

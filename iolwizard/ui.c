@@ -1,4 +1,23 @@
 /*
+ * ui.c -- ui creation for iolwizard
+ *
+ * Copyright (C) 2003 by Juan F. Codagnone <juam@users.sourceforge.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+/*
  * Yes! you will see the function and say: `WTF! this is horrible!' and i will
  * answer you: `yeah, but is linear. give me some TNT!'
  */
@@ -6,11 +25,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include <i18n.h>
+#include <trace.h>
 
 #include "../src/main.h"
+#include "../src/config.h"
 #include "dirbrowser.h"
+#include "error_dlg.h"
 
 #ifdef HAVE_CONFIG_H
   #ifdef WIN32
@@ -29,11 +52,13 @@ struct tmp
 	GtkWidget *edtUser, *edtPass, *edtRep;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass;
 	GtkWidget *chkProxy, *chkDry;
+	char *msg;
 };
 
 static void 
 hwndMain_quit( GtkWidget *widget, struct tmp *tmp)
 {
+	g_free(tmp->msg);
 	g_free(tmp);
 	gtk_main_quit();
 }
@@ -42,6 +67,7 @@ static gint
 hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
 {
         hwndMain_quit(widget,data);
+        
         return TRUE;
 }
 
@@ -52,18 +78,38 @@ hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
 static void 
 resync_fnc( GtkWidget *widget, struct tmp *tmp )
 {
-	g_print("resync");
+	if( save_config_file(tmp->opt) == -1 )
+		show_error(_("no se ha podido guardar esta nueva informacion"));
 }
 
 static void
-quit_fnc( GtkWidget *widget, struct tmp *tmp )
+clear_fnc( GtkWidget *widget, struct tmp *tmp )
 {
-	hwndMain_quit(widget,tmp);
+	tmp->opt->username[0]=0;
+	memset(tmp->opt->password,0,sizeof(tmp->opt->password));
+	free(tmp->opt->proxy);
+	free(tmp->opt->proxy_user);
+	tmp->opt->dry = 0;
+	if( save_config_file(tmp->opt) == -1 )
+		show_error(_("no se ha podido guardar esta nueva informacion"));
+
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtUser),"");
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtPass),"");
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtRep),"");
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtHost),"");
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtPUser),"");
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtPPass),"");
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(tmp->spnPort),(double)1080);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkDry), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkProxy), 0);
+
 }
+
 
 static void handler( gchar *g, struct tmp *tmp)
 {
-	gtk_entry_set_text(GTK_ENTRY(tmp->edtRep), g);
+
+	
 }
 
 static void
@@ -231,7 +277,6 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                           GTK_SIGNAL_FUNC(useproxy_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
 	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
-
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkProxy,
 	                    _("activar soporte para proxy. si no sabe lo que "
@@ -239,18 +284,15 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
 	                    _("activar la ejecucion en seco: no se descarga "
 	                      "ningun archivo"),NULL);
-
 	/* save data */
 	tmp->chkProxy = chkProxy;
 	tmp->chkDry = chkDry;
-
+	
 	/* default values */
 	gtk_signal_emit_by_name(GTK_OBJECT(chkProxy),"toggled");
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkProxy),
 	                             tmp->opt->proxy!=NULL);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
-	
-
 }
 
 
@@ -342,7 +384,7 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 void 
 create_ui(struct opt *opt)
 { 	GtkWidget *frame_login, *frame_proxy, *frame_extra;
-	GtkWidget *resync, *quit, *save;
+	GtkWidget *resync, *clear;
 	GtkTooltips *tips;
 	GtkWidget *hwnd;
 	
@@ -378,23 +420,20 @@ create_ui(struct opt *opt)
 	
 
 	/* buttons */
-	save   = gtk_button_new_with_label(_("save")); 
+	clear = gtk_button_new_with_label(_("clear")); 
 	resync = gtk_button_new_with_label(_("resync"));
-	quit   = gtk_button_new_with_label(_("quit")); 
-
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),save);
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),resync);
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),quit);
 	
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),clear);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),resync);
 	
 	/* signals */
 	gtk_signal_connect (GTK_OBJECT (hwnd), "delete_event",
 	                    GTK_SIGNAL_FUNC(hwndMain_delete), tmp);
+	                    
 	gtk_signal_connect(GTK_OBJECT(resync),"clicked",
 	                   GTK_SIGNAL_FUNC(resync_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(quit),"clicked",
-	                   GTK_SIGNAL_FUNC(quit_fnc), tmp);
-	
+	gtk_signal_connect(GTK_OBJECT(clear),"clicked",
+	                   GTK_SIGNAL_FUNC(clear_fnc), tmp);
 	
 
 	/* copy usefull data */
