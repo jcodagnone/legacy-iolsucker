@@ -71,7 +71,7 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 		}
 		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"rep")))
 		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
-			if( key )
+			if( opt->repository[0]==0 &&  key )
 			{  strncpy(opt->repository,key,sizeof(opt->repository));
 				opt->repository[sizeof(opt->repository)-1] = 0;
 			}
