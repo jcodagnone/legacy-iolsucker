@@ -328,8 +328,8 @@ show_curl_stats( CURL *curl)
 	else
 		u = unit[i];
 
-	rs_log_info(_("%.2f %s transfered"),*d,u);
-#endif
+	*d = ((int)(*d+0.05)) + ((int)((*d+0.05)*100))/100.0;
+	rs_log_info(_("%2f %s transfered"),*d,u);
 }
 
 void
