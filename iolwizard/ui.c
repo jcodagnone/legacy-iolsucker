@@ -507,11 +507,11 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_box_pack_start(GTK_BOX(hbox),spnPort, TRUE, TRUE, 0);
 	gtk_table_attach(GTK_TABLE(table), hbox, 1, 2, 0, 1,
 	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
-	gtk_table_attach(GTK_TABLE(table), edtPUser, 1, 2, 1, 2,
+	gtk_table_attach(GTK_TABLE(table), cmbType, 1, 2, 1, 2,
 	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
-	gtk_table_attach(GTK_TABLE(table), edtPPass, 1, 2, 2, 3,
+	gtk_table_attach(GTK_TABLE(table), edtPUser, 1, 2, 2, 3,
 	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
-	gtk_table_attach(GTK_TABLE(table), cmbType, 1, 2, 3, 4,
+	gtk_table_attach(GTK_TABLE(table), edtPPass, 1, 2, 3, 4,
 	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
 	
 
