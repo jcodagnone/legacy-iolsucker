@@ -697,7 +697,7 @@ link_courses_fnc( unsigned const char *link,
 }
 
 /**
- * gets the list of courses that are linked at page */
+ * gets the list of courses that are linked at @page */
 static unsigned 
 parse_courses(GSList **listptr, struct buff *page) 
 {	link_parser_t parser;
@@ -917,7 +917,7 @@ iol_set_current_course(iol_t iol, const char *course)
  */
 
 static int
-link_is_file(const char *url) 
+link_is_iol_file(const char *url) 
 {	const char *p, *q, *r;
 
 	p = url;
@@ -931,7 +931,7 @@ link_is_file(const char *url)
 static int
 link_is_sort_link( const char *url)
 {
-	return !link_is_file(url) && (strstr(url,"&ordenX="));
+	return !link_is_iol_file(url) && (strstr(url,"&ordenX="));
 }
 
 static int
@@ -960,7 +960,6 @@ is_javascript_link( const char *link)
 	return !strncmp(link,"javascript:",sizeof("javascript:"));
 }
 
-/* this is no very serius. just call curl_escape() */
 static char *
 my_url_escape(const char *url)
 {	char *s;
@@ -988,8 +987,12 @@ my_url_escape(const char *url)
 	return s;
 }
 
+/**
+ * \returns true if the url contains and file id (download.asp scheme).
+ * Also copies the fid to @buf
+ */
 static int
-get_fid_from_download_url(const char *url, char *buf, size_t size)
+url_has_fid(const char *url, char *buf, size_t size)
 {	size_t i;
 	char *p, *q;
 
@@ -1022,7 +1025,7 @@ get_fid_from_download_url(const char *url, char *buf, size_t size)
  * Mon, 24 Mar 2003 14:21:36 -0300
  * this is a tempory ugly hack, until i get a javascript parser
  *
- * get the filename url from the redirect page
+ * get the filename url from the redirect page (download.asp scheme)
  */
 static char *
 javascript_get_refresh_link( iol_t iol,  struct buff *page )
@@ -1049,13 +1052,17 @@ javascript_get_refresh_link( iol_t iol,  struct buff *page )
 	return ret;
 }
 
+/** 
+ * returns the url for the (real) file that we need to download in the 
+ * download.asp scheme.
+ */
 static char *
 get_real_download_file( iol_t iol,  const char *url )
 {	char buff[12]={0};
 	char *file;
 	char *ret = NULL;
 	
-	if( get_fid_from_download_url(url, buff,sizeof(buff)) == 0 )
+	if( url_has_fid(url, buff, sizeof(buff)) == 0 )
 		;
 	else
 	{	
@@ -1078,6 +1085,9 @@ get_real_download_file( iol_t iol,  const char *url )
 	return ret;
 }
 
+/**callback called for every link found in `material didacticos` pages
+ * creates the list of files to download
+ */
 static void
 link_files_fnc( const unsigned char *link, 
                 const unsigned char *comment, void *d ) 
@@ -1096,11 +1106,11 @@ link_files_fnc( const unsigned char *link,
 	if( s == NULL )
 		return;
 
-	bFile = link_is_file(link);
+	bFile = link_is_iol_file(link);
 	if( bFile )
 	{
 		q = NULL;
-		if( bFile == 1 )
+		if( bFile == 1 )	/* download.asp scheme */
 		{	q = get_real_download_file(t->iol, s);
 			if( q )
 			{	if( t->url_prefix == NULL )
@@ -1108,7 +1118,7 @@ link_files_fnc( const unsigned char *link,
 					   q+strlen(iol_get_url(t->iol,"")));
 			}
 		}
-		else if( bFile == 2 )
+		else if( bFile == 2 )	/* direct link scheme */
 		{	if( t->url_prefix == NULL )
 				t->url_prefix = my_path_get_dirname(link);
 			q = g_strdup_printf("%s/%s",URL_BASE,link);
@@ -1130,8 +1140,10 @@ link_files_fnc( const unsigned char *link,
 	}
 }
 
+/* 
+ */
 static int
-get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
+get_flist_from_current(iol_t iol, GSList **l, char **url_prefix )
 {	struct buff webpage = { NULL, 0 };
 	char *url; 
 	struct tmp t;
@@ -1258,6 +1270,8 @@ inform_url_and_date( FILE *fp, const char *url )
 	fprintf(fp, "%s\n",url + off);
 }
 
+/** tries to download @file if it doesn't exist
+ */
 static void
 foreach_getfile(char *file, struct tmp_resync_getfile *d)
 {	size_t len;
@@ -1393,7 +1407,7 @@ iol_resync_download(iol_t iol, const struct course *course)
 		tmp.prefix = s;
 		tmp.iol = iol;
 		tmp.url_prefix = NULL;
-		get_current_file_list(iol, &files, &(tmp.url_prefix));
+		get_flist_from_current(iol, &files, &(tmp.url_prefix));
 		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
 		free(tmp.url_prefix);
 	}
