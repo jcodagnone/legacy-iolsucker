@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- library for network deltas
- * $Id: trace.c,v 1.1 2003/02/19 04:44:56 juam Exp $
+ * $Id: trace.c,v 1.2 2003/02/19 19:59:38 juam Exp $
  *
  * Copyright (C) 2000, 2001 by Martin Pool <mbp@samba.org>
  *
@@ -134,12 +134,14 @@ void rs_format_msg(char *buf,
         strcpy(buf, rs_program_name);
         len = strlen(buf);
     }
-
+/*
     if (!(flags & RS_LOG_NO_PID)) {
         sprintf(buf+len, "[%d] ", (int) getpid());
     } else if (~flags & RS_LOG_NO_PROGRAM) {
+ */   
         strcat(buf+len, ": ");
-    }
+ /*   }
+ */
     len = strlen(buf);
 
     sv = rs_severities[level];
