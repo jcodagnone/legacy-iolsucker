@@ -1,9 +1,9 @@
-AC_INIT([iolsucker],[2.0.9])
+AC_INIT([iolsucker],[2.0.10])
 AC_CONFIG_AUX_DIR(admin)
 
 IOL_MAJOR_VERSION=2
 IOL_MINOR_VERSION=0
-IOL_MICRO_VERSION=9
+IOL_MICRO_VERSION=10
 IOL_VERSION=$IOL_MAJOR_VERSION.$IOL_MINOR_VERSION.$IOL_MICRO_VERSION
 DATE="26 Marzo 2003"
 
@@ -151,4 +151,3 @@ echo    "   pdf doc........${iol_have_ps2pdf}"
 echo 
 echo "Type \"make\" to compile IOLsucker."
 echo
-
