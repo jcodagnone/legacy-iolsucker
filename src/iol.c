@@ -59,6 +59,10 @@
 #include "progress.h"
 #include "cache.h"
 
+#ifndef CURLOPT_WRITEDATA
+  #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
+#endif
+
 #ifdef IOLDEMO
   #define curl_easy_setopt(c,p,q) ioldemo_curl_easy_setopt(c,p,(void *)q)
   int ioldemo_curl_easy_setopt(CURL *c, unsigned f, void *q); 
@@ -154,10 +158,12 @@ write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
 	return fwrite(ptr, size, nmemb, fp);
 }
 
+#ifdef CURLOPT_DEBUGDATA
 static int 
 curl_debug_fnc(CURL *curl ,curl_infotype type, char  *ptr, size_t size,
 iol_t iol)
-{	/* stolen from libcurl */
+{	
+	/* stolen from libcurl */
 	static const char * const s_infotype[CURLINFO_END] =
         { "* ", "< ", "> ", "{ ", "} " };
 
@@ -179,6 +185,7 @@ iol_t iol)
 
 	return 0;
 }
+#endif
 
 /**
  *  wraper to libcurl. Transfer the url, and saves it in the buffer page
@@ -248,9 +255,10 @@ iol_new(void)
 	curl_easy_setopt(cdt->curl,CURLOPT_USERAGENT,USERAGENT);
 	curl_easy_setopt(cdt->curl,CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(cdt->curl,CURLOPT_ERRORBUFFER, cdt->errorbuf);
-	curl_easy_setopt(cdt->curl,CURLOPT_DEBUGFUNCTION, curl_debug_fnc);
-	curl_easy_setopt(cdt->curl,CURLOPT_DEBUGDATA, cdt);
-
+	#ifdef CURLOPT_DEBUGDATA
+	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGFUNCTION, curl_debug_fnc);
+	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGDATA, cdt);
+	#endif
 	return cdt;
 }
 
