@@ -43,21 +43,15 @@ struct buff
 	unsigned size;
 };
 
-#define URL_BASE "http://silvestre.itba.edu.ar/itbaV"
 struct url_table
-{	const char *url;
+{	
 	const char *file;
 } url_table[] =
-{ 	
-	{ URL_BASE"/login.asp", "demo/login.html"},
-	{ URL_BASE"/mynav.asp", "demo/mynav.html"},
-	{ URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=22.91", "demo/22.91"},
-	{ URL_BASE"/newmaterialdid.asp", "demo/newmaterialdid.html"},
-	{ URL_BASE"/newmaterialdid.asp", "demo/newmaterialdid.html"},
-	{ URL_BASE"/novlistall.asp", "demo/novlistall.asp"},
-	{ URL_BASE"/mynav.asp?cmd=logout", "demo/logout.html" },
-	{ URL_BASE"/newmaterialdid.asp?path=Items%20y%20Pro.-%20Sug.","demo/1"},
-	{NULL, NULL}
+{
+	{"demo/000_http:__silvestre.itba.edu.ar_itbaV_login.asp" },
+	{"demo/001_http:__silvestre.itba.edu.ar_itbaV_mynav.asp" },
+	{"demo/002_http:__silvestre.itba.edu.ar_itbaV_mynav.asp?cmd=ChangeContext&nivel=4&snivel=71.42" },
+	{"demo/003_http:__silvestre.itba.edu.ar_itbaV_newmaterialdid.asp" },
 };
 
 static int
@@ -84,32 +78,22 @@ get_file_content( const char *file, struct buff *buf )
 
 int 
 get_file_from_url( const char *url, struct buff *buf )
-{	unsigned i;
+{	static unsigned i = 0;
 
 	
-	for( i = 0; url_table[i].url  ; i++  )
-		if( !strcmp(url, url_table[i].url) )
-			return get_file_content(url_table[i].file, buf);
-		
-
-	printf("%s\n",url);
-	return -1;
+	if( i >= sizeof(url_table)/sizeof(url_table[0]) )
+		return -1;
+	/* printf("---> %d %s %s\n",i, url,url_table[i].file); */
+	return get_file_content(url_table[i++].file, buf);
 }
 
 static int
 simulate( const char *url )
 {	int ret = 1;	
-
-	if( 1 ||  g.progress == bar_progress_callback )
-	{	struct buff *buf;
-
-		buf = g.write_data;
-		ret = get_file_from_url(url, buf);
-	}
-	else
-		;
+	struct buff *buf;
 	
-	
+	buf = g.write_data;
+	ret = get_file_from_url(url, buf);
 	
 	return ret;
 }
