@@ -82,6 +82,7 @@
 #define URL_LOGOUT	URL_BASE"/mynav.asp?cmd=logout"
 #define URL_CHANGE 	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
 #define URL_MATERIAL	URL_BASE"/newmaterialdid.asp" 
+#define URL_DOWNLOAD	URL_BASE"/download.asp" 
 #define IOL_COURSE_PARAMETER	"nivel=4"
 #define IOL_NEWS	URL_BASE"/novlistall.asp"
 #define IOL_MATERIAL_FOLDER	"material"
@@ -652,13 +653,15 @@ iol_set_current_course(iol_t iol, const char *course)
 /* Download Material didactico section
  */
 
-static int link_is_file(const char *url) 
-{	const char *p,*q;
+static int
+link_is_file(const char *url) 
+{	const char *p, *q, *r;
 
 	p = url;
 	q = "download.asp";
+	r = "newmaterialdid.asp";
 
-	return strncmp(p,q, strlen(q))==0;
+	return (strncmp(p,q, strlen(q))==0) ? 1 : (strncmp(p,r,strlen(r))!=0) * 2;
 }
 
 
@@ -816,7 +819,7 @@ static void
 link_files_fnc( const char *link, const char *comment, void *d ) 
 {	struct  tmp *t = (struct tmp *)d;
 	int bFile;
-	char *s, *p;
+	char *s, *p, *q ;
 
 	if( is_external_link(link) || is_javascript_link(link) )
 		return ;
@@ -828,18 +831,30 @@ link_files_fnc( const char *link, const char *comment, void *d )
 	free(p);
 	if( s == NULL )
 		return;
-	
+
 	bFile = link_is_file(link);
 	if( bFile )
-	{ 	char *q;
-		q = get_real_download_file(t->iol, s);
-		g_free(s);
-		if( q )
-		{	if( t->url_prefix == NULL )
-				t->url_prefix = my_path_get_dirname(
-				                    q+strlen(URL_BASE)+1);
-			t->files = g_slist_prepend(t->files, q);
+	{
+		q = NULL;
+		if( bFile == 1 )
+		{	q = get_real_download_file(t->iol, s);
+			if( q )
+			{	if( t->url_prefix == NULL )
+					t->url_prefix = my_path_get_dirname(
+					                  q+strlen(URL_BASE)+1);
+			}
 		}
+		else if( bFile == 2 )
+		{	if( t->url_prefix == NULL )
+				t->url_prefix = my_path_get_dirname(link);
+			q = g_strdup_printf("%s/%s",URL_BASE,link);
+		}
+		else
+			assert(0);
+
+		if( q )
+			t->files = g_slist_prepend(t->files, q);
+		g_free(s);
 	}
 	else if( link_is_sort_link(link) )
 		g_free(s);
