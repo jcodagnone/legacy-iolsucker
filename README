@@ -1,9 +1,37 @@
 
-man doc/iolsocker.1.in
+iolsucker-2.0.13: `Save the whales. Feed the hungry. Free the Mallocs?'
 
-:^)
+Introducción:
+  Una release para arreglar algunas cosas (cuelgue raro en XP) y agregar
+  el principio de algunas features (y bugs?).  Estuve reorganizando
+  (moviendo )algunas cosas del código fuente. El diff unificado entre las
+  dos últimas versiones son 1600 líneas (?). Debido a que libmisc ya no es un
+  dll notarán un incremento de unos 8 KB  en los ejecutables. Ahora entregamos
+  el dll de la recién salida  libcurl-7.10.4, que nos permite agregar sin
+  tocar mucho la opción de estadísticas.
+
+  Para mas información mas detallada en los cambios
+       http://embryos.homeip.net/~juam/code/iolsucker/changelog.html
+      
+Bugfixes:
+  o  Honrar -r
+  o  Cuelgue de windows XP solucionado (gracias Pía y Fede por verificar).
+     La solución no requirió modificación del codigo fuente. el problema se
+     generaba porque libmisc era un dll (la real causa no la sé)
+     (cuando liberaba un puntero que había sido alocado adentro del dll,
+      el `heap' se retobaba.
+  o  No me gustaba el formato del manual que entregaba para windows.
+     Nuevo .html. (comió un par de letras [mayúsculas acentuadas])
+  o  iolwizard más prolijo: yo notaba que había algo desalineado....
+ 
+Features: 
+  o  Estadística sobre la conexión al finalizar la sesión
+  o  opción -F para habilitar la sincronización de foros.
+     Por ahora solo dice cuantos mensajes hay.
 
 
+Compilación en windows:
 Para compilar el proyecto pueden usar el msvc: win32/iolsucker/iolsucker.dsw
-Necesitan tener el unix.zip
+Necesitan tener el unix.zip. Me interesaria si alguien lo hace funcionar con
+el migwin
 
