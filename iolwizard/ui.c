@@ -642,7 +642,7 @@ static int
 exec_iolwizard(void)
 {	HINSTANCE ret;
 
-	ret = ShellExecute(NULL,"open", "iolunch iolsucker", "", NULL, SW_SHOW);
+	ret = ShellExecute(NULL,"open", "iolunch", "iolsucker", NULL, SW_SHOW);
 	
 	return ret < 31 ? -1 : 0;
 }

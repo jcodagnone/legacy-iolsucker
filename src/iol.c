@@ -966,7 +966,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 					rename(download,local);
 				else
 				{	remove(download);
-					rs_log_error("downloading: %s",
+					rs_log_error(_("downloading: %s"),
 					 iol_get_network_error(d->iol));
 				}
 
@@ -1075,7 +1075,7 @@ iol_resync(iol_t iol, const char *code)
 		/* try to create course folder */ 
 		if( create_course_directory(s) == -1 ) 
 		{
-			rs_log_error("error creating dir `%s'",s);
+			rs_log_error(_("error creating dir `%s'"),s);
 			rs_log_error("%s",strerror(errno) ); ret = E_FS;
 		}
 		else
