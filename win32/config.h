@@ -172,4 +172,7 @@
 /* Define to `unsigned' if <sys/types.h> does not define. */
 /* #undef size_t */
 
-#define HAVE_PROXYTYPE
+#define HAVE_PROXYTYPE  1
+#define HAVE_CURLOPT_DEBUGDATA 1
+#define HAVE_CURLOPT_PRIVATE 1
+

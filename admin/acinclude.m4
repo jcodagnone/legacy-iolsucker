@@ -135,4 +135,32 @@ AC_DEFUN(AM_CURL_WORKING_VERSION,
 	test $MAJOR -ge 7 &&  test $MINOR -ge 10 && AC_DEFINE([HAVE_PROXYTYPE],[],[curl option]) 
 
 	AC_MSG_RESULT($l)
+
+	AC_MSG_CHECKING(for a CURLOPT_DEBUGDATA in libcurl)
+AC_TRY_RUN([
+	#include <curl/curl.h>
+	int
+	main()
+	{
+		CURLOPT_DEBUGDATA;
+		return 0;
+	}],[l=yes],[l=no])
+	AC_MSG_RESULT($l)
+	if [[ $l == "yes" ]]; then
+		AC_DEFINE(HAVE_CURLOPT_DEBUGDATA,[],[libcurl has CURLOPT_DEBUGDATA])
+	fi
+
+	AC_MSG_CHECKING(for a CURLOPT_DEBUGDATA in libcurl)
+	AC_TRY_RUN([
+	#include <curl/curl.h>
+	int
+	main()
+	{
+		CURLOPT_PRIVATE;
+		return 0;
+	}],[l=yes],[l=no])
+	AC_MSG_RESULT($l)
+	if [[ $l == "yes" ]]; then
+		AC_DEFINE(HAVE_CURLOPT_PRIVATE,[],[libcurl has CURLOPT_DEBUGDATA])
+	fi
 ])
