@@ -1,5 +1,5 @@
 
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign dist-bzip2
 
 EXTRA_DIST = configwin.h
 
