@@ -937,7 +937,7 @@ new_progress_callback(void *callback)
 void 
 destroy_progress_callback(struct progress *progress)
 {	
-	if( progress )
+	if( progress && progress->data )
 	{	if( progress->callback )
 		{	if( progress->callback == dot_progress_callback )
 				dot_finish(progress->data, 

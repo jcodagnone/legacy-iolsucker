@@ -308,23 +308,23 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data,
 		if( dt.realfp == NULL )
 			return E_INVAL;
 
-		if( dt.dumpfp == NULL )
-		{	fnc  = write_data_to_file_and_dump;
+		if( dt.dumpfp )
+		{ 	fnc  = write_data_to_file_and_dump;
 			fncdata = &dt;
 		}
 		else
-		{	fnc = write_data_to_file;
+		{ 	fnc = write_data_to_file;
 			fncdata = dt.realfp;
 		}
-		
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
 		
 		if( isatty(fileno(stdout)) )
 			ptr = bar_progress_callback;
 		else
 			ptr = dot_progress_callback;
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ptr);
+		
 		progress = new_progress_callback(ptr);
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ptr);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
 	}
 	else
