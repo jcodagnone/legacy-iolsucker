@@ -17,8 +17,8 @@ iolsucker_SOURCES = \
 	link.c			\
 	link.h			\
 	link_debug.c		\
-	ask_pass.c		\
-	ask_pass.h		\
+	getpass.c		\
+	getpass.h		\
 	progress.c
 
 iolsucker_LDADD = ../lib/libmisc.a

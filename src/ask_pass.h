@@ -1,8 +1,0 @@
-
-#ifndef Z52D00077CD5A267F2E9D1117504576C0
-#define Z52D00077CD5A267F2E9D1117504576C0
-
-int
-ask_password( struct opt *opt );
-
-#endif
