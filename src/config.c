@@ -73,7 +73,7 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
 			if( key )
 			{  strncpy(opt->repository,key,sizeof(opt->repository));
-				opt->repository[sizeof(opt->repository)] = 0;
+				opt->repository[sizeof(opt->repository)-1] = 0;
 			}
 			xmlFree(key);
 		}
