@@ -84,6 +84,14 @@ LINK32=link.exe
 # Name "iolsucker - Win32 Debug"
 # Begin Source File
 
+SOURCE="..\..\src\cache.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\src\cache.h"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\src\common.c"
 # End Source File
 # Begin Source File
