@@ -193,4 +193,5 @@
 
 #include <trio/trio.h>
 #define HAVE_CONFIG_H
+#define HAVE_DB
 
