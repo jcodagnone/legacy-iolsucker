@@ -85,9 +85,11 @@
 #define URL_DOWNLOAD	URL_BASE"/download.asp" 
 #define IOL_COURSE_PARAMETER	"nivel=4"
 #define IOL_NEWS	URL_BASE"/novlistall.asp"
+
 #define IOL_MATERIAL_FOLDER	"material"
 #define IOL_MATERIAL_TMPFILE	".download.tmp"
 #define IOL_FILE_DB        	"files.db"
+#define IOLSUCKER_LOGFILE	"cambios.txt"
 
 struct buff 
 { 	char *data;
@@ -115,6 +117,7 @@ struct iolCDT
 
 	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
 	cache_t fcache;
+	FILE *logfp;		/**< logfile filepointer */
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -287,7 +290,8 @@ iol_destroy(iol_t iol)
 static int
 iol_set_repository(iol_t cdt, const char *path)
 {	int ret = E_OK;
-
+	char *s;
+	
 	if( path == NULL )
 		ret = E_INVAL;
 	else 
@@ -302,13 +306,22 @@ iol_set_repository(iol_t cdt, const char *path)
 			 	  abort();
 			}
 			else
-			{	char *s = g_strdup_printf("%s/%s",
-				                          cdt->repository,
-				                          IOL_FILE_DB);
+			{	g_strdup_printf("%s/%s", cdt->repository,
+				                         IOL_FILE_DB);
 				mkrdir(cdt->repository, 0755);
 				cdt->fcache = cache_new(s);
 				g_free(s);
 			}
+
+			if( cdt->logfp )
+				fclose(cdt->logfp);
+			s = g_strdup_printf("%s/%s", cdt->repository,
+			                    IOLSUCKER_LOGFILE);
+			if( !s || (cdt->logfp = fopen(s,"a")) == NULL)
+			{	rs_log_warning(_("could not open log file"));
+				rs_log_warning("%s:%s", s, strerror(errno));
+			}
+			g_free(s);
 		}
 	}
 
@@ -962,7 +975,7 @@ get_tty_columns( void )
 }
 
 static void
-inform_url_and_date( const char *url )
+inform_url_and_date( FILE *fp, const char *url )
 {	time_t now =  time(NULL);
 	struct tm *tm = localtime(&now);
 	static unsigned columns;
@@ -971,19 +984,24 @@ inform_url_and_date( const char *url )
 	/* nice printing:
 	 *   do go ahead of $COLUMNS or 80
 	 */
-	
+	if( fp == NULL || url == NULL )
+		return;
+
 	if( columns == 0 )
 		columns = get_tty_columns();
 
-	n = 2+2+2+2+4+1;
+	fprintf(fp, "--%02d:%02d:%02d-- ", tm->tm_hour, tm->tm_min,tm->tm_sec);
+	if( isatty(fileno(stdout)) )
+	{
+		n = 2+2+2+2+4+1;
 
-	printf("--%02d:%02d:%02d-- " ,tm->tm_hour, tm->tm_min,tm->tm_sec);
-	if( n + len + 1 > columns )
-	{	off = len - (columns - 1 - n - 4);
-		printf("... ");
+		if( n + len + 1 > columns )
+		{	off = len - (columns - 1 - n - 4);
+			fprintf(fp, "... ");
+		}
 	}
 
-	printf("%s\n",url + off);
+	fprintf(fp, "%s\n",url + off);
 }
 
 static void
@@ -1033,7 +1051,8 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 			{	char *f;
 				
 				f = my_url_escape(file);
-				inform_url_and_date(file);
+				inform_url_and_date(stdout, file);
+				inform_url_and_date(d->iol->logfp, file);
 				download = g_strdup_printf("%s/%s", dirname, 
 				                          IOL_MATERIAL_TMPFILE);
 				if( d->iol->dry )
