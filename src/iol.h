@@ -59,6 +59,10 @@ int iol_get_new_novedades( iol_t iol, unsigned *n );
 
 void iol_traverse_xenofobe_list( iol_t iol, int (*fn)(const char *file, void
                                  *data), void *data );
+
+/** fills buf, with the versions of the components that iolsucker uses */
+char *iol_version(char *buf, unsigned nbuf );
+
 /**
  * errors
  */

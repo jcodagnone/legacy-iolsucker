@@ -9,5 +9,5 @@ void    cache_destroy(cache_t cdt);
 int     cache_is_valid(cache_t cdt);
 int     cache_add_file( cache_t cdt, const char *id, const char *file );
 char *  cache_get_file( cache_t cdt, const char *id);
-
+char *  cache_version(char *buf, unsigned nbuf);
 #endif

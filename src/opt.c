@@ -32,6 +32,7 @@
 #include <libmisc/i18n.h>
 
 #include "main.h"
+#include "iol.h" /* only for iol_version */
 
 const char *rs_program_name;
 
@@ -83,12 +84,16 @@ usage ( void )
 
 static void
 version( void )
-{
+{	char buff[4096];
 	printf( "%s %s\n"
 		"\n"
+		"%s\n"
 		"This is free software:\n"
 		" There is NO warranty; not even for MERCHANTABILITY or\n"
-		" FITNESS FOR A PARTICULAR PURPOSE\n",rs_program_name,VERSION);
+		" FITNESS FOR A PARTICULAR PURPOSE\n"
+		"\n"
+		,rs_program_name, VERSION,
+		iol_version(buff, sizeof(buff)) );
 
 	exit( EXIT_SUCCESS );
 }

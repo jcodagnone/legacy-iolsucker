@@ -1794,3 +1794,24 @@ iol_traverse_xenofobe_list( iol_t iol, int (*fn)(const char *file, void *data),
 		stringset_list(iol->repfiles, fn, data);
 	}
 }
+
+
+#include <libxml/xmlversion.h>
+char *
+iol_version(char *buf, unsigned nbuf )
+{	char *curl;
+	char db[512];
+	curl = curl_version();
+
+	snprintf(buf, nbuf, "%s\n"
+	                    "glib/%d.%d.%d\n"
+			    "xmlib/%s\n"
+			    "%s" ,
+			    curl, GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION, 
+			    GLIB_MICRO_VERSION, LIBXML_DOTTED_VERSION,
+			    cache_version(db,sizeof(db)));
+
+	buf[nbuf-1] = 0;
+	
+	return buf;
+}

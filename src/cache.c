@@ -172,6 +172,16 @@ cache_get_file( cache_t cdt, const char *id)
 	return s;
 }
 
+char *
+cache_version(char *buf, unsigned nbuf)
+{
+	snprintf(buf, nbuf, "libdb/%d.%d.%d (%s)\n", DB_VERSION_MAJOR, 
+	         DB_VERSION_MINOR, DB_VERSION_PATCH, DB_VERSION_STRING );
+	buf[nbuf-1]=0;
+
+	return buf;
+}
+
 #else
 cache_t 
 cache_new(const char *dbpath)
@@ -199,6 +209,16 @@ char *
 cache_get_file( cache_t cdt, const char *id)
 {
 	return NULL;
+}
+
+
+char *
+cache_version(char *buf, unsigned nbuf)
+{
+	snprintf(buf, nbuf, "\n");
+	buf[nbuf-1]=0;
+
+	return buf;
 }
 
 #endif
