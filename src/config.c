@@ -18,6 +18,9 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+/*
+ * TODO: XSD or DTD!
+ */
 #ifdef HAVE_CONFIG_H
   #ifdef WIN32
     #include "../configwin.h"
@@ -175,7 +178,7 @@ load_config_file(struct opt *opt)
 		if( home == NULL )
 			return -1;
 
-		g_snprintf(opt->configfile, sizeof(opt->configfile), "%s/%s1",
+		g_snprintf(opt->configfile, sizeof(opt->configfile), "%s/%s",
 		          home,IOL_RC);
 		opt->configfile[sizeof(opt->configfile)-1]=0;
 		if( stat(opt->configfile, &buff) == -1 )
@@ -190,15 +193,47 @@ load_config_file(struct opt *opt)
 
 int
 save_config_file( const struct opt *opt)
-{
-	rs_log_info("user:  %s", opt->username);
-	rs_log_info("pass:  %s", opt->password);
-	rs_log_info("rep:  %s", opt->repository);
-	rs_log_info("proxy_type:   %s", opt->proxy_type);
-	rs_log_info("proxy: %s", opt->proxy);
-	rs_log_info("puser: %s", opt->proxy_user);
-	rs_log_info("dry:   %d", opt->dry);
-	
+{ 	FILE *fp;
+	char *s;
 
+	
+	if( ! opt->configfile[0] )
+		return -1;
+
+	s = g_strdup_printf("%s_",opt->configfile);
+	fp = fopen(s, "wb");
+	if( fp == NULL )
+	{	g_free(s);
+		return  -1;
+	}
+	
+	fprintf(fp,"<?xml version=\"1.0\"?>\n" );
+	fprintf(fp,"<iolsucker>\n");
+	fprintf(fp,"\t<login>\n");
+
+	if( opt->username[0] )
+		fprintf(fp,"\t\t<user>%s</user>\n",opt->username);
+	if( opt->password[0] )
+		fprintf(fp,"\t\t<pass>%s</pass>\n",opt->password);
+	if( opt->repository[0] )
+		fprintf(fp,"\t\t<rep>%s</rep>\n", opt->repository);
+
+        fprintf(fp,"\t</login>\n");
+        fprintf(fp,"\t<proxy>\n");
+        if( opt->proxy_type[0] )
+        	fprintf(fp,"\t\t<type>%s</type>\n",opt->proxy_type);
+        if( opt->proxy ) 
+        	fprintf(fp,"\t\t<host>%s</host>\n",opt->proxy);
+        if( opt->proxy_user ) 
+        	fprintf(fp,"\t\t<user>%s</user>\n",opt->proxy_user);
+	fprintf(fp,"\t</proxy>\n");
+	fprintf(fp,"</iolsucker>\n");
+
+	if( fclose(fp) == -1 ) 	/* BTW, this can't happen in linux AFAIK */ 
+		remove(s);
+	else
+		rename(s, opt->configfile);
+
+	g_free(s);
 	return 0;
 }
