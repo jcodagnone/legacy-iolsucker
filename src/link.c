@@ -108,7 +108,7 @@ link_parser_set_link_callback(link_parser_t parser,link_callback call, void *d )
 /* large, straight foward, and boring
  */
 int
-link_parser_proccess_char( link_parser_t parser, int c )
+link_parser_process_char( link_parser_t parser, int c )
 {
 	if(!IS_PARSER(parser))
 		return -1;

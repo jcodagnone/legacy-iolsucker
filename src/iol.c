@@ -646,7 +646,7 @@ parse_courses(GSList **listptr, struct buff *page)
 
 	link_parser_set_link_callback(parser,link_courses_fnc, listptr);
 	for( i = 0 ; i< page->size &&
-	     link_parser_proccess_char(parser,page->data[i])==0 ; i++ ) 
+	     link_parser_process_char(parser,page->data[i])==0 ; i++ ) 
 	     ;
 	link_parser_end(parser);
 	link_parser_destroy(parser);
@@ -790,7 +790,7 @@ get_course_capabilities( struct buff *page )
 				(link_callback)link_context_fnc,
 				&flags);
 		for( i = 0 ; i< page->size &&
-		           link_parser_proccess_char(parser,page->data[i])==0;
+		           link_parser_process_char(parser,page->data[i])==0;
 		     i++ ) 
 		     	;
 		link_parser_end(parser);
@@ -1094,7 +1094,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 			
 			link_parser_set_link_callback(parser,link_files_fnc,&t);
 			for( i = 0 ; i< webpage.size && 
-			   link_parser_proccess_char(parser,webpage.data[i])==0;
+			   link_parser_process_char(parser,webpage.data[i])==0;
 			   i++ )
 			     ;
 			link_parser_end(parser);    
@@ -1466,7 +1466,7 @@ iol_get_new_novedades( iol_t iol, unsigned *n )
 			link_parser_set_link_callback(parser,link_news_fnc, &j);
 
 			for( i = 0 ; i< page.size &&
-			     link_parser_proccess_char(parser,page.data[i])==0;
+			     link_parser_process_char(parser,page.data[i])==0;
 			     i++ ) ;
 			link_parser_end(parser);
 			link_parser_destroy(parser);

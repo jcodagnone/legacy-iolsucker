@@ -26,7 +26,7 @@ main( int argc, char **argv )
 			print_comment = 0;
 	}
 	link_parser_set_link_callback(parser,link_fnc,&print_comment);
-	while( (c=getchar())!=EOF && link_parser_proccess_char(parser,c)==0 )
+	while( (c=getchar())!=EOF && link_parser_process_char(parser,c)==0 )
 		;
 	link_parser_end(parser);
 	link_parser_destroy(parser);

@@ -21,7 +21,7 @@ void link_parser_set_link_callback(link_parser_t parser,link_callback call,
                                     void *d );
 
 /** feed the state machine with one character */
-int link_parser_proccess_char( link_parser_t parser, int c );
+int link_parser_process_char( link_parser_t parser, int c );
 
 void link_parser_end(link_parser_t parser);
 
