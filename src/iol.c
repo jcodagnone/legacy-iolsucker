@@ -981,7 +981,7 @@ my_url_escape(const char *url)
 			i++;
 	}
 
-	s = malloc(len + i*2 + 100);
+	s = g_malloc(len + i*2 + 100);
 	if( s == NULL )
 		return NULL;
 	for( j=0; *url; url++ , j++)
@@ -1081,8 +1081,12 @@ get_real_download_file( iol_t iol,  const char *url )
 			ret = file;
 		else
 		{	struct buff page = {NULL, 0}; 
+			const char *eurl;
 
-			if( transfer_page(iol->curl, url, 0, &page) != E_OK)
+			eurl = my_url_escape(url);
+			eurl = eurl ? eurl :  url;
+
+			if( transfer_page(iol->curl, eurl, 0, &page) != E_OK)
 				;
 			else
 			{ 	ret = javascript_get_refresh_link(iol, &page);
@@ -1090,6 +1094,9 @@ get_real_download_file( iol_t iol,  const char *url )
 					cache_add_file(iol->fcache, buff,ret);
 				free(page.data);
 			}
+
+			if( eurl != url )
+				g_free( (char *)eurl);
 		}
 	}
 
@@ -1111,7 +1118,7 @@ link_files_fnc( const unsigned char *link,
                 const unsigned char *comment, void *d ) 
 {	struct  tmp *t = (struct tmp *)d;
 	int bFile;
-	char *s, *p, *q ;
+	char *s, *q ;
 
 	if( is_external_link(link) || is_javascript_link(link) )
 		return ;
@@ -1124,11 +1131,7 @@ link_files_fnc( const unsigned char *link,
 		return;
 	}
 	
-	p = my_url_escape(link); 
-	if( p == NULL )
-		return;
-	s = g_strdup(iol_get_url(t->iol, p) );
-	free(p);
+	s = g_strdup(iol_get_url(t->iol, link) );
 	if( s == NULL )
 		return;
 
@@ -1147,23 +1150,23 @@ link_files_fnc( const unsigned char *link,
 		else if( bFile == 2 )	/* direct link scheme */
 		{	if( t->url_prefix == NULL )
 				t->url_prefix = my_path_get_dirname(link);
-			q = g_strdup_printf("%s/%s",URL_BASE,link);
+			q = s;
 		}
 		else
 			assert(0);
 
 		if( q )
 			t->files = g_slist_prepend(t->files, q);
-		g_free(s);
+		if( q != s ) 
+			g_free(s);
 	}
 	else if( link_is_sort_link(link) )
 		g_free(s);
+	else if( is_father_folder(s,t->prefix) )
+		g_free(s);
 	else
-	{ 	if( is_father_folder(s,t->prefix) )
-			g_free(s);
-		else
-			queue_enqueue(t->pending, s);
-	}
+		queue_enqueue(t->pending, s);
+	
 }
 
 /**
@@ -1175,7 +1178,7 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 {	struct buff webpage; 
 	int ret = E_OK;
 	struct tmp t;
-	char *url; 
+	char *url, *eurl; 
 	
 	t.pending = queue_new(); 
 	if( t.pending == NULL || (url=iol_get_url(iol, URL_MATERIAL))== NULL )
@@ -1187,12 +1190,15 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 
 	while( !queue_is_empty(t.pending) && ret == E_OK )
 	{	
-		url = queue_dequeue(t.pending);
-		t.prefix = url;
+		url  = queue_dequeue(t.pending);
+		eurl = my_url_escape( url );
+		eurl = eurl ? eurl : url;
+		
+		t.prefix = eurl;
 		webpage.data = NULL;
 		webpage.size = 0;
 
-		if(transfer_page(iol->curl, url, 0, &webpage)!=E_OK)
+		if(transfer_page(iol->curl, eurl, 0, &webpage)!=E_OK)
 			ret = E_NETWORK;
 		else
 		{	link_parser_t parser;
@@ -1211,6 +1217,8 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 			link_parser_destroy(parser);
 		}
 		*url_prefix = t.url_prefix;
+		if( url != eurl )
+			g_free(eurl);
 		g_free(url);
 		free(webpage.data);
 	}
@@ -1301,7 +1309,10 @@ inform_url_and_date( FILE *fp, const char *url )
 	fprintf(fp, "%s\n",url + off);
 }
 
-/** tries to download ::file if it doesn't exist */
+/** tries to download ::file if it doesn't exist in the repository.
+ *
+ * ::file can contain spaces.
+ */
 static void
 foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 {	size_t len;
@@ -1328,16 +1339,9 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 		       len_url + (d->url_prefix[len_url - 1] != '/');
 		assert( strlen(file) > len );
 
-		/* IOL has files without escape 
-		 *
-		 *unquote = curl_unescape(file+len,0);
-		 *if( !unquote )
-		 *	return;
-		 */
 		unquote = file + len;
 		local = g_strdup_printf("%s/%s", d->prefix, unquote);
 		dirname = my_path_get_dirname(local);
-		/*curl_free(unquote);*/
 
 		if( stat(local,&st) == -1 )
 		{	/** \todo 
@@ -1356,16 +1360,16 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 				if( d->iol->dry )
 					;
 				else if( transfer_page(d->iol->curl, f,
-				         TP_FILE, download) == 0 )
+				                       TP_FILE, download) == 0 )
 					rename(download,local);
 				else
 				{	remove(download);
 					rs_log_error(_("downloading: %s"),
-					 iol_get_network_error(d->iol));
+					         iol_get_network_error(d->iol));
 				}
 
 				g_free(download);
-				free(f);
+				g_free(f);
 			}
 		}
 		
@@ -1524,8 +1528,8 @@ struct foreach_resync
 static void
 foreach_resync(struct course *course, struct foreach_resync *r) 
 {
-	if( course && r )
-		r->ret |= iol_resync(r->iol, course->code, r->flags);
+	if( course && r && r->ret == E_OK )
+		r->ret = iol_resync(r->iol, course->code, r->flags);
 }
 
 int
@@ -1535,7 +1539,7 @@ iol_resync_all(iol_t iol, enum resync_flags flags)
 	if( !IS_IOL_T(iol) )
 		return -1;
 
-	r.ret = 0;
+	r.ret = E_OK;
 	r.iol = iol;
 	r.flags = flags;
 	
