@@ -41,8 +41,6 @@
 /*  #include <unix.h>*/
 #endif
 
-
-
 #include <trace.h>
 #include <strdup.h>
 #include <basename.h>
@@ -56,6 +54,7 @@
 #include "progress.h"
 #include "forum.h"
 #include "stringset.h"
+#include "common.h"
 
 #ifndef CURLOPT_WRITEDATA
   #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
@@ -1059,10 +1058,7 @@ link_files_fnc( const unsigned char *link,
 	{
 		q = NULL;
 		if( bFile )	/* direct link scheme */
-		{	if( t->url_prefix == NULL )
-				t->url_prefix = my_path_get_dirname(link);
 			q = s;
-		}
 		else
 			assert(0);
 
@@ -1095,7 +1091,7 @@ link_files_fnc( const unsigned char *link,
  * They are stored in the list ::l.
  */
 static int
-get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
+get_file_list_from_current(iol_t iol, GSList **l)
 {	struct buff webpage; 
 	int ret = E_OK;
 	struct tmp t;
@@ -1105,7 +1101,6 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 	if( t.pending == NULL || (url=iol_get_url(iol, URL_MATERIAL))== NULL )
 		return E_MEMORY;
 	t.files = NULL;
-	t.url_prefix = NULL;
 	t.iol = iol;
 	t.set = stringset_new();
 
@@ -1142,7 +1137,6 @@ get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 			link_parser_end(parser);    
 			link_parser_destroy(parser);
 		}
-		*url_prefix = t.url_prefix;
 		if( url != eurl )
 			g_free(eurl);
 		g_free(url);
@@ -1363,12 +1357,12 @@ iol_resync_download(iol_t iol, const struct course *course)
 
 		tmp.prefix = s;
 		tmp.iol = iol;
-		tmp.url_prefix = NULL;
 
-		ret=get_file_list_from_current(iol, &files, &(tmp.url_prefix));
+		ret=get_file_list_from_current(iol, &files );
+
+		tmp.url_prefix = get_common_startpath(files);
 		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
-
-		free(tmp.url_prefix);
+		g_free(tmp.url_prefix);
 	}
 
 	g_free(s);
