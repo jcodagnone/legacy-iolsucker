@@ -1,6 +1,7 @@
 
+
 !define PACKAGE "iolsucker"
-!define VERSION "2.0.7"
+!define VERSION "2.0.8"
 !define COMPANY "Embryos Software"
 
 SetCompressor	bzip2
@@ -33,7 +34,7 @@ Section "iolsucker / iolwizard / dlls  (required)"
 SectionEnd
 
 Section "Codigo fuente"
-   File /r "source"
+   File /r "source/${PACKAGE}-${VERSION"
 SectionEnd
 
 Section "Start Menu Shortcuts"
