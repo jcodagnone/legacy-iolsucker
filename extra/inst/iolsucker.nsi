@@ -34,7 +34,7 @@ Section "iolsucker / iolwizard / dlls  (required)"
 SectionEnd
 
 Section "Codigo fuente"
-   File /r "source/${PACKAGE}-${VERSION"
+   File /r "source/${PACKAGE}-${VERSION}"
 SectionEnd
 
 Section "Start Menu Shortcuts"
