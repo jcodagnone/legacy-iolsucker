@@ -1,3 +1,12 @@
+iolsucker-2.0.27:
+  o incorporación libcrash (en caso de sigsegv, el usuario obtiene un backtrace
+    que el usuario puede reportar)...lo incorporo porque ya lo tenia hecho, no
+    porque hay cosas que se cuelguen :)
+  o --version lista las versiones de los componentes que usamos
+  o faltaba la descripcion de --forum en la ayuda (Lucas Wall)
+  o Lucas Wall mantiene paquetes debian 
+  o varias factorizaciones del codigo
+  
 iolsucker-2.0.26:
   o feature: opcion --dump <directorio>: dumpea todos las transferencias, 
     al directorio. Excelente utilidad en casos de problemas
