@@ -16,7 +16,7 @@ AC_PREFIX_DEFAULT(/usr/local)
 
 AC_ARG_ENABLE(debug,
   [  --enable-debug        creates debugging code],
-  [  IOLsucker_use_debug="$enableval"],[openmine_use_debug="no"])
+  [  IOLsucker_use_debug="$enableval"],[IOLsucker_use_debug="no"])
 
   CFLAGS=`echo $CFLAGS | sed s/-g//`
   if test "$IOLsucker_use_debug" = "yes"; then
@@ -39,24 +39,32 @@ AC_ISC_POSIX
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
+AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h string.h ])
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h limits.h sys/file.h])
+AC_CHECK_HEADERS([termios.h syslog.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_TYPE_MODE_T
 
 # Checks for library functions.
 AM_PATH_CURL
 AM_PATH_XML2
 AM_PATH_GLIB_2_0
 
-AC_CHECK_FUNCS([memset strchr strtol])
-AC_CHECK_FUNCS([strchr])
+AC_CHECK_FUNCS([memset strchr strtol strrchr])
+AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
 AC_CHECK_FUNCS([strtol])
 AC_FUNC_STAT
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_STRTOD
+AC_FUNC_VPRINTF
 
-CFLAGS="$CFLAGS -Wall -W -ansi -Winline -Wno-unused -I ../lib"
+CFLAGS="$CFLAGS -Wall  -I ../lib"
 
 dnl --------------------------------------------------------------------------
 dnl Optionnal stuff
