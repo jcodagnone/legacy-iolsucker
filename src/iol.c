@@ -224,7 +224,8 @@ iol_new(void)
 	cdt->cookie_file = get_cookies_file();
 	if( cdt->cookie_file == NULL ) 
 	{ 	free(cdt);
-		rs_log_error(_("locating a temporary file")); return NULL;
+		rs_log_error(_("locating a temporary file")); 
+		return NULL;
 	}
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -247,15 +248,19 @@ free_courses_list( struct course *data, gpointer user_data )
 
 void
 iol_destroy(iol_t iol) 
-{
+{	mode_t old;
+
 	if( !IS_IOL_T(iol) )
 		return;
 
 	if( iol->bLogged )
 		iol_logout(iol);
 
+	/* prevent other users for reading our cookie file */
+	old = umask(0077);
 	curl_easy_cleanup(iol->curl); 
 	curl_global_cleanup();
+	umask(old);
 
 	g_slist_foreach(iol->courses, (GFunc)free_courses_list ,NULL);
 	g_slist_free(iol->courses);
