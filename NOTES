@@ -1,3 +1,11 @@
+iolsucker-2.0.20:
+  o gen_func.sh no estaba en el cvs. Gracias Julio F. Pintos
+  o ignorar links raros
+  o remuevo codigo que no se estaba usando (download.asp)
+  o algunos typos y compilacion con libcurl-7.10.3 por Javier Ruere
+  o desde el  7/10/2003 (que yo sepa) los archivos del material didactica
+    tienen url. no comtemplaba esto. ES NECESARIO ACTUALIZAR!
+
 iolsucker-2.0.19:
   o un memory leak
   o cambio en algunos comentarios

@@ -948,7 +948,16 @@ struct tmp
 static int
 is_external_link( const char *link )
 {
-	return strstr(link,"://") !=NULL;
+	return  strstr(link,"://") !=NULL;
+}
+
+static int
+is_localhost_link( const char *host, const char *link)
+{	char buff[1024];
+	
+	sprintf(buff,"http://%s/", host);
+	
+	return !strncmp(buff, link, strlen(buff)); 
 }
 
 static int
@@ -1010,7 +1019,8 @@ link_files_fnc( const unsigned char *link,
 	int bFile;
 	char *s, *q ;
 
-	if( is_external_link(link) || is_javascript_link(link) )
+	if( (is_external_link(link) &&!is_localhost_link(t->iol->host, link))|| 
+	    is_javascript_link(link) )
 		return ;
 
 	if( link_is_rare_for_file(link) )
@@ -1021,7 +1031,11 @@ link_files_fnc( const unsigned char *link,
 		return;
 	}
 	
-	s = g_strdup(iol_get_url(t->iol, link) );
+	if( !is_localhost_link(t->iol->host, link) )
+		s = g_strdup(iol_get_url(t->iol, link) );
+	else
+		s = strdup(link);
+
 	if( s == NULL )
 		return;
 
