@@ -50,8 +50,7 @@ main(int argc, char **argv)
 	if( parseOptions( argc, argv, &opt) < 0 )
 		return EXIT_FAILURE;
 
-	if( load_config_file(&opt) == -1 )
-		return EXIT_FAILURE; 
+	load_config_file(&opt);	/* ignore if the file can't loaded */
 
 	create_ui((void *)&opt);
 
