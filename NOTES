@@ -3,6 +3,7 @@ iolsucker-2.0.18:
   o forzar permisos tacaños  en el archivo de configuración. 
     El problema de esto es que no usamos I/O ansi sino POSIX.
   o No abortar la carga del iolwizard si no se puede cargar la configuracion
+  o Distribuir archivos que no se distribuian. Reportado por Julio F. Pintos
 
 iolsucker-2.0.17: `Martes 13. No saques una release' (13/05/03)
 
