@@ -164,9 +164,9 @@ No muchos espero.
 nació como un script para bash un sábado por la tarde. El script consistía de
 456 líneas. Para desperdiciar un poco de tiempo y probar algunas cosas
 (archivos de configuración xml) se escribió esta versión en lenguaje C. 
-La implementación en C (del iolsucker y el iolwizard) pasaron a ser 4499
-líneas de código reales (sobre 6765).  1523 ya estaban escritas para otros
-proyectos. Cuan versátil es el scripting!
+La nueva versión termino siendo mucho mas mantenible que el viejo script.
+En la versión 2.0.13 existían 5203 líneas de codigo puras. El 49.66%
+fue escrito en otros proyectos (míos o opensource).
 
 .SH AUTHOR
 Original written by Juan F. Codagnone <juam@users.sourceforge.net>
