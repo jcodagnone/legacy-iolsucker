@@ -89,7 +89,11 @@ link_parser_proccess_char( link_parser_t parser, int c )
 		return -1;
 		
 	if( parser->debug )
-		printf("%c - %s \n",c,link_debug(parser->state));
+	{	if( isprint(c) )
+			printf("%c - %s \n",c,link_debug(parser->state));
+		else
+			printf("0x%x - %s \n",c,link_debug(parser->state));
+	}
 
 	switch(parser->state)
 	{
@@ -182,11 +186,8 @@ link_parser_proccess_char( link_parser_t parser, int c )
 			}
 			break;
 		case ST_TAG_A_HREF_EQ_READ:
-			if( isspace(c) || c == '>' )
+			if( c=='"' || c == '>' )
 			{	parser->link[parser->i]=0;
-				if( parser->link[parser->i-1] == '"' )
-					parser->link[parser->i-1] = 0;
-
 				parser->state = ( c == '>' ) ?  ST_TAG_A_END :
 				                                ST_TAG_A;
 			}
@@ -216,6 +217,11 @@ link_parser_proccess_char( link_parser_t parser, int c )
 			}
 			else if( c == '/' )
 				parser->state = ST_TAG_A_END_IS_SLASH_A;
+			else
+			{	parser->comment[parser->j++] = '<';
+				parser->comment[parser->j++] = c;
+				parser->state = ST_TAG_A_END;
+			}
 			break;
 		case ST_TAG_A_END_IS_SLASH_A:
 			if( tolower(c) == 'a' )
