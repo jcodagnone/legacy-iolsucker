@@ -58,6 +58,7 @@
 #include "stringset.h"
 #include "common.h"
 #include "cache.h"
+#include "course.h"
 
 #ifndef CURLOPT_WRITEDATA
   #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
@@ -90,30 +91,11 @@
 #define IOL_NEWS	"/novlistall.asp"
 #define IOL_SHOWFILE	"/showfile.asp?fiid=%s&volvera="
 #define URL_LOGIN_ARG	"txtdni=%s&txtpwd=%s&Submit=Conectar&cmd=login"
-#define IOL_COURSE_PARAMETER	"nivel=4"
-#define IOL_DEPART_PARAMETER	"nivel=3"
 
 #define IOL_MATERIAL_FOLDER	"material"
 #define IOL_MATERIAL_TMPFILE	".download.tmp"
 #define IOL_FILE_DB        	"files.db"
 #define IOLSUCKER_LOGFILE	"cambios.txt"
-
-struct buff 
-{ 	char *data;
-	size_t size;
-};
-
-enum course_type {
-	CT_COURSE,
-	CT_DEPART
-};
-
-struct course 
-{       char *code;	/**< code name: eg: "21.71" */
-	char *name;     /**< human name: Base de datos I */
-	enum course_type type; 
-	enum resync_flags flags;
-};
 
 struct dump 
 {	char *path;      /**< directory where dumps are dumped (duh!) */
@@ -126,9 +108,9 @@ struct iolCDT
 { 	CURL *curl;		/**< curl handler */
 	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
 	double transfered_bytes;/**< bytes downloaded */
-
+	course_t courses;
 	const struct course *current_course;
-	GSList *courses;	/**< loaded courses */ 
+
 	int bLogged;    	/**< already logged in ? */ 
 	char *repository;	/**< repository directory */
 	const char *host; 	/**< host part in the URL */
@@ -408,11 +390,13 @@ iol_new(void)
 		
 	memset( cdt, 0, sizeof(*cdt));
 	cdt->repfiles = stringset_new();
-	if( !stringset_is_valid(cdt->repfiles) )
-	{	free(cdt);
+	cdt->courses = course_new();
+	if( !stringset_is_valid(cdt->repfiles)|| !course_is_valid(cdt->courses))
+	{	
+		course_destroy(cdt->courses);
+		free(cdt);
 		return NULL;
 	}
-
 	cdt->host = IOL_HOSTN;
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -438,16 +422,6 @@ iol_new(void)
 	#endif
 
 	return cdt;
-}
-
-static void
-free_courses_list( struct course *data, gpointer user_data ) 
-{
-	if( data )
-	{	free(data->code);
-		free(data->name);
-		free(data);
-	}
 }
 
 static void
@@ -489,8 +463,7 @@ iol_destroy(iol_t iol)
 	curl_easy_cleanup(iol->curl); 
 	curl_global_cleanup();
 
-	g_slist_foreach(iol->courses, (GFunc)free_courses_list ,NULL);
-	g_slist_free(iol->courses);
+	course_destroy(iol->courses);
 
 	free(iol->repository);
 	free(iol->url_tmp_pt);
@@ -744,133 +717,6 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 	return ret;
 }
 
-/** valida si `code` pertenece al charset correcto */
-static int
-is_valid_course_code( const char *code )
-{	int b = 1;
-	unsigned i;
-
-	if( code == NULL )
-		b = 0;
-	else {
-		for( i=0; b && code[i] ; i++ )
-		{       /* dangerous characters for the filesystem */
-			if( code[i]=='/' || code[i] == '\\' ||
-			    code[i]==':' || code[i] == '>' /* win32 */ )
-				b = 0;
-		}
-
-		if( i == 0 )
-			b = 0;
-	}
-
-	return b;
-}
-
-/* equivalet to: one_space ( touper ( trim( name ) ) ) */
-static char *
-normalize_course_name( char *name )
-{       char *p, *q;
-
-        for( q = p = name ; *p && isspace(*p) ; p++ )
-                ;
-        while( *p )
-        {
-                for( ; *p && !isspace(*p) ; p++ )
-                        *(q++) = toupper(*p);
-
-                if( isspace(*p) )
-                {       *(q++) = *p++;
-                        for( ; *p && isspace(*p) ;  p++ )
-                                ;
-                }
-        }
-
-        *q = 0;
-        if( *(q-1) == ' ' )
-        	*(q-1) = 0;
-
-        return name;
-}
-
-/**
- * callback called by the html parser: it is used to extract the user's courses
- * codes from the html
- */
-static void 
-link_courses_fnc( unsigned const char *link, 
-                  unsigned const char *comment, void *d )
-{	GSList **listptr =  d;
-	struct course *course; 
-	char *s;
-	enum course_type type;
-	assert(d);
-
-	s = strstr(link, IOL_COURSE_PARAMETER);
-	if( s == NULL )
-	{	s = strstr(link, IOL_DEPART_PARAMETER);
-		if( s == NULL )
-			return;
-		else
-			type = CT_DEPART;
-	}
-	else
-		type = CT_COURSE;
-	
-	
-	/* get course code */
-	s =  strstr(link,"snivel=" );
-	if( s )
-	{	char *ss;
-
-		s += sizeof("snivel=") -1 ;
-		for( ss = s; *ss && *ss != ';' ; ss++ )
-			;
-		if( *ss == ';' )
-			*ss = 0;
-
-		for( ss = (char *)comment; *ss && isspace(*ss) ; ss++)
-			;
-
-		course = malloc(sizeof(*course));
-		if( course ) 
-		{ 	course->code = strdup(s);
-			course->name = normalize_course_name(strdup(ss));
-			course->type = type;
-			course->flags = 0;
-			if( course->code && course->name )
-				*listptr = g_slist_prepend(*listptr, course);
-			else
-			{	free(course->code);
-				free(course->name);
-				free(course);
-			}
-		}
-	}
-}
-
-/**
- * gets the list of available courses, that are linked from the html at ::page 
- */
-static unsigned 
-parse_courses(GSList **listptr, struct buff *page) 
-{	link_parser_t parser;
-	unsigned i;
-
-	parser = link_parser_new();
-	if( parser == NULL )
-		return 0;
-
-	link_parser_set_link_callback(parser,link_courses_fnc, listptr);
-	for( i = 0 ; i< page->size &&
-	     link_parser_process_char(parser,page->data[i])==0 ; i++ ) 
-	     ;
-	link_parser_end(parser);
-	link_parser_destroy(parser);
-
-	return (*listptr)== NULL ? -1 : 0;
-}
-
 int
 iol_login(iol_t iol, const char *user, const char *pass)
 {	int nRet = E_OK;
@@ -907,7 +753,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			
 			if(transfer_page(iol->curl,url,0,&buf,&iol->dump)!=E_OK)
 				nRet = E_NETWORK;
-			else if( parse_courses(&(iol->courses),&buf) == 0)
+			else if( course_load_from_page(iol->courses,&buf) == 0)
 					iol->bLogged = 1;
 			else
 				nRet = E_LOGINTUPLE;
@@ -946,89 +792,6 @@ iol_logout(iol_t iol)
 	return nRet;
 }
 
-/** temporary structure: used to send parameters from #get_course_by_name to 
- *  #foreach_find_cname
- */
-struct tmp_cname
-{	const char *code;
-	struct course *ret;
-};
-
-static void
-foreach_find_cname( struct course *course, struct tmp_cname *t)
-{
-	if( t && !t->ret )
-	{	
-		if( !strcmp(t->code, course->code) )
-			t->ret = course;
-	
-	}
-}
-
-static struct course *
-get_course_by_name( iol_t iol, const char *code )
-{	struct tmp_cname tmp;
-
-	tmp.code = code;
-	tmp.ret = NULL;
-	
-	g_slist_foreach(iol->courses, (void *)foreach_find_cname, (void *)&tmp);
-	
-	return tmp.ret;
-}
-
-static void 
-link_context_fnc( const unsigned char *link,
-                  const unsigned char *comment, enum resync_flags *flags)
-{	static const struct 
-	{	const char *link;
-		enum resync_flags flag;
-	} table[]=
-	{	{ "newmaterialdid.asp", IOL_RF_FILE  },
-		{ "reglamentacion.asp", IOL_RF_RULES },
-		{ "novlist.asp",        IOL_RF_NEWS  },
-		{ "foroDis.asp",        IOL_RF_FORUM },
-		{ "AluList.asp",        IOL_RF_ALULIST},
-	};
-	unsigned i;
-	int found=0;
-
-	assert(flags);
-	
-	for(i=0; !found && i<sizeof(table)/sizeof(*table); i++)
-	{
-		if( !strcmp(link,table[i].link) )
-			found=1;
-	}
-
-	if( found )
-		*flags |=table[i-1].flag;
-}
-
-static enum resync_flags
-get_course_capabilities( struct buff *page )
-{ 	link_parser_t  parser;
-	enum resync_flags flags = 0;
-	unsigned i;
-	
-	parser = link_parser_new();
-	if( parser )
-	{
-		link_parser_set_link_callback(parser,
-				(link_callback)link_context_fnc,
-				&flags);
-		for( i = 0 ; i< page->size &&
-		           link_parser_process_char(parser,page->data[i])==0;
-		     i++ ) 
-		     	;
-		link_parser_end(parser);
-		link_parser_destroy(parser);
-	}
-	
-	
-	return flags;
-}
-
 static int 
 iol_set_current_course(iol_t iol, const char *course) 
 {	struct course *c;
@@ -1037,7 +800,7 @@ iol_set_current_course(iol_t iol, const char *course)
 	
 	if( !IS_IOL_T(iol) )
 		ret = E_INVAL;
-	else if( (c=get_course_by_name(iol,course)) == NULL)
+	else if( (c=course_get_by_name(iol->courses, course)) == NULL)
 		return E_INVAL;
 	else if( iol->current_course && 
 	         !strcmp(iol->current_course->code, c->code) )
@@ -1057,7 +820,7 @@ iol_set_current_course(iol_t iol, const char *course)
 		if( transfer_page(iol->curl, s, 0, &page, &iol->dump) != E_OK )
 			ret = E_NETWORK;
 		else
-			c->flags = get_course_capabilities(&page);
+			c->flags = course_get_capabilities_from_page(&page);
 
 		free(page.data);
 		g_free(s);
@@ -1654,11 +1417,11 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 	int ret = E_OK;
 	struct course *c;
 
-	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
+	if ( !IS_IOL_T(iol)||iol->repository==NULL||!course_name_is_valid(code))
 		ret = E_INVAL;
 	else if( !iol->bLogged )
 		ret = E_NLOGED;
-	else if( (c=get_course_by_name(iol,code)) == NULL )
+	else if( (c=course_get_by_name(iol->courses,code)) == NULL )
 	{	ret = E_INVAL;
 		rs_log_error(_("invalid course `%s'"), code);
 	}
@@ -1725,7 +1488,7 @@ iol_resync_all(iol_t iol, enum resync_flags flags)
 	r.iol = iol;
 	r.flags = flags;
 	
-	g_slist_foreach(iol->courses,(GFunc)foreach_resync,&r);
+	course_foreach_run(iol->courses, foreach_resync, &r);
 
 	return r.ret;
 }

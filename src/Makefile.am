@@ -6,7 +6,7 @@ srcdir = @srcdir@
 #########
 
 SUBDIRS = demo
-EXTRA_DIST = win32.h win32.c
+EXTRA_DIST = win32.h win32.c cache_db.c cache_dummy.c
 
 EXTRA_PROGRAMS = link
 bin_PROGRAMS = iolsucker 
@@ -20,7 +20,12 @@ iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
                     link.c link.h getpass.c getpass.h progress.c \
                     progress.h  iolerr.c opt.c forum.c \
                     forum.h demo.c  link_debug.c stringset.c stringset.h \
-		    common.h common.c cache.c cache.h
+		    common.h common.c cache.h course.c course.h
+if LIBDB
+iolsucker_SOURCES += cache_db.c
+else
+iolsucker_SOURCES += cache_dummy.c
+endif
 
 iolsucker_CFLAGS = $(AM_CFLAGS) @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@ 
 iolsucker_LDADD = ../lib/libmisc/libmisc.a ../lib/libcrash/libcrash.a \
