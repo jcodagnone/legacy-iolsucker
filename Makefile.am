@@ -1,7 +1,7 @@
 
 AUTOMAKE_OPTIONS = foreign dist-bzip2
 
-EXTRA_DIST = TODO NOTES
+EXTRA_DIST = TODO NOTES autogen.sh
 
 SUBDIRS = bin lib src doc win32 iolwizard iolunch extra debian
 
