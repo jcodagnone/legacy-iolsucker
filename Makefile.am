@@ -12,13 +12,19 @@ SUBDIRS = \
 	iolwizard \
 	extra
 
-WINPREFIX = /tmp/test/$(distdir)
-win32rel:	
+WINPREFIX = /tmp/iol/$(distdir)
+windist:	dist	doc/iolsucker.html
 	rm -rf $(WINPREFIX)
-	mkdir $(WINPREFIX)
+	mkdir -p $(WINPREFIX)
 	mkdir $(WINPREFIX)/compile
 	cp -R extra/inst/* $(WINPREFIX)
-	if [[ -a $(WINPREFIX)/source ]]; then  \
+	cp doc/iolsucker.html $(WINPREFIX)/data
+	if [[ -d $(WINPREFIX)/source ]]; then  \
 		tar -C $(WINPREFIX)/source -xjf $(distdir).tar.bz2 ; \
+		if [[ -d unix ]] ; then \
+			cp -R unix $(WINPREFIX)/source ; \
+			cp unix/dll/*.dll $(WINPREFIX)/data; \
+		fi \
 	fi
 	tar -C $(WINPREFIX)/compile -xjf $(distdir).tar.bz2
+	chmod o+w -R $(WINPREFIX)
