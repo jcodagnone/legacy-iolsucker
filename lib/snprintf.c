@@ -283,7 +283,7 @@
 /* ============================================= */
 /* NO USER SERVICABLE PARTS FOLLOWING THIS POINT */
 /* ============================================= */
-
+#include <dll.h>
 #define PORTABLE_SNPRINTF_VERSION_MAJOR 2
 #define PORTABLE_SNPRINTF_VERSION_MINOR 2
 
@@ -401,9 +401,9 @@ int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap);
 #endif
 
 #if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
-int portable_snprintf(char *str, size_t str_m, const char *fmt, /*args*/ ...);
+EXPORT int portable_snprintf(char *str, size_t str_m, const char *fmt, /*args*/ ...);
 #if !defined(NEED_SNPRINTF_ONLY)
-int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap);
+EXPORT int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap);
 #endif
 #endif
 
