@@ -1,7 +1,9 @@
 /*
  * Extracted from wget
  *
- * Copyright (C) 2001 Free Software Foundation, Inc.
+ * Copyright (C) 2001 Free Software Foundation, Inc. (progress.c)
+ * Copyright (C) 1995, 1996, 1997, 2000, 2001 Free Software Foundation, Inc
+ *   (utils.c)
  *
  * ported to compile with IOL/curl by Juan F. Codagnone (2003)
  * (the code that use tab as indentation :^D )
