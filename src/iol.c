@@ -447,7 +447,9 @@ iol_set_proxy_type(iol_t cdt, const char *type)
 		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_HTTP);
 	else if( !strcmp(type, "socks5") )
 		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_SOCKS5);
-        else
+        else if( *type == 0 )
+		;
+	else
 		ret = E_INVAL;
 #else
 	if( type && *type == 0)
