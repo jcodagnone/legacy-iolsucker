@@ -1,6 +1,7 @@
-AM_CFLAGS = @CFLAGS@ -I../lib  -DNDEBUG
-AM_LDFLAGS = @LDFLAGS@  -L../lib -L. 
+AM_CFLAGS = @CFLAGS@ -I$(srcdir)/../lib  -DNDEBUG
+AM_LDFLAGS = @LDFLAGS@  -L$(srcdir)/../lib -L. 
 LIBS =  @LIBS@ -ldb 
+srcdir = @srcdir@
 
 #########
 
@@ -24,12 +25,12 @@ iolsucker_DEPENDENCIES = ../lib/libmisc.a
 
 ################
 
-link_debug.c:	link.c ../bin/gen_debug.sh ../bin/gen_func.sh
-	../bin/gen_debug.sh < link.c > link_debug.c
-	../bin/gen_func.sh < link.c >> link_debug.c
+link_debug.c:	link.c $(srcdir)/../bin/gen_debug.sh $(srcdir)/../bin/gen_func.sh
+	$(srcdir)/../bin/gen_debug.sh < link.c > link_debug.c
+	$(srcdir)/../bin/gen_func.sh < link.c >> link_debug.c
 
-iolerr.c:	../bin/gen_iol_err.awk iol.h
-	../bin/gen_iol_err.awk < iol.h > iolerr.c
+iolerr.c:	$(srcdir)/../bin/gen_iol_err.awk $(srcdir)/iol.h
+	$(srcdir)/../bin/gen_iol_err.awk < $(srcdir)/iol.h > $(srcdir)/iolerr.c
 
 
 ioldemo:

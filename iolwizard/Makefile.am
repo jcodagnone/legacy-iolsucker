@@ -1,8 +1,8 @@
 
-AM_CFLAGS = @CFLAGS@ -I../lib  @XML_CFLAGS@ @GTK_CFLAGS@ @GLIB_CFLAGS@
+AM_CFLAGS = @CFLAGS@ -I$(srcdir)/../lib  @XML_CFLAGS@ @GTK_CFLAGS@ @GLIB_CFLAGS@
 AM_LDFLAGS = @LDFLAGS@  -L../lib -L.  
-
 LIBS =  @LIBS@  @XML_LIBS@ @GTK_LIBS@ @GLIB_LIBS@
+srcdir = @srcdir@
 
 EXTRA_DIST = dirent.c dirent.h
 EXTRA_PROGRAMS = iolwizard
