@@ -1,1 +1,14 @@
+
 Juan F. Codagnone <juam@arnet.com.ar>
+
+Tambien, hay que darle agradecimientos a los muchachos, que hicieron su aporte
+para mejorar al iolsucker:
+
+ (en orden de aparación en la vida al proyecto)
+ 
+    o Julio F. Pintos por reporte de bug, algun hints para el iolwizard,
+      y aviso de falta de archivos en la distribucion.
+    o Javier Ruere, por los reportes, la paciencia para reproducir las
+      cosas, los tips, y mostrame el subversion.
+    o Lucas Wall, por hacer los paquetes para debian, y avisar de varios
+      glitches con el make, y la falta de distribucion de algunos archivos
