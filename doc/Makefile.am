@@ -9,7 +9,8 @@ clean:
 	$(RM) -f *.html *.pdf *.ps
 
 
-MAN2HTML = groff -Thtml -man $< > $@
+# MAN2HTML = groff -Thtml -man $< > $@
+MAN2HTML = groff -Tascii -man $< |col -b|sed -e 's/</\&lt;/g' -e 's/>/\&gt;/g'|awk 'BEGIN {print"<html><head><title>'$<' man page</title></head><body><pre>"}{print}END{print "</pre></body></html>"}' > $@
 
 SUFFIXES = .1 .html .pdf
 
