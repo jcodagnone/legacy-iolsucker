@@ -551,7 +551,7 @@ dot_finish (void *progress, long dltime)
   }
 
   printf("\n\n");
-
+  fflush(stdout);
   xfree (dp);
 }
 
@@ -967,6 +967,9 @@ dot_progress_callback(struct progress *progress,
 		progress->data = dot_create(0L,(long)dltotal);
 		progress->dllast = 0;
 	}
+	if(  ((struct dot_progress *)progress->data)->total_length != dltotal )
+		((struct dot_progress *)progress->data)->total_length = dltotal;
+
 	dot_update(progress->data, ((long)dlnow) - progress->dllast,
 	                                  wtimer_elapsed(progress->timer));
 
