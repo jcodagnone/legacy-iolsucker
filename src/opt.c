@@ -56,7 +56,7 @@ _("Usage: %s [OPTION]\n"
 " -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
 " -U <user[:password]>        specify proxy authentication\n"
 " -f filename                 load settings from file\n"
-
+" -r repository               sets the file  repository\n" 
 "\n"
 "Send bugs to <juam at users dot sourceforge dot net>\n"
 "\n"),rs_program_name);
@@ -68,7 +68,7 @@ static void
 usage ( void )
 {
 	printf("Usage: %s [-hnVv] [--help] [--version] [--dry-run]"
-	       " [-u username]"
+	       " [-u username] [-r repository]"
 	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>"
 	       " [-t proxy-type ] [--proxy-type proxy-type]\n",
 	       rs_program_name);
@@ -91,7 +91,7 @@ version( void )
 int
 parseOptions( int argc, char * const * argv, struct opt *opt)
 {	int i;
-	const char *user = 0, *configfile = 0, *proxy_type = "";
+	const char *user = 0, *configfile = 0, *rep=0,  *proxy_type = "";
 	static optionT lopt[]=
 	{/*00*/	{"help",	OPT_NORMAL, 0,	OPT_T_FUNCT, (void *) help },
 	 /*01*/	{"h",		OPT_NORMAL, 1,  OPT_T_FUNCT, (void *) help },
@@ -109,6 +109,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*13*/ {"proxy-type",  OPT_NORMAL, 0,  OPT_T_GENER,  NULL },
 	 /*14*/ {"v",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL  },
 	 /*15*/ {"verbose",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL  },
+	 /*16*/ {"r",           OPT_NORMAL, 1,  OPT_T_GENER, NULL },
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
@@ -117,6 +118,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	   lopt[10].data = lopt[11].data = &(opt->dry);
 	   lopt[12].data = lopt[13].data = &(proxy_type);
 	   lopt[14].data = lopt[15].data = &(opt->verbose);
+	   lopt[16].data = &rep;
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
 	i = GetOptions( argv, lopt, 0, NULL);
@@ -130,7 +132,8 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 		strncpy(opt->username, user, sizeof(opt->username)-1);
 	if( configfile )
 		strncpy(opt->configfile, configfile, sizeof(opt->configfile)-1);
-	
+	if( rep )
+		strncpy(opt->repository, rep, sizeof(opt->repository)-1);
 	if( !strcmp(proxy_type, "socks5") )
 		opt->proxy_type = "socks5";
 	else if( !strcmp(proxy_type, "http") )

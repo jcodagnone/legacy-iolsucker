@@ -31,6 +31,7 @@ iolsucker \- cliente no interactivo para IOL
 .RB [ \-\-verbose ]
 .RB [ \-\-dry\-run ]
 .RB [ \-\-user\  username]
+.RB [ \-r\  repository ]
 .RB [ \-f\  filename ]
 .RB [ \-x\  <host[:port]> ]
 .RB [ \-U\  <username[:password]> ]
@@ -59,6 +60,8 @@ Antes de envierle esta informacion a otra persona, para que lo ayude,
 fijese que no exista informacion confidencial.
 .IP "\fB\-n\fR, \fB\-\-dry\-run\fR"
 corre en seco: no descarga ningún archivo. Solo reporta cambios.
+.IP "\fB\-r\fR repositorio"
+especifica el directorio donde se almacenan los archivos bajados.
 .IP "\fB\-f\fR"
 leer opciones del archivo de configuración llamado \fIfilename\fR.
 .IP "\fB\-\-user\fR username"
