@@ -3,7 +3,7 @@ AM_CFLAGS = @CFLAGS@ -I../lib
 AM_LDFLAGS = @LDFLAGS@
 
 noinst_HEADERS = newopt.h strdup.h trace.h basename.h unix.h mkrdir.h queue.h \
-                 dirname.h
+                 dirname.h i18n.h
                  
 noinst_LIBRARIES = libmisc.a
 

@@ -1,6 +1,5 @@
 
 SUBDIRS = \
 	lib \
-	src
-
-
+	src \
+	iolwizard

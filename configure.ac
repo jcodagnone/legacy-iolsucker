@@ -53,9 +53,10 @@ AC_TYPE_MODE_T
 AC_TYPE_SIGNAL
 
 # Checks for library functions.
-AM_PATH_CURL
-AM_PATH_XML2
-AM_PATH_GLIB
+AM_PATH_CURL(,,AC_MSG_ERROR([$PACKAGE requiere de libcurl]))
+AM_PATH_XML2(,,AC_MSG_ERROR([$PACKAGE requiere de libxml2]))
+AM_PATH_GLIB(,,AC_MSG_ERROR([$PACKAGE requiere la GLIB]))
+AM_PATH_GTK(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])
 
 AC_CHECK_FUNCS([memset strchr strtol strrchr])
 AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
@@ -81,9 +82,15 @@ AC_DEFINE_UNQUOTED(UNIX,1, [a plataform])
 AC_DEFINE_UNQUOTED(WINDOWS,2, [a plataform])
 AC_DEFINE_UNQUOTED(SYSTEM, UNIX, [2nd dlopen parameter])
 
+if [[  $iolsucker_gtk == "yes" ]] ; then
+	IOLWIZARD="iolwizard"
+else
+	IOLWIZARD=""
+fi
+
 AC_SUBST(PACKAGE)
 AC_SUBST(IOL_VERSION)
-
+AC_SUBST(IOLWIZARD)
 
 dnl --------------------------------------------------------------------------
 dnl Output
@@ -92,18 +99,15 @@ AC_OUTPUT([
 Makefile
 doc/Makefile
 lib/Makefile
-src/Makefile],
-[echo ])
+iolwizard/Makefile
+src/Makefile]
+)
 
 
-echo
-echo "IOLsucker configure report:"
-echo
-echo "     CFLAGS                        : $CFLAGS"
-echo "     LIBS                          : $LIBS"
-echo "     Locales in use                : $ALL_LINGUAS"
-echo "==============================================================="
-echo
+echo     "Programs to compile:"
+echo    "   iolsucker......yes"
+echo    "   iolwizard......${iolsucker_gtk}" 
+echo 
 echo "Type \"make\" to compile IOLsucker."
 echo
 
