@@ -1,3 +1,16 @@
+iolsucker-2.0.26:
+  o feature: opcion --dump <directorio>: dumpea todos las transferencias, 
+    al directorio. Excelente utilidad en casos de problemas
+  o iolwizard::create_ui_extra() esta más linda que nunca.
+  o maté varios warnings de compilacion
+  o no se distribuia el cache.c
+  o BUGFIX: arreglo el problema de recursividad infinita.  El problema
+    era que que la funcion is_father_folder (nombre feo...) que informaba
+    si una url estaba contenida en otra, recibia como parametros una
+    url escapada (con los %20) y otra sin escapar. Esto hacia que nunca
+    se detectaran los carpetas padres. Era solo reproducible con disposiciones
+    de carpetas del estilo TPS/Unidad 3/ TPS/Unidad 4/ ...
+
 iolsucker-2.0.25:
   o implementacion del nuevo sistema de downloads
   o nueva opcion --no-cache: forza al iolsucker a no usar ningun cache
