@@ -35,6 +35,7 @@
 #include "iol.h" /* only for iol_version */
 
 const char *rs_program_name;
+void version( void );
 
 static void
 help ( void )
@@ -78,22 +79,6 @@ usage ( void )
 	       " [-t proxy-type ] [--proxy-type proxy-type] "
 	       " [-H <server[port]]\n",
 	       rs_program_name);
-
-	exit( EXIT_SUCCESS );
-}
-
-static void
-version( void )
-{	char buff[4096];
-	printf( "%s %s\n"
-		"\n"
-		"%s\n"
-		"This is free software:\n"
-		" There is NO warranty; not even for MERCHANTABILITY or\n"
-		" FITNESS FOR A PARTICULAR PURPOSE\n"
-		"\n"
-		,rs_program_name, VERSION,
-		iol_version(buff, sizeof(buff)) );
 
 	exit( EXIT_SUCCESS );
 }

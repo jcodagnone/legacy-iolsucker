@@ -38,6 +38,21 @@
 const char *progname;
 const char *rs_program_name = ""; 
 
+void
+version( void )
+{	char buff[4096];
+	printf( "%s %s\n"
+		"\n"
+		"This is free software:\n"
+		"   There is NO warranty; not even for MERCHANTABILITY or\n"
+		"   FITNESS FOR A PARTICULAR PURPOSE\n"
+		"\n"
+		,rs_program_name, VERSION);
+
+	exit( EXIT_SUCCESS );
+}
+
+
 int
 main(int argc, char **argv)
 {	struct opt opt;

@@ -171,6 +171,24 @@ suck(struct opt *opt)
 	return ret;
 }
 
+void
+version( void )
+{	char buff[4096];
+	printf( "%s %s\n"
+		"\n"
+		"%s\n"
+		"This is free software:\n"
+		"   There is NO warranty; not even for MERCHANTABILITY or\n"
+		"   FITNESS FOR A PARTICULAR PURPOSE\n"
+		"\n"
+		,rs_program_name, VERSION,
+		iol_version(buff, sizeof(buff)) );
+
+	exit( EXIT_SUCCESS );
+}
+
+
+
 /* Usually i include the function that parse the command line options
  * in the main.c, but this time the function is share with iolwizard
  */
