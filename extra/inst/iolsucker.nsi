@@ -33,9 +33,9 @@ Section "iolsucker / iolwizard / dlls  (required)"
   WriteUninstaller "uninstall.exe"
 SectionEnd
 
-Section "Codigo fuente"
-   File /r "source/${PACKAGE}-${VERSION}"
-SectionEnd
+# Section "Codigo fuente"
+#   File /r "source/${PACKAGE}-${VERSION}"
+# SectionEnd
 
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\${PACKAGE}"
@@ -58,7 +58,6 @@ Section "Uninstall"
   Delete "$INSTDIR\libgdk-0.dll"
   Delete "$INSTDIR\libgtk-0.dll"
   Delete "$INSTDIR\libcurl.dll"
-  Delete "$INSTDIR\libmiscdll.dll"
   Delete "$INSTDIR\iolsucker.exe"
   Delete "$INSTDIR\iolunch.exe"
   Delete "$INSTDIR\iolwizard.exe"
