@@ -17,7 +17,7 @@
 
 #ifdef HAVE_CONFIG_H
   #ifdef WIN32
-    #include "../winconfig.h"
+    #include "../configwin.h"
   #else
     #include <config.h>
   #endif
@@ -51,9 +51,11 @@ main(int argc, char **argv)
 }
 
 #ifdef WIN32
-int
-WinMain (HANDLE hInst, HANDLE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
-{	extern int argc;
+#include <windows.h>
+
+int WINAPI 
+WinMain(HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpszCmdLine, int nCmdShow)
+{	extern int __argc;
 	extern char ** __argv;
 	
 	return main(__argc, __argv);

@@ -14,7 +14,7 @@
 
 #ifdef HAVE_CONFIG_H
   #ifdef WIN32
-    #include "../winconfig.h"
+    #include "../configwin.h"
   #else
     #include <config.h>
   #endif

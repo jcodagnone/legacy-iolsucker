@@ -5,6 +5,7 @@
 
 /* missing mode */
 typedef unsigned mode_t;
+typedef unsigned size_t;
 
 	#define	R_OK	4		/* Test for read permission.  */
 	#define	W_OK	2		/* Test for write permission.  */

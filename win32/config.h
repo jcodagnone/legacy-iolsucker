@@ -156,7 +156,9 @@
 
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
-#define inline 
+#ifndef inline
+  #define inline 
+#endif
 
 /* Define to rpl_malloc if the replacement function should be used. */
 /* #undef malloc */
