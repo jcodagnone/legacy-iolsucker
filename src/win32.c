@@ -157,110 +157,122 @@ print_verbose(const struct opt *opt)
 	fprintf(fp,"forum: %d\n",opt->forum);
 }
 
+struct config_sz
+{	const char *key;
+	void *data;	/* char * for arrays, char ** for malloc pts */
+	size_t size;	/**< 0 means we need to malloc */
+	int crypted;
+};
+
+struct config_bool
+{	const char *key;
+	int *value;
+	int defaul;
+};
+ 
+static int
+load_config_reg_sz(struct config_sz *table_sz, unsigned n)
+{	const struct config_sz *entry;
+	unsigned i;
+	char buf[512];
+	int ret=0;
+	char **s;
+
+	for( i = 0 ;  i< n; i++ )
+	{	entry = table_sz+i;
+		buf[0]=0;
+
+		if( (entry->size && ((char *)entry->data)[0]==0) ||
+		     entry->size == 0 && *((char **)entry->data)==NULL )
+		{
+			if( registry_get_string(IOL_ROOT, IOL_PATH,
+                                    entry->key,buf,sizeof(buf) ) == TRUE )
+			{	
+				if( entry->size )
+				{
+					strncpy(entry->data,buf,entry->size);
+					((char *)entry->data)[entry->size-1]=0;
+					if( entry->crypted ) 
+						rot13(entry->data);
+				}
+				else
+				{	s = entry->data;
+					*s = strdup(buf);
+					if( *s && **s==0 )
+					{	free(*s);
+						*s = NULL;
+					}
+					else if( entry->crypted )
+						rot13(*s);
+				}
+				
+			}
+			else
+				registry_change_string(IOL_ROOT,IOL_PATH,
+				                       entry->key,""); 
+		}
+	}
+	
+	return ret;
+}
+
+static int
+load_config_reg_bool(struct config_bool *table_bool, unsigned n)
+{	char buf[512];
+	unsigned i;
+	int ret=0;
+	
+	for( i = 0 ;  i< n; i++ )
+	{	buf[0]=0;
+	 	if( registry_get_string(IOL_ROOT, IOL_PATH, table_bool[i].key,
+		                        buf, sizeof(buf) ) == TRUE )
+		{ 	if( isdigit(buf[0]) )
+				*(table_bool[i].value) = buf[0] - '0' != 0;
+			else
+				*(table_bool[i].value) = 0;
+		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,
+			                       table_bool[i].key, "");
+	}
+	
+	return ret;
+}
+
 int 
 load_config_file(struct opt *opt)
-{	char buf[512];
+{	char *proxy_type = NULL;
+	struct config_sz table_sz[]=
+	{	{ IOL_USER,	opt->username, sizeof(opt->username), 0 },
+		{ IOL_PASS,	opt->password, sizeof(opt->password), 1 },
+		{ IOL_REPO,	opt->repository, sizeof(opt->repository), 0},
+		{ IOL_PROXY_HOST, &(opt->proxy),0, 0},
+		{ IOL_PROXY_TYPE, &(proxy_type),0, 0},
+		{ IOL_PROXY_USER, &(opt->proxy_user), 0, 1 }
+	};
+	struct config_bool table_bool[] =
+	{	{ IOL_DRY,	&(opt->dry),	0},
+		{ IOL_FANCY,	&(opt->fancy),	0},
+		{ IOL_FORUM,	&(opt->forum),	0}
+	};
 
-	if( opt->username[0] == 0 )
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_USER, buf,
-                                        sizeof(buf) ) == TRUE )
-		{	strncpy(opt->username,buf,sizeof(opt->username));
-			opt->username[sizeof(opt->username)-1] = 0;
-		}
-		else
-			registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,""); 
-	}
+	#define NELEM(q) (sizeof(q)/sizeof(*(q)))
 
-	if( opt->password[0] == 0 )
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PASS, buf,
-                                        sizeof(buf) ) == TRUE )
-		{	strncpy(opt->password,buf,sizeof(opt->password));
-			opt->password[sizeof(opt->password)-1] = 0;
-			rot13(opt->password);
-		}
-		else
-			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PASS,""); 
-
-	}
-	if( opt->repository[0] == 0 )
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_REPO, buf,
-                                        sizeof(buf) ) == TRUE )
-		{	strncpy(opt->repository,buf,sizeof(opt->repository));
-			opt->repository[sizeof(opt->repository)-1] = 0;
-		}
-		else
-			registry_change_string(IOL_ROOT,IOL_PATH,IOL_REPO,""); 
-	}
-	if( opt->proxy_type[0] == 0)
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_TYPE, buf,
-		                        sizeof(buf) ) == TRUE )
-		{
-			if( !strcmp(buf,"http") )
-				opt->proxy_type = "http";
-			else if( !strcmp(buf, "socks5" ) )
-				opt->proxy_type = "sock5";
-			else
-				opt->proxy_type = "";
-		}
-		else
-			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_TYPE,
-			                        "");
-
-	}
-
-	if( opt->proxy == NULL )
-	{	buf[0]=0;
-		if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
-                                        sizeof(buf) ) == TRUE )
-		{	opt->proxy = strdup(buf);
-			if( opt->proxy && opt->proxy[0] == 0 )
-			{	free(opt->proxy);
-				opt->proxy  = NULL;
-			}
-		}
-		else
-			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_HOST,
-			                       "");
-	}
-
-	if( opt->proxy_user == NULL )
-	{	buf[0]=0;
-		if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_USER, buf,
-                                        sizeof(buf) ) == TRUE )
-		{ 	opt->proxy_user = strdup(buf);
-			if( opt->proxy_user && opt->proxy_user[0] == 0 )
-			{	free(opt->proxy_user);
-				opt->proxy_user = NULL;
-			}
-			else
-				rot13(opt->proxy_user);
-		}
-		else
-			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_USER,
-			                        "");
-	}
-
-	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_DRY, buf,
-	                        sizeof(buf) ) == TRUE )
-	{	if( isdigit(buf[0]) )
-	 		opt->dry = buf[0] - '0' != 0;
-		else
-			opt->dry = 0;
-	}
-	else
-		registry_change_string(IOL_ROOT,IOL_PATH,IOL_DRY,"");
-
-	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_FANCY, buf,
-	                        sizeof(buf) ) == TRUE )
-	{	
-		if( isdigit(buf[0]) )
-			opt->forum = buf[0] - '0' != 0;
-		else
-			opt->forum = 0;
-	}
-	else
-		registry_change_string(IOL_ROOT,IOL_PATH,IOL_FANCY,"");
+	load_config_reg_sz  (table_sz,NELEM(table_sz));
+	load_config_reg_bool(table_bool,NELEM(table_bool));
 	
+	if( proxy_type  )
+	{	if( !strcmp(proxy_type,"http") )
+			opt->proxy_type = "http";
+		else if( !strcmp(proxy_type, "socks5" ) )
+			opt->proxy_type = "sock5";
+		else
+			opt->proxy_type = "";
+		free(proxy_type);
+	}
+	else
+		opt->proxy_type = "";
+
 	if( opt->verbose )
 		print_verbose(opt);
 	
