@@ -282,3 +282,17 @@ link_parser_proccess_char( link_parser_t parser, int c )
 	return 0;
 }
 
+void
+link_parser_end(link_parser_t parser)
+{
+	/* we have a link in the buffer, but the author forgot about
+	 * the </a>. the comment should be ignored
+	 */
+	if( parser->state == ST_TAG_A_END || 
+	    parser->state == ST_TAG_A_END_IS_SLASH )
+	{
+		if( parser->link_fnc )
+			(*parser->link_fnc)(parser->link, "",
+			                    parser->user_data);
+	}
+}

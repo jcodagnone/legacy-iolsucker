@@ -543,6 +543,7 @@ parse_courses(GSList **listptr, struct buff *page)
 	for( i = 0 ; i< page->size &&
 	     link_parser_proccess_char(parser,page->data[i])==0 ; i++ ) 
 	     ;
+	link_parser_end(parser);
 	link_parser_destroy(parser);
 
 	return (*listptr)== NULL ? -1 : 0;
@@ -904,6 +905,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 			   link_parser_proccess_char(parser,webpage.data[i])==0;
 			   i++ )
 			     ;
+			link_parser_end(parser);    
 			link_parser_destroy(parser);
 		}
 		*url_prefix = t.url_prefix;
@@ -1272,7 +1274,7 @@ iol_get_new_novedades( iol_t iol, unsigned *n )
 			for( i = 0 ; i< page.size &&
 			     link_parser_proccess_char(parser,page.data[i])==0;
 			     i++ ) ;
-
+			link_parser_end(parser);
 			link_parser_destroy(parser);
 			*n = j;
 		}
