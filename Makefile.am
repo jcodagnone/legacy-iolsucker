@@ -1,5 +1,7 @@
 
-EXTRA_DIST = 1.h configwin.h
+AUTOMAKE_OPTIONS = foreign
+
+EXTRA_DIST = configwin.h
 
 SUBDIRS = \
 	lib \

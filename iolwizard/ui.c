@@ -1,4 +1,9 @@
+/*
+ * Yes! you will see the function and say: `WTF! this is horrible!' and i will
+ * answer you: `yeah, but is linear. give me some TNT!'
+ */
 #include <gtk/gtk.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -32,6 +37,10 @@ hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
         return TRUE;
 }
 
+/*
+ * BUTTONS
+ */ 
+ 
 static void 
 resync_fnc( GtkWidget *widget, struct tmp *tmp )
 {
@@ -60,6 +69,8 @@ repbrowse_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_widget_show(browse);
 }
 
+/*  CHECK-BOXES
+ */
 static void
 useproxy_fnc(  GtkWidget *widget, struct tmp *tmp )
 {	gboolean b;
@@ -68,6 +79,17 @@ useproxy_fnc(  GtkWidget *widget, struct tmp *tmp )
 	gtk_widget_set_sensitive(tmp->frame_proxy, b);
 }
 
+
+static void
+dryrun_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->dry =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkDry));
+}
+
+/*
+ * EDIT CONTROLS
+ */
 static void
 edtUser_changed( GtkWidget *widget, struct tmp *tmp )
 {	gchar *s;
@@ -76,6 +98,7 @@ edtUser_changed( GtkWidget *widget, struct tmp *tmp )
 	gtk_widget_set_sensitive(tmp->edtPass, ( s && *s ) );
 	
 }
+
 
 static void
 edtHost_changed( GtkWidget *widget, struct tmp *tmp )
@@ -113,48 +136,12 @@ entry_nospaces_insert(GtkEditable *editable, const gchar *text, gint length,
 }
 
 
+/* UI creation */
+
 static void
-dryrun_fnc( GtkWidget *widget, struct tmp *tmp )
-{
-}
-
-/*
- * Yes! you will see the function and say: `WTF! this is horrible!' and i will
- * answer you: `yeah, but is linear. give me some TNT!'
- */
-void 
-create_ui(struct opt *opt)
-{ 	GtkWidget *hwnd;
-	GtkWidget *vbox, *hbox, *vbox_label, *vbox_edit;
-	GtkWidget *frame_login, *frame_proxy, *frame_extra;
-	GtkWidget *resync, *quit, *btnRep;
-	GtkWidget *edtUser, *edtPass, *edtRep;
-	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass;
-	GtkWidget *chkProxy, *chkDry;
-	GtkWidget *label;
-	GtkTooltips *tips;
-	GtkObject *adj;  
-	struct tmp *tmp = g_malloc(sizeof(*tmp));
-
-	if( tmp == NULL )	/* can't happen, only for purists */
-		return;
-	memset(tmp,0,sizeof(*tmp));
-	
-	/* main window */
-	hwnd = gtk_dialog_new();
-	gtk_window_set_title (GTK_WINDOW(hwnd), _("iolwizard"));
-	gtk_container_set_border_width(GTK_CONTAINER(hwnd), 0);
-	gtk_window_set_default_size( GTK_WINDOW(hwnd), SIZE_X,SIZE_Y );
-	gtk_window_set_position( GTK_WINDOW(hwnd), GTK_WIN_POS_CENTER);
-
-	/* container */
-	frame_login  = gtk_frame_new("Login");
-	frame_extra  = gtk_frame_new("Extra");
-	frame_proxy  = gtk_frame_new("Proxy");
-	
-	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(hwnd)->vbox), frame_login,0,0,0);
-	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(hwnd)->vbox), frame_extra,0,0,0);
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->vbox),frame_proxy);
+create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
+{ 	GtkWidget *edtUser, *edtPass, *edtRep, *btnRep;
+	GtkWidget  *hbox, *label,  *vbox_label, *vbox_edit;;
 
 	/* login frame */
 	edtUser    = gtk_entry_new();
@@ -167,7 +154,7 @@ create_ui(struct opt *opt)
 	gtk_entry_set_visibility(GTK_ENTRY(edtPass), 0);
 	gtk_widget_set_sensitive(GTK_WIDGET(edtPass), 0);
 
-	gtk_container_add(GTK_CONTAINER(frame_login), GTK_WIDGET(hbox));
+	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(hbox));
 	gtk_box_pack_start(GTK_BOX(hbox),vbox_label, FALSE,FALSE,2);
 	gtk_box_pack_start(GTK_BOX(hbox),vbox_edit,  TRUE, TRUE, 2);
 
@@ -185,32 +172,95 @@ create_ui(struct opt *opt)
 	gtk_box_pack_start(GTK_BOX(hbox),btnRep, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_edit),hbox,  FALSE, FALSE, 2);
 
-	gtk_entry_set_text(GTK_ENTRY(edtRep), opt->username);
-	gtk_entry_set_text(GTK_ENTRY(edtRep), opt->password);
-	gtk_entry_set_text(GTK_ENTRY(edtRep), opt->repository);
-	
-	
+	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->username);
+	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->password);
+	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->repository);
+
+	/* signals */
+	gtk_signal_connect(GTK_OBJECT(edtUser), "insert-text",
+	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
+	gtk_signal_connect(GTK_OBJECT(edtUser), "changed", 
+	                   GTK_SIGNAL_FUNC(edtUser_changed), tmp);
+	gtk_signal_connect(GTK_OBJECT(btnRep),"clicked",
+	                   GTK_SIGNAL_FUNC(repbrowse_fnc), tmp);
+	/* tooltips */
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtUser, 
+	                    _("numero de DNI"), NULL );
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtPass, 
+	                    _("password de iol"), NULL );
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtRep,
+	                    _("directorio donde guardar los archivos que se "
+	                      "descargan"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), btnRep, 
+	                    _("Buscar directorio"),NULL);
+
+	/* save data */
+	tmp->edtUser = edtUser;
+	tmp->edtPass = edtPass;
+	tmp->edtRep= edtRep;
+
+	/* load data */
+	gtk_entry_set_text(GTK_ENTRY(edtUser),tmp->opt->username);
+	gtk_entry_set_text(GTK_ENTRY(edtPass),tmp->opt->password);
+	gtk_entry_set_text(GTK_ENTRY(edtRep) ,tmp->opt->repository);
+}
+
+static void
+create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
+{ 	GtkWidget *chkProxy, *chkDry;
+	GtkWidget *vbox;
+
 	/* extra frame */
 	vbox = gtk_vbox_new(FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(frame_extra), GTK_WIDGET(vbox));
 	chkProxy = gtk_check_button_new_with_label(_("Use Proxy"));
 	chkDry   = gtk_check_button_new_with_label(_("Dry Run"));
+	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
 	gtk_box_pack_start(GTK_BOX(vbox), chkProxy, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), chkDry,   FALSE, FALSE, 0);
-	
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkProxy),opt->proxy!=0);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), opt->dry);
 
-	/* proxy frame */
+	/* signals */
+	gtk_signal_connect(GTK_OBJECT(chkProxy),"toggled",
+	                           GTK_SIGNAL_FUNC(useproxy_fnc), tmp);
+	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
+	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
+
+	/* tooltips */
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkProxy,
+	                    _("activar soporte para proxy. si no sabe lo que "
+	                      "es un proxy no lo active :^)"),NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
+	                    _("activar la ejecucion en seco: no se descarga "
+	                      "ningun archivo"),NULL);
+
+	/* save data */
+	tmp->chkProxy = chkProxy;
+	tmp->chkDry = chkDry;
+
+	/* default values */
+	gtk_signal_emit_by_name(GTK_OBJECT(chkProxy),"toggled");
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkProxy),
+	                             tmp->opt->proxy!=NULL);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
+	
+
+}
+
+
+static void
+create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
+{ 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass;
+	GtkWidget *vbox, *hbox, *label;
+	GtkObject *adj;
+
 	vbox = gtk_vbox_new(FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(frame_proxy), GTK_WIDGET(vbox));
+	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
 
 	adj      = gtk_adjustment_new(1080,1,0xffff,1,10,10); 
 	edtHost  = gtk_entry_new();
 	spnPort  = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0.5, 0);
 	edtPUser = gtk_entry_new();
 	edtPPass = gtk_entry_new();
-	gtk_entry_set_visibility(GTK_ENTRY(edtPass), 0);
+	gtk_entry_set_visibility(GTK_ENTRY(edtPPass), 0);
 
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Host:"));
@@ -230,14 +280,104 @@ create_ui(struct opt *opt)
 	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(hbox),edtPPass, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
+
+	/* signals */
+	gtk_signal_connect(GTK_OBJECT(edtPUser), "insert-text",
+	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
+	gtk_signal_connect(GTK_OBJECT(edtHost), "insert-text",
+	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
+	gtk_signal_connect(GTK_OBJECT(edtHost), "changed", 
+	                   GTK_SIGNAL_FUNC(edtHost_changed), tmp);
+
+	/* tooltips */
+
+	/* save data */
+	tmp->edtHost = edtHost;
+	tmp->spnPort = spnPort;
+	tmp->edtPUser = edtPUser; 
+	tmp->edtPPass = edtPPass;
+
+	/* default values */
+	if( tmp->opt->proxy) 
+	{	char *s;
+	
+		s = strrchr(tmp->opt->proxy,':');
+		if( s )
+		{	int port;
+		
+			*s = 0;
+			gtk_entry_set_text(GTK_ENTRY(edtHost), tmp->opt->proxy);
+			port = atoi(s+1);
+			if( port != 0 )
+				gtk_spin_button_set_value(
+				         GTK_SPIN_BUTTON(spnPort),(double)port);
+			*s = ':';
+		}
+		else
+			gtk_entry_set_text(GTK_ENTRY(edtHost), tmp->opt->proxy);
+
+	}
+	if( tmp->opt->proxy_user )
+	{	char *s;
+		s = strrchr(tmp->opt->proxy_user,':');
+		if( s )
+		{
+			*s = 0;
+			gtk_entry_set_text(GTK_ENTRY(edtPUser),
+			                   tmp->opt->proxy_user);
+			gtk_entry_set_text(GTK_ENTRY(edtPPass),s+1);
+			*s = ':';
+		}
+	}
+}
+
+void 
+create_ui(struct opt *opt)
+{ 	GtkWidget *frame_login, *frame_proxy, *frame_extra;
+	GtkWidget *resync, *quit, *save;
+	GtkTooltips *tips;
+	GtkWidget *hwnd;
+	
+	
+	struct tmp *tmp = g_malloc(sizeof(*tmp));
+
+	if( tmp == NULL )	/* can't happen, only for purists */
+		return;
+	memset(tmp,0,sizeof(*tmp));
+	tmp->opt = opt;
+	
+	/* main window */
+	hwnd = gtk_dialog_new();
+	gtk_window_set_title (GTK_WINDOW(hwnd), _("iolwizard"));
+	gtk_container_set_border_width(GTK_CONTAINER(hwnd), 0);
+	gtk_window_set_default_size( GTK_WINDOW(hwnd), SIZE_X,SIZE_Y );
+	gtk_window_set_position( GTK_WINDOW(hwnd), GTK_WIN_POS_CENTER);
+	tips = gtk_tooltips_new();
+	
+	/* containers */
+	frame_login  = gtk_frame_new("Login");
+	frame_extra  = gtk_frame_new("Extra");
+	tmp->frame_proxy = frame_proxy  = gtk_frame_new("Proxy");
+
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(hwnd)->vbox), frame_login,0,0,0);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(hwnd)->vbox), frame_extra,0,0,0);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->vbox),frame_proxy);
+
+	/* frames */
+	create_ui_login(tmp,frame_login, tips);
+	create_ui_proxy(tmp,frame_proxy, tips);
+	create_ui_extra(tmp,frame_extra, tips);
 	
 
 	/* buttons */
+	save   = gtk_button_new_with_label(_("save")); 
 	resync = gtk_button_new_with_label(_("resync"));
 	quit   = gtk_button_new_with_label(_("quit")); 
 
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),save);
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),resync);
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(hwnd)->action_area),quit);
+	
 	
 	/* signals */
 	gtk_signal_connect (GTK_OBJECT (hwnd), "delete_event",
@@ -246,54 +386,13 @@ create_ui(struct opt *opt)
 	                   GTK_SIGNAL_FUNC(resync_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(quit),"clicked",
 	                   GTK_SIGNAL_FUNC(quit_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(btnRep),"clicked",
-	                   GTK_SIGNAL_FUNC(repbrowse_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkProxy),"toggled",
-	                           GTK_SIGNAL_FUNC(useproxy_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
 	
-	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(edtUser), "insert-text",
-	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
-	gtk_signal_connect(GTK_OBJECT(edtPUser), "insert-text",
-	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
-	gtk_signal_connect(GTK_OBJECT(edtHost), "insert-text",
-	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
-	                   
-	gtk_signal_connect(GTK_OBJECT(edtUser), "changed", 
-	                   GTK_SIGNAL_FUNC(edtUser_changed), tmp);
-	gtk_signal_connect(GTK_OBJECT(edtHost), "changed", 
-	                   GTK_SIGNAL_FUNC(edtHost_changed), tmp);
-	/* tooltips */
-	tips = gtk_tooltips_new();
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtUser, 
-	                    _("numero de DNI"), NULL );
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtPass, 
-	                    _("password de iol"), NULL );
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtRep,
-	                    _("directorio donde guardar los archivos que se "
-	                      "descargan"), NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), btnRep, 
-	                    _("Buscar directorio"),NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkProxy,
-	                    _("activar soporte para proxy. si no sabe lo que "
-	                      "es un proxy no lo active :^)"),NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
-	                    _("activar la ejecucion en seco: no se descarga "
-	                      "ningun archivo"),NULL);
 	
+
 	/* copy usefull data */
 	tmp->hwnd = hwnd;
 	tmp->frame_proxy = frame_proxy;
-	tmp->edtUser = edtUser;
-	tmp->edtPass = edtPass;
-	tmp->edtRep= edtRep;
-	tmp->chkProxy = chkProxy;
-	tmp->chkDry = chkDry;
-	tmp->edtHost = edtHost;
-	tmp->spnPort = spnPort;
-	tmp->edtPUser = edtPUser; 
-	tmp->edtPPass = edtPPass;
+
 
 	/* THE instruction */
         gtk_widget_show_all(hwnd);

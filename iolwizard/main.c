@@ -94,10 +94,12 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 
 int
 main(int argc,char *argv[])
-{	struct opt opt;
-	memset(&opt, 0,sizeof(opt));
+{	struct opt opt = { "juam", "pepe", "conf", "rep",NULL,NULL,1};
+	/*memset(&opt, 0,sizeof(opt));*/
 	progname = basename(argv[0]);
-
+	opt.proxy = strdup("");
+	opt.proxy_user = strdup("user:pass");
+	
 	gtk_init(&argc,&argv);
 
 	/*if( parseOptions( argc, argv, &opt) < 0 )

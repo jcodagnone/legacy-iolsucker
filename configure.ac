@@ -1,4 +1,4 @@
-AC_INIT(1.h)
+AC_INIT([iolsucker],[2.0.0])
 AC_CONFIG_AUX_DIR(admin)
 
 IOL_MAJOR_VERSION=2
@@ -36,6 +36,9 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_RANLIB
 AC_ISC_POSIX
+AC_PATH_PROG([iol_have_groff],[groff],[yes],[no])
+AC_PATH_PROG([iol_have_ps2pdf],[ps2pdf],[yes],[no])
+
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -89,9 +92,29 @@ else
 	IOLWIZARD=""
 fi
 
+if [[ $iol_have_groff == "yes" ]] ; then
+	IOL_HTML_PAGES="iolsucker.html"
+else
+	IOL_HTML_PAGES=""
+fi
+
+
+IOL_PDF_PAGES=""
+if [[ ${iol_have_ps2pdf} == "yes" ]] ; then
+  	if [[  $iol_have_groff == "yes" ]] ; then
+		IOL_PDF_PAGES="iolsucker.pdf"
+	else
+		iol_have_ps2pdf="no"
+	fi
+else
+	iol_have_ps2pdf="no"
+fi
+
 AC_SUBST(PACKAGE)
 AC_SUBST(IOL_VERSION)
 AC_SUBST(IOLWIZARD)
+AC_SUBST(IOL_HTML_PAGES)
+AC_SUBST(IOL_PDF_PAGES)
 AC_SUBST(DATE)
 dnl --------------------------------------------------------------------------
 dnl Output
@@ -115,6 +138,8 @@ iolwizard/Makefile]
 echo     "Programs to compile:"
 echo    "   iolsucker......yes"
 echo    "   iolwizard......${iolsucker_gtk}" 
+echo    "   html doc.......${iol_have_groff}" 
+echo    "   pdf doc........${iol_have_ps2pdf}" 
 echo 
 echo "Type \"make\" to compile IOLsucker."
 echo
