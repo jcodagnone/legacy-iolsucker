@@ -56,6 +56,7 @@ struct url_table
 	{ URL_BASE"/newmaterialdid.asp", "demo/newmaterialdid.html"},
 	{ URL_BASE"/novlistall.asp", "demo/novlistall.asp"},
 	{ URL_BASE"/mynav.asp?cmd=logout", "demo/logout.html" },
+	{ URL_BASE"/newmaterialdid.asp?path=Items%20y%20Pro.-%20Sug.","demo/1"},
 	{NULL, NULL}
 };
 

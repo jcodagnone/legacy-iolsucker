@@ -1,0 +1,120 @@
+
+
+<html>
+<head>
+<SCRIPT LANGUAGE=javascript>
+<!--
+function redir(url)  {
+	location.href=url;
+}
+function RUSure(str) {
+	return confirm(str);
+}
+
+function ChkFold()	{
+	var str =document.creafold.foldname.value;
+	var patron = /\.$/
+	if (str.lastIndexOf("?")!=-1||str.lastIndexOf("\"")!=-1||str.lastIndexOf("/")!=-1||str.lastIndexOf("*")!=-1||str.lastIndexOf("<")!=-1||str.lastIndexOf(">")!=-1||str.lastIndexOf("|")!=-1||str.lastIndexOf(":")!=-1||str.lastIndexOf("\\")!=-1||str.lastIndexOf("&")!=-1||str.match(patron)!=null)
+		{
+		alert("El nombre de la carpeta contiene caracteres inválidos.");
+		return false;
+		}
+	
+	if (document.creafold.foldname.value =="")
+		{
+		alert ("Debe ingresar el nombre de la carpeta")
+		return false;
+		}
+	else
+		{
+		return true;
+		}
+}
+function BajaArch(nivel, snivel,file) {
+
+	var href = "http://silvestre.itba.edu.ar/lockers/"+ nivel +"/"+ snivel +"/"+ file;
+	location.href = href;
+}
+-->
+
+</SCRIPT>
+<STYLE>
+   .hand {cursor:hand}
+	body {font-family=arial}
+	a {text-decoration=none; color=white;}
+	a:hover.Ilum {color : #BEE9F7;}
+	a.normal {text-decoration=underline; color=Black;}
+	
+</STYLE>
+
+</head>
+
+<body background="images/fondo.jpg">
+
+
+		<table align='center' border=0 cellpadding=0 cellspacing=10 width='100%'>
+			<tr>
+				<td'>		
+				<table width=100% align='center' border=1>
+					<TR bgcolor='#0099CC'><TD align='center'>
+							<FONT FACE='arial' size='+2'><B>MATERIAL DIDACTICO</B></FONT>
+							<FONT FACE='arial' size=1 color='#FFFFFF'>
+							<BR>Haga CLICK con el mouse sobre el archivo que desee obtener
+							</FONT>
+					</TD></TR>
+				</TABLE>
+			</td></tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr>
+				<td>		
+				<table align='center' border='1' rules='groups' width='90%' cellspacing=0 cellpadding=0>
+					<thead rules="all">
+					
+	<tr bgcolor='0099cc'>
+		<td width='10%' align='center'><font size="2" color="white"><b>Bajar</b></font></td>
+		<td width='70%'><font size="2"><b><a class="Ilum" href='newmaterialdid.asp?ver=&path=&ordenX=Descr&orden=ASC'>
+		Descripción</b></font></td>
+		<td width='10%'><font size="2"><b><a class="Ilum" href='newmaterialdid.asp?ver=&path=&ordenX=Size&orden=ASC'>Tamaño</b></font></td>
+		<td width='10%'><font size="2"><b><a class="Ilum" href='newmaterialdid.asp?ver=&path=&ordenX=Fecha&orden=ASC'>
+		Fecha</b></font></td>
+		
+	</tr>
+					</thead>
+					
+		<tbody>
+		
+					<tr bgcolor='#F5FFFF' >
+						<td align ='center' width='10%'>
+							<a href='newmaterialdid.asp?path=Items y Pro.- Sug.'><img alt='Ir a carpeta' height=23 border='0' width=23 src='images/folder.gif'></a>
+						</td>
+						<td colspan='2'>
+							<font face='arial' size='2'>Items y Pro.- Sug.
+						</td>
+						<td>
+							<font face='arial' size='2'>14/3/2002
+						</td>
+					
+					</tr>
+				
+					<tr bgcolor='#E0FFFF' >
+						<td align ='center' width='10%'>
+							<a href='newmaterialdid.asp?path=PROBLEMAS ADICIONALE'><img alt='Ir a carpeta' height=23 border='0' width=23 src='images/folder.gif'></a>
+						</td>
+						<td colspan='2'>
+							<font face='arial' size='2'>PROBLEMAS ADICIONALE
+						</td>
+						<td>
+							<font face='arial' size='2'>25/3/2002
+						</td>
+					
+					</tr>
+				<tr bgcolor='#F5FFFF' class='hand' onclick='javascript:BajaArch(4,"12.07","k.doc")'><td align ='center' width='10%'><a href='http://silvestre.itba.edu.ar/lockers/4/12.07/k.doc'><img alt='Bajar k.doc' height=23 border='0' width=23 src='images/unknown.gif'></td><td width='80%'><font size='2' face='arial'>Item y problemas sugeridos</font></td><td width='10%'><font size='2' face='arial'>24,00kb</font></td><td width='10%'><font size = '2' face='arial'>19/2/2003</font></td><tr bgcolor='#E0FFFF' class='hand' onclick='javascript:BajaArch(4,"12.07","Resumen.xls")'><td align ='center' width='10%'>
+		</tbody>
+		</table>
+		</td></tr>
+
+		
+		</table>
+		
+</body>
+</html>
