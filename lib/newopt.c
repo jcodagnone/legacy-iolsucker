@@ -1,7 +1,7 @@
 /*
  * newopt.c -- Command line options parser inspired in getopt(3)(in behavior)
  *
- * $Id: newopt.c,v 1.4 2003/02/24 17:44:35 juam Exp $
+ * $Id: newopt.c,v 1.5 2003/02/24 23:43:27 juam Exp $
  *
  * Copyright (C) 2001 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -81,7 +81,7 @@ buffIsValid( const char *str )
 	if( str == NULL || str[0]=='-' || str[0] =='_' )
 		return 0;
 
-	for( ; *str && (isalpha(*str)|*str=='-'|*str=='_') ;str++)
+	for( ; *str && (isalpha(*str)||*str=='-'||*str=='_') ;str++)
 		;
 
 	return !*str;
