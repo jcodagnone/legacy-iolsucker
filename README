@@ -3,6 +3,6 @@ Compilación en windows:
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Para compilar el proyecto pueden usar el msvc: win32/iolsucker/iolsucker.dsw
-Necesitan tener el unix.zip. Me interesaria si alguien lo hace funcionar con
-el migwin
+Necesitan tener el unix.zip. Me interesaría si alguien lo hace funcionar con
+el migwin.
 
