@@ -463,7 +463,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                           GTK_SIGNAL_FUNC(forum_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkVerbose),"toggled",
 	                           GTK_SIGNAL_FUNC(verbose_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkVerbose),"toggled",
+	gtk_signal_connect(GTK_OBJECT(chkWait),"toggled",
 	                           GTK_SIGNAL_FUNC(wait_fnc), tmp);
 	                           
 	/* tooltips */
@@ -487,6 +487,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	tmp->chkFancy = chkFancy;
 	tmp->chkForum = chkForum;
 	tmp->chkVerbose = chkVerbose;
+	tmp->chkWait  = chkWait;
 	
 	/* default values */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
@@ -494,6 +495,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkForum),tmp->opt->forum);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkVerbose),
 	                             tmp->opt->verbose);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkWait),tmp->opt->wait);
 }
 
 
