@@ -770,6 +770,8 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		g_free(dirname);
 		g_free(local);
 	}
+	else if( file  ) /* dry run */
+		rs_log_info(_("should download `%s'"), file);
 }
 
 int 
