@@ -57,7 +57,9 @@ get_common_startpath(GSList *list)
 	memset(&d, 0, sizeof(d));
 	g_slist_foreach(list, (GFunc)foreach_getprefix, &d);
 	
-	if( d.prefix[0] == 0 )
+	if( d.prefix == 0 )
+		ret = NULL;
+	else if( d.prefix[0] == 0 )
 		ret= d.prefix;
 	else if( d.prefix[d.len]  == '/' )
 		ret = d.prefix;

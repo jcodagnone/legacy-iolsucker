@@ -1376,8 +1376,10 @@ iol_resync_download(iol_t iol, const struct course *course)
 		ret=get_file_list_from_current(iol, &files );
 
 		tmp.url_prefix = get_common_startpath(files);
-		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
-		g_free(tmp.url_prefix);
+		if( tmp.url_prefix ) 
+		{ 	g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
+			g_free(tmp.url_prefix);
+		}
 	}
 
 	g_free(s);
