@@ -54,7 +54,7 @@ AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strtol])
 AC_FUNC_STAT
 
-CFLAGS="$CFLAGS -Wall -W -ansi -Wnested-externs -Winline -Wno-unused -I ../lib"
+CFLAGS="$CFLAGS -Wall -W -ansi -Winline -Wno-unused -I ../lib"
 CXXFLAGS=$CFLAGS
 
 dnl --------------------------------------------------------------------------
