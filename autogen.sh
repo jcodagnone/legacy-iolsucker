@@ -3,11 +3,11 @@ export WANT_AUTOMAKE=1.7
 export WANT_AUTOCONF=2.58
 
 echo "*** Retrieving configure tests needed by configure.in"
-aclocal -I . -I admin -I admin/extra
+aclocal$AMSUFFIX -I . -I admin -I admin/extra
 echo "*** Scanning for include statements"
 autoheader
 echo "*** Building Makefile templates (step one)"
-automake -a
+automake$AMSUFFIX -a
 echo "*** Building Makefile templates (step two)"
 autoconf
 if grep "ac_kw foo" configure &>/dev/null; then perl -p -i -e "s/ac_kw foo/ac_kw int foo/" configure; fi
