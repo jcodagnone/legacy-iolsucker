@@ -51,6 +51,8 @@
 #define STYPE_HTTP	"http"
 #define STYPE_SOCK5	"socks5"
 
+#define NELEMS(a) (sizeof(a)/sizeof(*(a)))
+
 static int exec_iolwizard(void);
 
 struct tmp 
@@ -463,83 +465,77 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 static void
 create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait,
-                  *chkXenofobe, *chkNoCache;
-	GtkWidget *table;
+{ 	GtkWidget *table;
+	struct {
+		GtkWidget  **widget;
+		const char *name;
 
-	/* extra frame */
+		/* for gtk_table_attach  */
+		guint left_attach;
+		guint right_attach;
+		guint top_attach;
+		guint bottom_attach;
+
+		GCallback *fnc;     /* for connect() */
+		int enabled;
+		const char *tooltip;
+
+	} chkbox[] = 
+	/* this isn't ANSI, but hell, it saves me from lots of bugs */
+	{ 	{ &tmp->chkDry,      "Dry Run",       0,1,0,1,      dryrun_fnc, 
+		  tmp->opt->dry, 
+		  "activar la ejecucion en seco: no se descarga ningun archivo"
+		},
+		{ &tmp->chkFancy,    "Fancy Names",   1,2,0,1,        fancy_fnc,
+                  tmp->opt->fancy, 
+		  "usar el nombre de la materia, como nombre de directorio"
+		},
+		{ &tmp->chkForum,    "Resync Foros",  2,3,0,1,        forum_fnc,
+		  tmp->opt->forum,
+		  "resincronizar los foros? por ahora solo advierte de cambios"
+		  " en los foros. (no baja los mensajes)"
+		},
+		{ &tmp->chkVerbose,  "Verbose",       0,1,1,2,      verbose_fnc,
+                  tmp->opt->verbose,
+		  "imprime informacion extra sobre la conexion. util cuando"
+		  " las cosas no funcionan" 
+		},
+		{ &tmp->chkWait,     "Wait",          1,2,1,2,         wait_fnc,
+		  tmp->opt->wait,
+		  "esperar unos segundos en el cambio de contexo de materias. "
+		  "Util cuando el programa imprime el mensaje de que el server"
+		  " tiene problemas con los contextos"
+		},
+		{ &tmp->chkXenofobe, "Xenofobo",      2,3,1,2,     xenofobe_fnc,
+		  tmp->opt->xenofobe,
+		  "Modo xenofobia: al terminar, lista los archivos que se "
+		  "encuentran en nuestro repositorio y que no existen en iol"
+		},
+		{ &tmp->chkNoCache,  "No usar Caches",0,1,2,3,     no_cache_fnc,
+		  tmp->opt->no_cache, "No utilizar ningun cache"
+		}
+	};
+	unsigned i;
+
 	table = gtk_table_new (4, 3, FALSE);
-	chkDry   = gtk_check_button_new_with_label(_("Dry Run"));
-	chkFancy = gtk_check_button_new_with_label(_("Fancy Names"));
-	chkForum = gtk_check_button_new_with_label(_("Resync Foros"));
-	chkVerbose= gtk_check_button_new_with_label(_("Verbose"));
-	chkWait = gtk_check_button_new_with_label(_("Wait"));
-	chkXenofobe = gtk_check_button_new_with_label(_("Xenofobo"));
-	chkNoCache = gtk_check_button_new_with_label(_("No usar Caches"));
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
+	for( i = 0 ; i < NELEMS(chkbox) ; i ++ )
+	{	*(chkbox[i].widget)=gtk_check_button_new_with_label(chkbox[i].name); 
+		gtk_table_attach(GTK_TABLE(table),*(chkbox[i].widget),
+		                                  chkbox[i].left_attach,
+		                                  chkbox[i].right_attach,
+		                                  chkbox[i].top_attach,
+		                                  chkbox[i].bottom_attach,
+		                                  GTK_FILL, 0, 4, 0); 
+		gtk_signal_connect(GTK_OBJECT(*(chkbox[i].widget)),"toggled",
+	                           GTK_SIGNAL_FUNC(chkbox[i].fnc), tmp);
 
-	gtk_table_attach(GTK_TABLE(table),chkDry,     0,1,0,1,GTK_FILL, 0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkForum,   1,2,0,1,GTK_FILL, 0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkWait,    2,3,0,1,GTK_FILL, 0, 4,0);
-	
-	gtk_table_attach(GTK_TABLE(table),chkFancy,   0,1,1,2,GTK_FILL, 0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkVerbose, 1,2,1,2,GTK_FILL, 0, 4,0);
-	gtk_table_attach(GTK_TABLE(table),chkXenofobe,2,3,1,2,GTK_FILL, 0, 4,0);
-	
-	gtk_table_attach(GTK_TABLE(table),chkNoCache ,0,1,2,3,GTK_FILL, 0, 4,0);
-
-	/* signals */
-	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
-	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkFancy),"toggled",
-	                           GTK_SIGNAL_FUNC(fancy_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkForum),"toggled",
-	                           GTK_SIGNAL_FUNC(forum_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkVerbose),"toggled",
-	                           GTK_SIGNAL_FUNC(verbose_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkWait),"toggled",
-	                           GTK_SIGNAL_FUNC(wait_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkXenofobe),"toggled",
-	                           GTK_SIGNAL_FUNC(xenofobe_fnc), tmp);
-	gtk_signal_connect(GTK_OBJECT(chkNoCache),"toggled",
-	                           GTK_SIGNAL_FUNC(no_cache_fnc), tmp);
-	/* tooltips */
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
-         _("activar la ejecucion en seco: no se descarga ningun archivo"),NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkFancy,
-	 _("usar el nombre de la materia, como nombre de directorio"),NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkForum,
-	 _("resincronizar los foros? por ahora solo advierte de cambios en "
-	   "los foros. (no baja los mensajes)"),NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkVerbose,
-	 _("imprime informacion extra sobre la conexion. util para cuando las"
-	   "cosas no funcionan"), NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkWait,
-	 _("esperar unos segundos en el cambio de contexo de materias. "
-	   "Util cuando el programa imprime el mensaje de que el server tiene "
-	   "problemas con los contextos"), NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkXenofobe,
-	 _("Modo xenofobia: al terminar, lista los archivos que se encuentran "
-	 "en nuestro repositorio y que no existen en iol"), NULL);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkNoCache,
-	 _("No utilizar ningun cache"), NULL);
-
-	/* save data */
-	tmp->chkDry = chkDry;
-	tmp->chkFancy = chkFancy;
-	tmp->chkForum = chkForum;
-	tmp->chkVerbose = chkVerbose;
-	tmp->chkWait  = chkWait;
-	tmp->chkXenofobe = chkXenofobe;
-	tmp->chkNoCache  = chkNoCache;
-	
-	/* default values */
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkFancy),tmp->opt->fancy);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkForum),tmp->opt->forum);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkVerbose),
-	                             tmp->opt->verbose);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkWait),tmp->opt->wait);
+		gtk_toggle_button_set_active(
+		                   GTK_TOGGLE_BUTTON(*(chkbox[i].widget)), 
+		                   chkbox[i].enabled);
+		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), *(chkbox[i].widget),
+		                   chkbox[i].tooltip, NULL );
+	}
 }
 
 
