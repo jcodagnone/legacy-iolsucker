@@ -107,3 +107,13 @@ main(int argc,char *argv[])
 	
 	return EXIT_SUCCESS;
 }
+
+#ifdef WIN32
+int
+WinMain (HANDLE hInst, HANDLE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{	extern int argc;
+	extern char ** __argv;
+	
+	return main(__argc, __argv);
+}
+#endif
