@@ -72,7 +72,8 @@ static int
 suck(struct opt *opt)
 { 	iol_t iol;
 	int ret = EXIT_SUCCESS;
-	
+	enum resync_flags flags;
+
 	iol = iol_new();
 	if( iol == NULL )
 	{	rs_log_error("creating IOL object. bye bye");
@@ -98,7 +99,8 @@ suck(struct opt *opt)
 		return EXIT_FAILURE;
 	}
 
-	if( (ret=iol_resync_all(iol, IOL_RF_FILE)) != E_OK )
+	flags = IOL_RF_FILE | IOL_RF_FORUM * (opt->forum!=0) ;
+	if( (ret=iol_resync_all(iol, flags)) != E_OK )
 	{	const char *p = ret == E_NETWORK ? "resync_all(): %s: %s" :
 	 	                                   "resync_all(): %s";
 	 	                                   

@@ -15,9 +15,9 @@ enum iol_settings {
 };
 
 enum resync_flags {
-	IOL_RF_FILE,	/**< resync files */	
-	IOL_RF_NEWS,	/**< resync the news */
-	IOL_RF_FORUM,	/**< resync the forum */
+	IOL_RF_FILE  = 1<<0,	/**< resync files */	
+	IOL_RF_NEWS  = 1<<1,	/**< resync the news */
+	IOL_RF_FORUM = 1<<2,	/**< resync the forum */
 	IOL_RF_MAX
 };
 
