@@ -71,6 +71,29 @@ registry_change_string( HKEY root, const char *path, const char *item,
 	return ret;
 }
 
+/*
+ * Nobody likes to find password while looking at the registry.
+ * yeah. this is nasty. the password should be save to disk at all
+ *
+ * We need an advanced rpc between iolsucker and iolwizard 
+ */
+
+static char *
+rot13(char *data)
+{	char *s;
+	char cap;
+	
+	for( s=data; *s ; s++ )
+	{
+		 cap = *s & 32;
+		 *s &= ~cap;
+		 *s= ((*s>= 'A') && (*s<= 'Z') ?
+		         ((*s- 'A' + 13) % 26 + 'A') :
+		         *s) | cap;
+	}
+	
+}
+
 #define IOL_ROOT	HKEY_CURRENT_USER
 #define IOL_PATH	"Software\\Embryo Software\\iolsucker"
 #define IOL_USER	"username"
@@ -113,6 +136,7 @@ load_config_file(struct opt *opt)
                                         sizeof(buf) ) == TRUE )
 		{	strncpy(opt->password,buf,sizeof(opt->password));
 			opt->password[sizeof(opt->password)-1] = 0;
+			rot13(opt->password);
 		}
 	}
 	if( opt->proxy == NULL )
@@ -133,6 +157,7 @@ load_config_file(struct opt *opt)
 			{	if( opt->proxy_user[0] == 0 )
 				{	free(opt->proxy_user);
 					opt->proxy_user = NULL;
+					rot13(opt->proxy_user);
 				}
 			}
 	}
