@@ -4,7 +4,9 @@
 #include <assert.h>
 
 #include "link.h"
-#define IS_PARSER(m)	(m)
+
+#define PARSER_SIGNATURE	0xE2F3
+#define IS_PARSER(m)	( m!=NULL && m->signature==PARSER_SIGNATURE)
 
 const char *link_debug(int state);
 
@@ -15,6 +17,8 @@ enum state {
 /*extract*/	ST_OTHERTAG,
 /*extract*/	ST_TAG_A,
 /*extract*/	ST_TAG_A_END,
+/*extract*/	ST_TAG_A_END_IS_SLASH,
+/*extract*/	ST_TAG_A_END_IS_SLASH_A,
 /*extract*/	ST_TAG_A_OTHER,
 /*extract*/	ST_TAG_A_H,
 /*extract*/	ST_TAG_A_HR,
@@ -25,13 +29,14 @@ enum state {
 };
 
 struct link_parserCDT
-{
+{	unsigned signature;
 	unsigned char link[4096];
 	unsigned char comment[4096];
 	unsigned i,j;
 	enum state state;
 	link_callback link_fnc;
 	void *user_data;
+	int debug;
 };
 
 link_parser_t 
@@ -40,10 +45,12 @@ link_parser_new(void)
 
 	parser = malloc(sizeof(*parser));
 	if( parser )
-	{	parser->i = parser->j = 0;
+	{	parser->signature = PARSER_SIGNATURE;
+		parser->i = parser->j = 0;
 		parser->state = ST_START;
 		parser->link_fnc = NULL ;
 		parser->user_data = NULL;
+		parser->debug = 0;
 	}
 
 	return  parser;
@@ -53,6 +60,13 @@ void
 link_parser_destroy(link_parser_t parser)
 {
 	free(parser);
+}
+
+void
+link_parser_set_debug(link_parser_t parser, int b)
+{	
+	if( IS_PARSER(parser) )
+		parser->debug = b !=0 ;
 }
 
 void
@@ -71,7 +85,10 @@ link_parser_set_link_callback(link_parser_t parser,link_callback call, void *d )
 int
 link_parser_proccess_char( link_parser_t parser, int c )
 {
-	if( 0 )
+	if(!IS_PARSER(parser))
+		return -1;
+		
+	if( parser->debug )
 		printf("%c - %s \n",c,link_debug(parser->state));
 
 	switch(parser->state)
@@ -178,14 +195,7 @@ link_parser_proccess_char( link_parser_t parser, int c )
 			break;
 		case ST_TAG_A_END:
 			if( c == '<' )
-			{	parser->state = ST_OTHERTAG;
-				parser->comment[parser->j]=0;
-				parser->j = 0;
-				if( parser->link_fnc )
-				(*parser->link_fnc)(parser->link,
-				                    parser->comment,
-				                    parser->user_data);
-			}
+				parser->state = ST_TAG_A_END_IS_SLASH;
 			else
 			{	if( parser->j != 0 && isspace(c) && 
 				    isspace(parser->comment[parser->j-1]) )
@@ -195,6 +205,32 @@ link_parser_proccess_char( link_parser_t parser, int c )
 						c = ' ';
 					parser->comment[parser->j++]=c;
 				}
+			}
+			break;
+		case ST_TAG_A_END_IS_SLASH:
+			if( isspace(c) )
+				;
+			else if( c == '>' )
+			{	parser->comment[parser->j++] = '<';
+				parser->comment[parser->j++] = '>';
+			}
+			else if( c == '/' )
+				parser->state = ST_TAG_A_END_IS_SLASH_A;
+			break;
+		case ST_TAG_A_END_IS_SLASH_A:
+			if( tolower(c) == 'a' )
+			{	parser->state = ST_OTHERTAG;
+				parser->comment[parser->j]=0;
+				parser->j = 0;
+				if( parser->link_fnc )
+				(*parser->link_fnc)(parser->link,
+				                    parser->comment,
+				                    parser->user_data);
+			}
+			else
+			{	parser->comment[parser->j++] = '<';
+				parser->comment[parser->j++] =  c;
+				parser->state = ST_TAG_A_END;
 			}
 			break;
 		default:
