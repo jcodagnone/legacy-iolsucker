@@ -256,7 +256,7 @@ load_config_file(struct opt *opt)
 			opt->fancy = 0;
 	}
 	else
-		registry_change_string(IOL_ROOT,IOL_PATH,IOL_FANCY,"")
+		registry_change_string(IOL_ROOT,IOL_PATH,IOL_FANCY,"");
 	
 	if( opt->verbose )
 		print_verbose(opt);
