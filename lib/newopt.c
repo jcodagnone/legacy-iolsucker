@@ -1,7 +1,7 @@
 /*
  * newopt.c -- Command line options parser inspired in getopt(3)(in behavior)
  *
- * $Id: newopt.c,v 1.2 2003/02/19 07:20:39 juam Exp $
+ * $Id: newopt.c,v 1.3 2003/02/19 19:59:14 juam Exp $
  *
  * Copyright (C) 2001 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -61,7 +61,7 @@ report( unsigned flags, const char *fmt,...)
 	if( !(flags & OPT_F_QUIET) )
 	{	
 		va_start(ap,fmt);
-		fprintf(stderr,_("%s"), rs_program_name);
+		fprintf(stderr,_("%s: "), rs_program_name);
 		vfprintf(stderr,fmt,ap);
 		fprintf(stderr,"\n");
 		va_end(ap); 
