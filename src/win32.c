@@ -19,6 +19,7 @@
  */
 #define	 STRICT
 #include <windows.h>
+#include <stdio.h>
 #include <assert.h>
 #include "main.h"
 
@@ -217,7 +218,7 @@ load_config_file(struct opt *opt)
 	                        sizeof(buf) ) == TRUE )
 	 	opt->dry = buf[0] - '0' != 0;
 
-	if( opt->debug )
+	if( opt->verbose )
 		print_verbose(opt);
 	
 	return 0;
