@@ -10,3 +10,5 @@ configure
 old
 stamp-h.in
 stamp-h1
+unix
+ChangeLog
