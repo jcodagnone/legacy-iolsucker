@@ -92,27 +92,27 @@ AC_DEFINE_UNQUOTED(WINDOWS,2, [a plataform])
 AC_DEFINE_UNQUOTED(SYSTEM, UNIX, [2nd dlopen parameter])
 
 if [[  $iolsucker_gtk == "yes" ]] ; then
-	IOLWIZARD="iolwizard"
+    IOLWIZARD="iolwizard"
 else
-	IOLWIZARD=""
+    IOLWIZARD=""
 fi
 
 if [[ $iol_have_groff == "yes" ]] ; then
-	IOL_HTML_PAGES="iolsucker.html"
+    IOL_HTML_PAGES="iolsucker.html"
 else
-	IOL_HTML_PAGES=""
+    IOL_HTML_PAGES=""
 fi
 
 
 IOL_PDF_PAGES=""
 if [[ ${iol_have_ps2pdf} == "yes" ]] ; then
-  	if [[  $iol_have_groff == "yes" ]] ; then
-		IOL_PDF_PAGES="iolsucker.pdf"
-	else
-		iol_have_ps2pdf="no"
-	fi
+    if [[  $iol_have_groff == "yes" ]] ; then
+        IOL_PDF_PAGES="iolsucker.pdf"
+    else
+        iol_have_ps2pdf="no"
+    fi
 else
-	iol_have_ps2pdf="no"
+    iol_have_ps2pdf="no"
 fi
 
 AC_SUBST(PACKAGE)
@@ -140,8 +140,7 @@ win32/iolunch/Makefile
 extra/Makefile
 extra/inst/Makefile
 iolunch/Makefile
-iolwizard/Makefile]
-)
+iolwizard/Makefile])
 
 
 echo     "Programs to compile:"
