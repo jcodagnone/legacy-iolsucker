@@ -4,6 +4,7 @@ LIBS =  @LIBS@
 
 #########
 
+EXTRA_DIST = win32.h win32.c
 EXTRA_PROGRAMS = link
 bin_PROGRAMS = iolsucker 
 
