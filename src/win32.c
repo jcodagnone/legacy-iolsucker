@@ -108,6 +108,7 @@ rot13(char *data)
 #define IOL_FORUM    	"forum"
 #define IOL_WAIT	"wait"
 #define IOL_VERBOSE	"verbose"
+#define IOL_HOST	"iol_host"
 
 int
 save_config_file(struct opt *opt)
@@ -125,6 +126,9 @@ save_config_file(struct opt *opt)
 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH, IOL_PROXY_HOST,
 	                          opt->proxy ? opt->proxy : "" );
+	r&=registry_change_string(IOL_ROOT,IOL_PATH, IOL_HOST,
+	                          opt->server && opt->server[0] ?
+	                          opt->server : "" );
 	if(opt->proxy_user )
 	{	rot13(opt->proxy_user);
 		r&=registry_change_string(IOL_ROOT,IOL_PATH,
@@ -154,6 +158,7 @@ print_verbose(const struct opt *opt)
 
 	fprintf(fp,"user: %s\n",opt->username);
 	fprintf(fp,"rep: %s\n", opt->repository);
+	fprintf(fp,"host: %s\n", opt->server);
        	fprintf(fp,"proxy_type: %s\n",opt->proxy_type);
         if( opt->proxy ) 
         	fprintf(fp,"proxy: %s\n",opt->proxy);
@@ -257,7 +262,8 @@ load_config_file(struct opt *opt)
 		{ IOL_REPO,	opt->repository, sizeof(opt->repository), 0},
 		{ IOL_PROXY_HOST, &(opt->proxy),0, 0},
 		{ IOL_PROXY_TYPE, &(proxy_type),0, 0},
-		{ IOL_PROXY_USER, &(opt->proxy_user), 0, 1 }
+		{ IOL_PROXY_USER, &(opt->proxy_user), 0, 1 },
+		{ IOL_HOST,	&(opt->server), 0, 0 }
 	};
 	struct config_bool table_bool[] =
 	{	{ IOL_DRY,	&(opt->dry),	0},
@@ -284,6 +290,11 @@ load_config_file(struct opt *opt)
 	else
 		opt->proxy_type = "";
 
+	if( opt->server && !opt->server[0] )
+	{	free(opt->server);
+		opt->server = NULL;
+	}
+		
 	if( opt->verbose )
 		print_verbose(opt);
 	

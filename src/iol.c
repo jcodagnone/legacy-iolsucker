@@ -73,23 +73,24 @@
 	#define USERAGENT	"iolsucker ("VERSION"; Linux )"
 #endif
 
-#define IOL_HOST        "silvestre.itba.edu.ar"
+#define IOL_HOSTN	"silvestre.itba.edu.ar"
 #define IOL_PATH        "itbaV"
 #define IOL_LEVEL       "4" 
 
-#define URL_BASE	"http://"IOL_HOST"/"IOL_PATH
-#define URL_LOGIN	URL_BASE"/login.asp"
-#define URL_LOGIN_1	URL_BASE"/mynav.asp"
+#define URL_BASE	"http://"IOL_HOSTN"/"IOL_PATH
+#define URL_LOGIN	"/login.asp"
+#define URL_LOGIN_1	"/mynav.asp"
+#define URL_LOGOUT	"/mynav.asp?cmd=logout"
+#define URL_CHANGE_COU 	"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
+#define URL_CHANGE_DPT	"/mynav.asp?cmd=ChangeContext&nivel=3&snivel=%s"
+#define URL_MATERIAL	"/newmaterialdid.asp" 
+#define URL_DOWNLOAD	"/download.asp" 
+#define IOL_FORUM  	"/foroDis.asp"
+#define IOL_NEWS	"/novlistall.asp"
+
 #define URL_LOGIN_ARG	"txtdni=%s&txtpwd=%s&Submit=Conectar&cmd=login"
 #define IOL_COURSE_PARAMETER	"nivel=4"
 #define IOL_DEPART_PARAMETER	"nivel=3"
-#define URL_LOGOUT	URL_BASE"/mynav.asp?cmd=logout"
-#define URL_CHANGE_COU 	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
-#define URL_CHANGE_DPT	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=3&snivel=%s"
-#define URL_MATERIAL	URL_BASE"/newmaterialdid.asp" 
-#define URL_DOWNLOAD	URL_BASE"/download.asp" 
-#define IOL_FORUM  	URL_BASE"/foroDis.asp"
-#define IOL_NEWS	URL_BASE"/novlistall.asp"
 
 #define IOL_MATERIAL_FOLDER	"material"
 #define IOL_MATERIAL_TMPFILE	".download.tmp"
@@ -124,6 +125,7 @@ struct iolCDT
 	GSList *courses;	/**< loaded courses */ 
 	int bLogged;    	/**< already logged in ? */ 
 	char *repository;	/**< repository directory */
+	const char *host; 	/**< host part in the URL */
 
 	int dry;		/**< dry run ? */
 	int verbose;		/**< print lots of information? */
@@ -132,6 +134,10 @@ struct iolCDT
 
 	cache_t fcache;		/**< cache of files for download.asp **/
 	FILE *logfp;		/**< logfile filepointer */
+
+	char url_tmp[256];
+	char *url_tmp_pt;
+	
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -270,6 +276,37 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 	return res == 0 ? E_OK : E_NETWORK;
 }
 
+/** given url_part creates the url. can fail. 
+ */
+static char *
+iol_get_url(iol_t iol, const char *url_part)
+{	static const char *http = "http://";
+	size_t len;
+	char *pt;
+	int slash = *url_part != '/';
+	
+	free(iol->url_tmp_pt);
+
+	len = strlen(http) + strlen(url_part) + strlen(iol->host) + 1 + slash;
+	if( len < sizeof(iol->url_tmp) )
+		pt = iol->url_tmp;
+	else
+		pt = iol->url_tmp_pt = malloc(len);
+
+	if( pt )
+	{	strcpy(iol->url_tmp, http);	
+		strcat(iol->url_tmp, iol->host);
+		strcat(iol->url_tmp, "/");
+		strcat(iol->url_tmp, IOL_PATH);
+		if( slash )
+			strcat(iol->url_tmp, "/");
+		
+		strcat(iol->url_tmp, url_part);
+	}
+
+	return pt;
+}
+
 iol_t 
 iol_new(void) 
 {	iol_t cdt;
@@ -279,6 +316,7 @@ iol_new(void)
 		return NULL;
 		
 	memset( cdt, 0, sizeof(*cdt));
+	cdt->host = IOL_HOSTN;
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	cdt->curl = curl_easy_init();
@@ -350,7 +388,8 @@ iol_destroy(iol_t iol)
 	g_slist_free(iol->courses);
 
 	free(iol->repository);
-
+	free(iol->url_tmp_pt);
+	
 	if( iol->fcache )
 		cache_destroy(iol->fcache);
 	free(iol);
@@ -495,6 +534,27 @@ iol_set_wait(iol_t cdt, int *wait)
 	return ret;
 }
 
+static int
+iol_set_host(iol_t cdt, const char *host)
+{	int ret = E_INVAL;
+	int valid = 1;
+	const char *s;
+	
+	if( host )
+	{	
+		for( s = host; valid && *s ; *s ++ )	
+			valid = isalnum(*s) || *s == '.' || *s == '-' ||
+			        *s == '_' || *s == ':';
+
+		if( valid )
+		{	cdt->host = host;
+			ret = E_OK;
+		}
+	}
+
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -511,7 +571,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_DRY,        (iol_set_fnc) iol_set_download   },
 		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    },
 		{	IOL_FANCY_NAMES,(iol_set_fnc) iol_set_fancy_names},
-		{	IOL_WAIT,       (iol_set_fnc) iol_set_wait       }
+		{	IOL_WAIT,       (iol_set_fnc) iol_set_wait       },
+		{	IOL_HOST,       (iol_set_fnc) iol_set_host       }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -659,21 +720,26 @@ parse_courses(GSList **listptr, struct buff *page)
 int
 iol_login(iol_t iol, const char *user, const char *pass)
 {	int nRet = E_OK;
-
+	char *url = NULL;
+	
 	if( !IS_IOL_T(iol) || user == NULL || pass == NULL || !*user || !*pass )
 		nRet = E_INVAL;
 	else if( iol->bLogged )
 	{	rs_log_warning(_("login(): ya estamos logueados"));
 		nRet = E_ALOGED ;
 	}
+	else if( (url = iol_get_url(iol, URL_LOGIN)) == NULL )
+		nRet = E_MEMORY;
 	else
 	{       struct buff buf = {NULL, 0};
-
+		
 		/* yummm!!! get a cookie */ 
-		if( transfer_page(iol->curl, URL_LOGIN, 0, NULL)!= E_OK )
+		if( transfer_page(iol->curl, url, 0, NULL)!= E_OK )
 			nRet = E_NETWORK;
+		else if( (url = iol_get_url(iol, URL_LOGIN_1)) == NULL) 
+			nRet = E_MEMORY;
 		else
-		{       char *s = g_strdup_printf(URL_LOGIN_ARG,user,pass);
+		{       char *s = g_strdup_printf(URL_LOGIN_ARG, user,pass);
 
 			/* login */
 			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, s);
@@ -685,7 +751,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			 */
 			curl_easy_setopt(iol->curl,CURLOPT_FAILONERROR, 0);
 			
-			if(transfer_page(iol->curl, URL_LOGIN_1,0,&buf) != E_OK)
+			if(transfer_page(iol->curl, url,0,&buf) != E_OK)
 				nRet = E_NETWORK;
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
@@ -707,11 +773,14 @@ iol_login(iol_t iol, const char *user, const char *pass)
 int 
 iol_logout(iol_t iol)
 {	int nRet = E_OK;
-
+	char *url;
+	
 	if( !IS_IOL_T(iol)  )
 		nRet = E_INVAL;
+	else if( (url = iol_get_url(iol, URL_LOGOUT) ) == NULL )
+		nRet = E_MEMORY;
 	else if( iol->bLogged  )
-	{	transfer_page(iol->curl, URL_LOGOUT,0,NULL);
+	{	transfer_page(iol->curl, url, 0, NULL);
 		iol->bLogged = 0;
 	}
 	else
@@ -808,7 +877,7 @@ static int
 iol_set_current_course(iol_t iol, const char *course) 
 {	struct course *c;
 	int ret = E_OK;
-	char *s;
+	char *s, *burl;
 	
 	if( !IS_IOL_T(iol) )
 		return E_INVAL;
@@ -817,16 +886,14 @@ iol_set_current_course(iol_t iol, const char *course)
 	else if( iol->current_course && 
 	         !strcmp(iol->current_course->code, c->code) )
 		return E_OK;	
+	else if( (burl=iol_get_url(iol, c->type == CT_COURSE ? 
+	                           URL_CHANGE_COU : URL_CHANGE_DPT)) == NULL  )
+		return E_MEMORY;
 	else
 	{	struct buff page = {NULL, 0};
 		iol->current_course = c;
 
-		if( c->type == CT_COURSE )
-			s = g_strdup_printf(URL_CHANGE_COU, course);
-		else if( c->type == CT_DEPART )
-			s = g_strdup_printf(URL_CHANGE_DPT, course);
-		else
-			assert(0);
+		s = g_strdup_printf(burl, course);
 			
 		if( iol->wait )
 			sleep(5); 
@@ -958,7 +1025,7 @@ get_fid_from_download_url(const char *url, char *buf, size_t size)
  * get the filename url from the redirect page
  */
 static char *
-javascript_get_refresh_link( struct buff *page )
+javascript_get_refresh_link( iol_t iol,  struct buff *page )
 {	char *p, *q, *ret = NULL;
 
 	/* como diria un amigo.....a lo cabeza!!! 
@@ -974,7 +1041,7 @@ javascript_get_refresh_link( struct buff *page )
 			q = strchr(p, '"' );
 			if( q )
 			{	*q = 0;
-				ret = g_strdup_printf("%s/%s",URL_BASE,p);
+				ret = g_strdup( iol_get_url(iol, p) );
 			}
 		}	
 	}
@@ -1000,7 +1067,7 @@ get_real_download_file( iol_t iol,  const char *url )
 			if( transfer_page(iol->curl, url, 0, &page) != E_OK)
 				;
 			else
-			{ 	ret = javascript_get_refresh_link(&page);
+			{ 	ret = javascript_get_refresh_link(iol, &page);
 				if( ret )
 					cache_add_file(iol->fcache, buff,ret);
 				free(page.data);
@@ -1024,7 +1091,7 @@ link_files_fnc( const unsigned char *link,
 	p = my_url_escape(link);
 	if( p == NULL )
 		return;
-	s = g_strdup_printf("%s/%s",URL_BASE,p);
+	s = g_strdup(iol_get_url(t->iol,p) );
 	free(p);
 	if( s == NULL )
 		return;
@@ -1038,7 +1105,7 @@ link_files_fnc( const unsigned char *link,
 			if( q )
 			{	if( t->url_prefix == NULL )
 					t->url_prefix = my_path_get_dirname(
-					                  q+strlen(URL_BASE)+1);
+					   q+strlen(iol_get_url(t->iol,"")));
 			}
 		}
 		else if( bFile == 2 )
@@ -1071,12 +1138,12 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 	int ret;
 
 	t.pending = queue_new(); 
-	if( t.pending == NULL )
+	if( t.pending == NULL || (url=iol_get_url(iol, URL_MATERIAL))== NULL )
 		return E_MEMORY;
 	t.files = NULL;
 	t.url_prefix = NULL;
 	t.iol = iol;
-	queue_enqueue(t.pending, g_strdup(URL_MATERIAL));
+	queue_enqueue(t.pending, g_strdup(url));
 
 	while( ! queue_is_empty(t.pending) )
 	{	
@@ -1346,7 +1413,7 @@ iol_resync_news(iol_t iol, const struct course *course)
 static int 
 iol_resync_forum(iol_t iol, const struct course *courses)
 {	struct buff webpage = { NULL, 0};
-	char *url = IOL_FORUM;
+	char *url = iol_get_url(iol, IOL_FORUM);
 	int ret = E_OK;
 	
 	if(transfer_page(iol->curl,url,0,&webpage)!=E_OK)
@@ -1455,11 +1522,14 @@ iol_get_new_novedades( iol_t iol, unsigned *n )
 { 	struct buff page = { NULL, 0};
 	unsigned j = 0;
 	int ret = 0;
+	char *url;
 	
 	if( !IS_IOL_T(iol) || !n )
 		ret = E_INVAL;
+	else if( (url=iol_get_url(iol, IOL_NEWS))== NULL )
+		ret = E_MEMORY;
 	else
-	{	if( transfer_page(iol->curl, IOL_NEWS, 0, &page)!= E_OK )
+	{	if( transfer_page(iol->curl, url, 0, &page)!= E_OK )
 	        	ret = E_NETWORK;
 	        else
 	        {	link_parser_t parser;

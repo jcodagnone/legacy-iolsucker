@@ -56,6 +56,7 @@ _("Usage: %s [OPTION]\n"
 " -U <user[:password]>        specify proxy authentication\n"
 " -f filename                 load settings from file\n"
 " -r repository               sets the file  repository\n" 
+" -H <host[:port]>            sets the server address\n" 
 "\n"
 "Send bugs to <juam at users dot sourceforge dot net>\n"
 "\n"),rs_program_name);
@@ -70,7 +71,8 @@ usage ( void )
 	       " [-F] [--forum] [--wait]"
 	       " [-u username] [-r repository]"
 	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>"
-	       " [-t proxy-type ] [--proxy-type proxy-type]\n",
+	       " [-t proxy-type ] [--proxy-type proxy-type] "
+	       " [-H <server[port]]\n",
 	       rs_program_name);
 
 	exit( EXIT_SUCCESS );
@@ -115,6 +117,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*19*/ {"forum",       OPT_NORMAL, 0,  OPT_T_FLAG, NULL},
 	 /*20*/ {"W",      	OPT_NORMAL, 1,  OPT_T_FLAG, NULL},
 	 /*21*/ {"wait",      	OPT_NORMAL, 0,  OPT_T_FLAG, NULL},
+	 /*22*/ {"H",      	OPT_NORMAL, 1,  OPT_T_GENER, NULL},
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
@@ -127,7 +130,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	   lopt[17].data = &(opt->fancy);
 	   lopt[18].data = lopt[19].data = &(opt->forum);
 	   lopt[20].data = lopt[21].data = &(opt->wait);
-	   
+	   lopt[22].data = &(opt->server);
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
 	i = GetOptions( argv, lopt, 0, NULL);
@@ -157,6 +160,8 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 		opt->proxy_user = strdup(opt->proxy_user);
 	if( opt->proxy )
 		opt->proxy = strdup(opt->proxy);
+	if( opt->server )
+		opt->server = strdup(opt->server);
 
 	return 0;
 }
@@ -167,5 +172,6 @@ free_options( struct opt *opt )
 	if( opt )
 	{	free(opt->proxy);
 		free(opt->proxy_user);
+		free(opt->server);
 	}
 }

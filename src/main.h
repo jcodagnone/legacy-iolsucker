@@ -20,8 +20,9 @@ struct opt {
 	char repository[MAX_REPOSITORY];
 	char *proxy;
 	char *proxy_user;
-	int dry;
 	char *proxy_type;
+	char *server;
+	int dry;
 	int verbose;
 	int fancy;
 	int forum;

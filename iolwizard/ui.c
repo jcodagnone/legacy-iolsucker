@@ -56,7 +56,7 @@ static int exec_iolwizard(void);
 struct tmp 
 { 	struct opt *opt;
 	GtkWidget *hwnd, *frame_proxy;
-	GtkWidget *edtUser, *edtPass, *edtRep;
+	GtkWidget *edtUser, *edtPass, *edtRep, *edtSHost;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait;
 	char *msg;
@@ -76,6 +76,8 @@ sync_data(struct tmp *tmp)
 	strncpy(tmp->opt->repository,
 	        gtk_entry_get_text(GTK_ENTRY(tmp->edtRep)),
 	        sizeof(tmp->opt->repository));
+	s=gtk_entry_get_text(GTK_ENTRY(tmp->edtSHost));
+	tmp->opt->server = s && *s ? s : NULL;
 
 	tmp->opt->username[sizeof(tmp->opt->username)-1] = 0;
 	tmp->opt->password[sizeof(tmp->opt->password)-1] = 0;
@@ -184,6 +186,7 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtUser),"");
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtPass),"");
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtRep),"");
+	gtk_entry_set_text(GTK_ENTRY(tmp->edtSHost),"");
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtHost),"");
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtPUser),"");
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtPPass),"");
@@ -355,7 +358,7 @@ entry_nospaces_insert(GtkEditable *editable, const gchar *text, gint length,
 
 static void
 create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *edtUser, *edtPass, *edtRep, *btnRep;
+{ 	GtkWidget *edtUser, *edtPass, *edtRep, *btnRep, *edtSHost;
 	GtkWidget *table, *hbox;
 	GtkWidget *label;
 	
@@ -364,11 +367,11 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	edtPass    = gtk_entry_new();
 	edtRep     = gtk_entry_new();
 	btnRep     = gtk_button_new_with_label(_("..."));
+	edtSHost    = gtk_entry_new();
 	gtk_entry_set_visibility(GTK_ENTRY(edtPass), 0);
 	gtk_widget_set_sensitive(GTK_WIDGET(edtPass), 0);
-
 	
-	table = gtk_table_new (3, 2, FALSE);
+	table = gtk_table_new (4, 2, FALSE);
 	hbox  = gtk_hbox_new(FALSE,0);
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
 	
@@ -381,7 +384,10 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	label = gtk_label_new(_("Repository:"));
 	gtk_table_attach(GTK_TABLE(table),label,0,1,2,3,GTK_FILL, 0, 4,0);
 	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
-
+	label = gtk_label_new(_("Host:"));
+	gtk_table_attach(GTK_TABLE(table),label,0,1,3,4,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
+	
 	gtk_box_pack_start(GTK_BOX(hbox), edtRep, TRUE,  TRUE,  0);
 	gtk_box_pack_start(GTK_BOX(hbox), btnRep, FALSE, FALSE, 0);
 
@@ -391,10 +397,13 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
 	gtk_table_attach(GTK_TABLE(table), hbox, 1, 2, 2, 3,
 	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
-
+	gtk_table_attach(GTK_TABLE(table), edtSHost, 1, 2, 3, 4,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
 	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->username);
 	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->password);
 	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->repository);
+	if( tmp->opt->server )
+		gtk_entry_set_text(GTK_ENTRY(edtSHost), tmp->opt->server);
 
 	/* signals */
 	gtk_signal_connect(GTK_OBJECT(edtUser), "insert-text",
@@ -403,6 +412,7 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                   GTK_SIGNAL_FUNC(edtUser_changed), tmp);
 	gtk_signal_connect(GTK_OBJECT(btnRep),"clicked",
 	                   GTK_SIGNAL_FUNC(repbrowse_fnc), tmp);
+	                   
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtUser, 
 	                    _("(*) numero de DNI"), NULL );
@@ -415,16 +425,23 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                      "se descargan"), NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), btnRep, 
 	                    _("Buscar directorio"),NULL);
-
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtSHost, 
+	                    _("Especifica donde hay que conectarse para "
+	                      "acceder a IOL. Ej: silvestre.itba.edu.ar.\n"
+	                      "La opcion sirve para redirigir los pedidos por "
+	                      "un proxy de SSH. Ej. localhost:8080"),NULL);
 	/* save data */
 	tmp->edtUser = edtUser;
 	tmp->edtPass = edtPass;
-	tmp->edtRep= edtRep;
+	tmp->edtRep  = edtRep;
+	tmp->edtSHost= edtSHost;
 
 	/* load data */
 	gtk_entry_set_text(GTK_ENTRY(edtUser),tmp->opt->username);
 	gtk_entry_set_text(GTK_ENTRY(edtPass),tmp->opt->password);
 	gtk_entry_set_text(GTK_ENTRY(edtRep) ,tmp->opt->repository);
+	gtk_entry_set_text(GTK_ENTRY(edtSHost),tmp->opt->server ?
+	                                              tmp->opt->server:"");
 }
 
 static void

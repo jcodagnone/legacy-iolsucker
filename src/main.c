@@ -84,7 +84,9 @@ suck(struct opt *opt)
 	iol_set(iol, IOL_VERBOSE,    &(opt->verbose));
 	iol_set(iol, IOL_FANCY_NAMES,&(opt->fancy));
 	iol_set(iol, IOL_WAIT,       &(opt->wait));
-
+	if( opt->server )
+		iol_set(iol, IOL_HOST, opt->server);
+		
 	rs_log_info(_("login on as `%s'"), opt->username);
 	if( (ret = iol_login(iol, opt->username, opt->password)) != E_OK )
 	{	const char *p = ret == E_NETWORK ? "login(): %s: %s" :

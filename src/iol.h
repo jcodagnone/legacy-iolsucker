@@ -13,6 +13,7 @@ enum iol_settings {
 	IOL_FANCY_NAMES,/**< course fancy names? default FALSE. data: (int *)*/
 	IOL_WAIT,       /**< wait when changing context? 
 	                 *   default FALSE. data: (int *) */
+	IOL_HOST,	/**< address or name of the server. data <host[:port]>*/
 	IOL_MAX
 };
 

@@ -38,7 +38,7 @@ iolsucker \- cliente no interactivo para IOL
 .RB [ \-x\  <host[:port]> ]
 .RB [ \-U\  <username[:password]> ]
 .RB [ \-t\  <http|socks5> ]
-
+.RB [ \-H\  <server[:port]> ]
 
 .SH DESCRIPCIÓN
 
@@ -89,6 +89,10 @@ especificar la password desde la línea de comandos.
 .IP "\fB-t\fR <http|socks5>
 Setea el tipo de proxy. Puede ser un proxy http o un socks5. Si no se
 especifica ninguno, entonces 
+.IP "\fB-H\fR <host[:port]>"
+Permite setear la maquina (ip o nombre) donde se encuentra IOL. Para que
+sirve? Para tunelear los request de IOL via ssh. Si no sabe de que se trata,
+no la use :).
 
 .SH "CONFIGURACION"
 .BR iolsucker 
@@ -124,6 +128,8 @@ El archivo de configuración tiene una estructura jerarquica:
 		<host>192.168.12.1:1080</host>
 .br
 		<user>usuario:password</user>
+.br		
+		<host>silvestre.itba.edu.ar</host>
 .br
 		<type>socks5</type>
 .br	
