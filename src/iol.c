@@ -65,8 +65,6 @@
 	#define USERAGENT	"iolsucker ("VERSION"; Linux )"
 #endif
 
-#define COOKIEFILE	".iolcookie"
-
 #define IOL_HOST        "silvestre.itba.edu.ar"
 #define IOL_PATH        "itbaV"
 #define IOL_LEVEL       "4" 
@@ -93,13 +91,11 @@ struct course
 	char *name;
 };
 
-
 /**
  * Concrete data type for the IOL object */
 struct iolCDT
 { 	CURL *curl;		/**< curl handler */
 	int bLogged;    	/**< already logged in ? */ 
-	char *cookie_file;	/**< ehhhh */
 	GSList *courses;	/**< loaded courses */ 
 
 	char *current_course;
@@ -114,33 +110,6 @@ struct iolCDT
 enum TP_FLAGS 
 {	TP_FILE	= 1 << 0
 };
-
-/**
- * gets the path were we save the cookies */
-static char *
-get_cookies_file(void)
-{	char *nRet, *p, *q = COOKIEFILE;
-	char c = SYSTEM == UNIX ? '/' : '\\';
-
-	nRet = curl_getenv("HOME"); 
-	if( nRet  == NULL ) 
-	{       if( SYSTEM == UNIX )
-			nRet = strdup("/tmp");
-		else if( SYSTEM == WINDOWS )
-			nRet = strdup( ".\\");
-	}
-
-	if( nRet == NULL )
-		return NULL;
-	p = malloc(strlen(q) + strlen(nRet) + 1 +1);
-	if( p )
-	{ 	sprintf(p,"%s%c%s",nRet, c, q);
-		curl_free(nRet);
-	}
-
-	return p;
-}
-
 
 static size_t
 write_data_to_memory (void *ptr, size_t size, size_t nmemb, void *data)
@@ -233,16 +202,10 @@ iol_new(void)
 		return NULL;
 		
 	memset( cdt, 0, sizeof(*cdt));
-	cdt->cookie_file = get_cookies_file();
-	if( cdt->cookie_file == NULL ) 
-	{ 	free(cdt);
-		rs_log_error(_("locating a temporary file")); 
-		return NULL;
-	}
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	cdt->curl = curl_easy_init();
-	curl_easy_setopt(cdt->curl,CURLOPT_COOKIEJAR, cdt->cookie_file);
+	curl_easy_setopt(cdt->curl,CURLOPT_COOKIEJAR, "");
 	curl_easy_setopt(cdt->curl,CURLOPT_USERAGENT,USERAGENT);
 	curl_easy_setopt(cdt->curl,CURLOPT_FAILONERROR, 1);
 	/* curl_easy_setopt(cdt->curl,CURLOPT_VERBOSE, 1); */
@@ -262,24 +225,19 @@ free_courses_list( struct course *data, gpointer user_data )
 
 void
 iol_destroy(iol_t iol) 
-{	mode_t old;
-
+{
 	if( !IS_IOL_T(iol) )
 		return;
 
 	if( iol->bLogged )
 		iol_logout(iol);
 
-	/* prevent other users for reading our cookie file */
-	old = umask(0077);
 	curl_easy_cleanup(iol->curl); 
 	curl_global_cleanup();
-	umask(old);
 
 	g_slist_foreach(iol->courses, (GFunc)free_courses_list ,NULL);
 	g_slist_free(iol->courses);
 
-	g_free(iol->cookie_file);
 	free(iol->current_course);
 	free(iol->repository);
 
@@ -571,8 +529,8 @@ iol_set_current_course(iol_t iol, const char *course)
 static int url_is_file(const char *url) 
 {	const char *p,*q;
 
-	p = g_basename(url);
-	q = g_basename(URL_MATERIAL);
+	p = basename(url);
+	q = basename(URL_MATERIAL);
 
 	return strncmp(p,q, strlen(q));
 }
@@ -647,12 +605,12 @@ link_files_fnc( const char *link, const char *comment, void *d )
 	bFile = url_is_file(link);
 	if( bFile )
 	{ 	if( t->url_prefix == NULL )
-			t->url_prefix = g_path_get_dirname(link);
+			t->url_prefix = path_get_dirname(link);
 		t->files = g_slist_prepend(t->files, s);
 	}
 	else
 	{ 	if( is_father_folder(link,t->prefix) )
-			free(s);
+			g_free(s);
 		else
 			queue_enqueue(t->pending, s);
 	}
@@ -670,7 +628,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 		return E_MEMORY;
 	t.files = NULL;
 	t.url_prefix = NULL;
-	queue_enqueue(t.pending, strdup(URL_MATERIAL));
+	queue_enqueue(t.pending, g_strdup(URL_MATERIAL));
 
 	while( ! queue_is_empty(t.pending) )
 	{	
@@ -698,7 +656,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 			link_parser_destroy(parser);
 		}
 		*url_prefix = t.url_prefix;
-		free(url);
+		g_free(url);
 		free(webpage.data);
 	}
 	
@@ -745,6 +703,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 	{	size_t len_q = strlen(q);
 		size_t len_url = strlen(d->url_prefix);
 		
+		assert(len_url>0);
 		len =  len_q   + (q[len_q-1]!='/')  + 
 		       len_url + (d->url_prefix[len_url - 1] != '/');
 		assert( strlen(file) > len );
@@ -754,7 +713,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 			return;
 
 		local = g_strdup_printf("%s/%s", d->prefix, unquote);
-		dirname = g_path_get_dirname(local);
+		dirname = path_get_dirname(local);
 		curl_free(unquote);
 
 		if( stat(local,&st) == -1 )

@@ -119,7 +119,6 @@ main( int argc, char **argv )
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
 		return 0;
 	}
-
 	rs_log_info(_("logging off"));
 	iol_logout(iol);
 	iol_destroy(iol);

@@ -1,7 +1,7 @@
 /*
  * dirname.c -- 
  *
- * $Id: dirname.c,v 1.2 2003/02/26 00:37:48 juam Exp $
+ * $Id: dirname.c,v 1.3 2003/03/01 18:09:38 juam Exp $
  *
  * Copyright (C) 2001 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -24,10 +24,13 @@
 #include "basename.h"
 
 EXPORT char *
-g_path_get_dirname(const char *path)
+path_get_dirname(const char *path)
 {	char *p, *q;
 
 	p = strrchr(path, '/' ) + 1;
+	if( p -1  == NULL )
+		return path;
+
 	for( ; *(p-1) =='/' && p-1!=path  ; p--)
 		;
 	q = malloc(p - path + 1);

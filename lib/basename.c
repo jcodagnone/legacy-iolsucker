@@ -1,5 +1,5 @@
 /*
- * $Id: basename.c,v 1.2 2003/02/26 00:37:48 juam Exp $
+ * $Id: basename.c,v 1.3 2003/03/01 18:09:38 juam Exp $
  *
  * basename(1) implementation
  */
@@ -18,7 +18,7 @@ basename( const char *path )
 	gr = back > slash ? back : slash;
 
 	if( gr == NULL )
-		r=NULL;
+		r=path;
 	else 
 		r = gr +1;
 
