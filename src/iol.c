@@ -943,6 +943,47 @@ struct tmp_resync_getfile
 	iol_t iol;
 };
 
+static unsigned
+get_tty_columns( void )
+{	char *env = g_getenv("COLUMNS");
+	unsigned columns = 80;
+	
+	if( env )
+	{	columns = atoi(env);
+		if( columns == 0 )
+			columns = 80;
+	}
+
+	g_free(env);
+
+	return columns;
+}
+
+static void
+inform_url_and_date( const char *url )
+{	time_t now =  time(NULL);
+	struct tm *tm = localtime(&now);
+	static unsigned columns;
+	unsigned n = 0, len = strlen(url), off=0;
+
+	/* nice printing:
+	 *   do go ahead of $COLUMNS or 80
+	 */
+	
+	if( columns == 0 )
+		columns = get_tty_columns();
+
+	n = 2+2+2+2+4+1;
+
+	printf("--%02d:%02d:%02d-- " ,tm->tm_hour, tm->tm_min,tm->tm_sec);
+	if( n + len + 1 > columns )
+	{	off = len - (columns - 1 - n - 4);
+		printf("... ");
+	}
+
+	printf("%s\n",url + off);
+}
+
 static void
 foreach_getfile(char *file, struct tmp_resync_getfile *d)
 {	size_t len;
@@ -987,13 +1028,10 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		 	 */
 		 	errno = 0;
 			if( mkrdir(dirname,0755) == 0 || errno == EEXIST)
-			{	time_t now =  time(NULL);
-				struct tm *tm = localtime(&now);
-				char *f;
+			{	char *f;
 				
 				f = my_url_escape(file);
-				printf("--%02d:%02d:%02d-- %s\n" ,tm->tm_hour,
-				                   tm->tm_min,tm->tm_sec,f);
+				inform_url_and_date(file);
 				download = g_strdup_printf("%s/%s", dirname, 
 				                          IOL_MATERIAL_TMPFILE);
 				if( d->iol->dry )
