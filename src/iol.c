@@ -77,7 +77,7 @@
 #define URL_CHANGE 	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
 #define URL_MATERIAL	URL_BASE"/newmaterialdid.asp" 
 #define IOL_COURSE_PARAMETER	"nivel=4"
-
+#define IOL_NEWS	URL_BASE"/novlistall.asp"
 #define IOL_MATERIAL_FOLDER	"material"
 #define IOL_MATERIAL_TMPFILE	".download.tmp"
 
@@ -836,4 +836,44 @@ iol_get_network_error(iol_t iol)
 		ret = curl_strerror(iol->neterr);
 	
 	return ret ;
+}
+
+/***/
+static void
+link_news_fnc( const char *link, const char *comment, void *d )
+{	unsigned *i=d;
+	(*i)++;
+}
+
+int
+iol_get_new_novedades( iol_t iol )
+{ 	struct buff page = { NULL, 0};
+	unsigned j = 0;
+	int ret = 0;
+	
+	if( !IS_IOL_T(iol) )
+		ret = -1;
+	else
+	{	if( transfer_page(iol->curl, IOL_NEWS, 0, &page, 
+	                       &(iol->neterr))!= E_OK )
+	        	ret = E_NETWORK;
+	        else
+	        {	link_parser_t parser;
+			unsigned i;
+
+			parser = link_parser_new();
+			if( parser == NULL )
+			 	return 0;
+			link_parser_set_link_callback(parser,link_news_fnc, &j);
+
+			for( i = 0 ; i< page.size &&
+			     link_parser_proccess_char(parser,page.data[i])==0;
+			     i++ ) ;
+
+			link_parser_destroy(parser);
+		}
+		free(page.data);
+	}
+
+	return ret == 0 ? j : ret ;
 }

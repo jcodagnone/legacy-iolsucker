@@ -37,6 +37,8 @@ const char *iol_get_network_error(iol_t iol);
 
 const char *iol_strerror(int code);
 
+int iol_get_new_novedades( iol_t iol );
+
 /**
  * errors
  */
