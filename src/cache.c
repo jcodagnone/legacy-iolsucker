@@ -63,11 +63,11 @@ cache_new(const char *dbpath)
 	 	rs_log_error("db_create: %s", db_strerror(ret));
 	else if( dbp->set_errcall(dbp, db_errcall_fcn),0 )  /* C hack */
 		;
-	#if DB_VERSION_MAJO >=4 
+	#if DB_VERSION_MAJOR >=4 
 	else if ((ret = dbp->open(dbp, NULL, dbpath, NULL, DB_BTREE, DB_CREATE,
 	          0664)) != 0)
 	#else
-	else if ((ret= dbp->open(dbp, dbpath, NULL, DB_BTREE,DB_CREATE, 
+	else if ((ret= dbp->open(dbp, dbpath, NULL, DB_BTREE,DB_CREATE,
 	          0644)) !=0)
 	#endif
 	 	dbp->err(dbp, ret, "%s", dbpath);
