@@ -53,4 +53,5 @@ int access(const char *pathname, int mode);
 int mkdir(const char *path, mode_t mode);
 int write(int fd, void *data, size_t len);
 mode_t umask(mode_t mask);
+unsigned int sleep(unsigned int seconds);
 #endif

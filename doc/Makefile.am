@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 
 EXTRA_DIST =  Doxyfile iolsucker.1.in
+man_MANS = iolsucker.1
 
 all: @IOL_HTML_PAGES@ @IOL_PDF_PAGES@
 

@@ -1,11 +1,11 @@
-AC_INIT([iolsucker],[2.0.0])
+AC_INIT([iolsucker],[2.0.1])
 AC_CONFIG_AUX_DIR(admin)
 
 IOL_MAJOR_VERSION=2
 IOL_MINOR_VERSION=0
-IOL_MICRO_VERSION=0
+IOL_MICRO_VERSION=1
 IOL_VERSION=$IOL_MAJOR_VERSION.$IOL_MINOR_VERSION.$IOL_MICRO_VERSION
-DATE="28 Feb 2003"
+DATE="03 Marzo 2003"
 
 VERSION=$IOL_VERSION
 PACKAGE=iolsucker
@@ -125,9 +125,9 @@ dnl Output
 dnl --------------------------------------------------------------------------
 AC_OUTPUT([
 Makefile
+bin/Makefile
 doc/Makefile
 doc/iolsucker.1
-doc/iolwizard.1
 lib/Makefile
 src/Makefile
 win32/Makefile
