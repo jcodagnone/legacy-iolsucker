@@ -1,0 +1,17 @@
+Source: iolsucker
+Section: misc
+Priority: optional
+Maintainer: Lucas Wall <kthulhu@usa.net>
+Build-Depends: debhelper (>= 4.0.0), libcurl-dev, libdb3-dev, libxml2-dev, libgtk2.0-dev
+Standards-Version: 3.6.1
+
+Package: iolsucker
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: sincroniza el material didactico de IOL con archivos en disco
+ Iolsucker es un cliente no interactivo para acceder a los contenidos de IOL,
+ de la forma ms eficiente posible. ¿Por que utilizar un cliente no
+ interactivo? Porque mantener archivos sincronizados usando una interfase web
+ y el mouse es difcil y aburrido: mientras haya una materia, hay que entrar a
+ la materia, ir al material didctico, y por cada carpeta que all existe, ver
+ si hay algn archivo nuevo.

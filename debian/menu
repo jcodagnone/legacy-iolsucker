@@ -1,0 +1,2 @@
+?package(iolsucker):needs=X11 section=Apps/Tools\
+  title="IOLWizard" command="/usr/bin/iolwizard"
