@@ -118,3 +118,14 @@ fi
   AC_SUBST(CURL_LIBS)
   rm -f conf.curltest
 ])
+
+AC_DEFUN(AM_CURL_WORKING_VERSION,
+[ 
+	AC_MSG_CHECKING(for a sane libcurl)
+	l=`curl-config --version|awk '{print $2}'`
+	AC_MSG_RESULT($l)
+
+	if [[ "$l" ==  "7.10.3" ]] ; then
+		exit -1
+	fi
+])

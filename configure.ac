@@ -60,6 +60,7 @@ AC_STRUCT_TM
 
 # Checks for library functions.
 AM_PATH_CURL(,,AC_MSG_ERROR([$PACKAGE requiere de libcurl]))
+AM_CURL_WORKING_VERSION
 AM_PATH_XML2(,,AC_MSG_ERROR([$PACKAGE requiere de libxml2]))
 AM_PATH_GLIB(,,AC_MSG_ERROR([$PACKAGE requiere la GLIB]))
 AM_PATH_GTK(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])
