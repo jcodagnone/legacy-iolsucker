@@ -177,23 +177,25 @@ load_config_file(struct opt *opt)
 	if( opt->proxy == NULL )
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
                                         sizeof(buf) ) == TRUE )
-			opt->proxy = strdup(buf);
+		{	opt->proxy = strdup(buf);
 			if( opt->proxy && opt->proxy[0] == 0 )
 			{	free(opt->proxy);
 				opt->proxy  = NULL;
 			}
+		}
 	}
 
 	if( opt->proxy_user == NULL )
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_USER, buf,
                                         sizeof(buf) ) == TRUE )
-			opt->proxy_user = strdup(buf);
+		{ 	opt->proxy_user = strdup(buf);
 			if( opt->proxy_user && opt->proxy_user[0] == 0 )
 			{	free(opt->proxy_user);
 				opt->proxy_user = NULL;
 			}
 			else
 				rot13(opt->proxy_user);
+		}
 	}
 
 	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_DRY, buf,
