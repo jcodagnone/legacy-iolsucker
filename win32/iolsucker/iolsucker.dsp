@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../../../unix/lib/glib-2.0/include" /I "../../../unix/include/glib-2.0" /I "../../lib" /I "../../../unix/include" /I "./../../unix/lib/gtk/include" /I "../../../unix/include/db" /I "../" /D "NDEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../../unix/lib/glib-2.0/include" /I "../../../unix/include/glib-2.0" /I "../../lib" /I "../../../unix/include" /I "./../../unix/lib/gtk/include" /I "../../../unix/include/db" /I "../" /I "../../lib/libmisc" /D "NDEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD BASE RSC /l 0x2c0a /d "NDEBUG"
 # ADD RSC /l 0x2c0a /d "NDEBUG"
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../unix/lib/glib-2.0/include" /I "../../../unix/include/glib-2.0" /I "../../lib" /I "../../../unix/include" /I "./../../unix/lib/gtk/include" /I "../../../unix/include/db" /I ".." /D "_DEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../unix/lib/glib-2.0/include" /I "../../../unix/include/glib-2.0" /I "../../lib" /I "../../../unix/include" /I "./../../unix/lib/gtk/include" /I "../../../unix/include/db" /I ".." /I "../../lib/libmisc" /D "_DEBUG" /D "_CONSOLE" /D "WIN32" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x2c0a /d "_DEBUG"
 # ADD RSC /l 0x2c0a /d "_DEBUG"
 BSC32=bscmake.exe

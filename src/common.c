@@ -22,7 +22,7 @@
 #include <string.h>
 #include <glib.h>
 
-#include <dirname.h>
+#include <libmisc/dirname.h>
 
 struct get_prefix {
 	char *prefix;

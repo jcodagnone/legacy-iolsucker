@@ -1,5 +1,5 @@
 AM_CFLAGS = @CFLAGS@ -I$(srcdir)/../lib  -DNDEBUG $(DB_INCLUDES)
-AM_LDFLAGS = @LDFLAGS@  -L$(srcdir)/../lib -L.
+AM_LDFLAGS = @LDFLAGS@  -L$(srcdir)/../lib/libmisc -L$(srcdir)/../lib/libcrash -L.
 LIBS =  @LIBS@ $(DB_LIBS)
 srcdir = @srcdir@
 
@@ -15,7 +15,7 @@ bin_PROGRAMS = iolsucker
 
 link_SOURCES = link.c link.h link_debug.c 
 link_CFLAGS = -D LINK_TEST
-link_LDADD = ../lib/libmisc.a 
+link_LDADD = ../lib/libmisc/libmisc.a  ../lib/libcrash/libcrash.a
 iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
                     link.c link.h getpass.c getpass.h progress.c \
                     progress.h  iolerr.c opt.c forum.c \
@@ -23,8 +23,8 @@ iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
 		    common.h common.c cache.c cache.h
 
 iolsucker_CFLAGS = $(AM_CFLAGS) @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@ 
-iolsucker_LDADD = ../lib/libmisc.a @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
-iolsucker_DEPENDENCIES = ../lib/libmisc.a
+iolsucker_LDADD = ../lib/libmisc/libmisc.a @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
+iolsucker_DEPENDENCIES = ../lib/libmisc/libmisc.a  ../lib/libcrash/libcrash.a
 
 ################
 

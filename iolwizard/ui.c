@@ -38,8 +38,8 @@
 	#include <unix.h>
 #endif
 
-#include <i18n.h>
-#include <trace.h>
+#include <libmisc/i18n.h>
+#include <libmisc/trace.h>
 
 #include "../src/main.h"
 #include "../src/fconfig.h"

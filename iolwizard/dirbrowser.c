@@ -21,7 +21,8 @@
 #include "config.h"
 #endif
 
-#include <i18n.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,10 +35,9 @@
 
 #include <unistd.h>
 
-#include <string.h>
-
 #include <gtk/gtk.h>
-#include <stdio.h>
+
+#include <libmisc/i18n.h>
 
 /* XPM */
 static char *folder[] =

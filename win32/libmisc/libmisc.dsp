@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../../lib" /I "../" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "HAVE_CONFIG_H" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../lib/libmisc" /I "../" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD BASE RSC /l 0x2c0a /d "NDEBUG"
 # ADD RSC /l 0x2c0a /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../lib" /I "../" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../lib" /I "../" /I "../../lib/libmisc" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x2c0a /d "_DEBUG"
 # ADD RSC /l 0x2c0a /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,154 +85,154 @@ LIB32=link.exe -lib
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\lib\trio\compare.c
+SOURCE=..\..\lib\libmisc\trio\compare.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\strio.h
+SOURCE=..\..\lib\libmisc\trio\strio.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\trio.c
+SOURCE=..\..\lib\libmisc\trio\trio.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\trio.h
+SOURCE=..\..\lib\libmisc\trio\trio.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\triodef.h
+SOURCE=..\..\lib\libmisc\trio\triodef.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\trionan.c
+SOURCE=..\..\lib\libmisc\trio\trionan.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\trionan.h
+SOURCE=..\..\lib\libmisc\trio\trionan.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\triop.h
+SOURCE=..\..\lib\libmisc\trio\triop.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\triostr.c
+SOURCE=..\..\lib\libmisc\trio\triostr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trio\triostr.h
+SOURCE=..\..\lib\libmisc\trio\triostr.h
 # End Source File
 # End Group
 # Begin Source File
 
-SOURCE=..\..\lib\basename.c
+SOURCE=..\..\lib\libmisc\basename.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\basename.h
+SOURCE=..\..\lib\libmisc\basename.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\lib\dirent.c"
+SOURCE="..\..\lib\libmisc\dirent.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\lib\dirent_.h"
+SOURCE="..\..\lib\libmisc\dirent_.h"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\dirname.c
+SOURCE=..\..\lib\libmisc\dirname.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\dirname.h
+SOURCE=..\..\lib\libmisc\dirname.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\lib\dirstack.c"
+SOURCE="..\..\lib\libmisc\dirstack.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\lib\dirstack.h"
+SOURCE="..\..\lib\libmisc\dirstack.h"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\dll.h
+SOURCE=..\..\lib\libmisc\dll.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\lib\ftw_.c"
+SOURCE="..\..\lib\libmisc\ftw_.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\lib\ftw_.h"
+SOURCE="..\..\lib\libmisc\ftw_.h"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\i18n.h
+SOURCE=..\..\lib\libmisc\i18n.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\mkrdir.c
+SOURCE=..\..\lib\libmisc\mkrdir.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\mkrdir.h
+SOURCE=..\..\lib\libmisc\mkrdir.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\newopt.c
+SOURCE=..\..\lib\libmisc\newopt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\newopt.h
+SOURCE=..\..\lib\libmisc\newopt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\queue.c
+SOURCE=..\..\lib\libmisc\queue.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\queue.h
+SOURCE=..\..\lib\libmisc\queue.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\snprintf.c
+SOURCE=..\..\lib\libmisc\snprintf.c
 # PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\snprintf.h
+SOURCE=..\..\lib\libmisc\snprintf.h
 # PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\stm.c
+SOURCE=..\..\lib\libmisc\stm.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\stm.h
+SOURCE=..\..\lib\libmisc\stm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\strdup.c
+SOURCE=..\..\lib\libmisc\strdup.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\strdup.h
+SOURCE=..\..\lib\libmisc\strdup.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trace.c
+SOURCE=..\..\lib\libmisc\trace.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\trace.h
+SOURCE=..\..\lib\libmisc\trace.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\lib\unix.h
+SOURCE=..\..\lib\libmisc\unix.h
 # End Source File
 # End Target
 # End Project

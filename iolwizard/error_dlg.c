@@ -19,7 +19,8 @@
  */
 #include <gtk/gtk.h>
 
-#include "i18n.h"
+#include <libmisc/i18n.h>
+
 #include "error_dlg.h"
 
 struct tmp

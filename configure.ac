@@ -143,6 +143,8 @@ bin/Makefile
 doc/Makefile
 doc/iolsucker.1
 lib/Makefile
+lib/libmisc/Makefile
+lib/libcrash/Makefile
 src/Makefile
 src/demo/Makefile
 win32/Makefile

@@ -54,7 +54,7 @@
    #include <windows.h>
 #endif
 #include <glib.h>
-#include "i18n.h"
+#include <libmisc/i18n.h>
 
 #include "progress.h"
 

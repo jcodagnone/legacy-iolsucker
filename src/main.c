@@ -27,10 +27,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <trace.h>
-#include <basename.h>
+#include <libmisc/trace.h>
+#include <libmisc/basename.h>
+#include <libmisc/i18n.h>
 
-#include "i18n.h"
 #include "main.h"
 #include "fconfig.h"
 #include "getpass.h"

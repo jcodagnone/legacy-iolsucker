@@ -10,5 +10,5 @@ bin_PROGRAMS = @IOLWIZARD@
 noinst_HEADERS = ui.h dirbrowser.h error_dlg.h
 iolwizard_SOURCES = main.c ui.c dirbrowser.c  error_dlg.c
 iolwizard_CFLAGS = $(AM_CFLAGS)
-iolwizard_LDADD = ../src/iolsucker-opt.o ../src/iolsucker-config.o ../lib/libmisc.a 
-iolwizard_DEPENDENCIES = ../lib/libmisc.a
+iolwizard_LDADD = ../src/iolsucker-opt.o ../src/iolsucker-config.o ../lib/libmisc/libmisc.a  ../lib/libcrash/libcrash.a
+iolwizard_DEPENDENCIES = ../lib/libmisc/libmisc.a ../lib/libcrash/libcrash.a

@@ -43,13 +43,15 @@
 #include <libxml/parser.h>
 #include <glib.h>
 
-#include <strdup.h>
-#include <trace.h>
+#include <libmisc/strdup.h>
+#include <libmisc/trace.h>
+#include <libmisc/i18n.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
+
 #include "main.h"
-#include "i18n.h"
 #include "win32.h"
 
 #define IOL_RC ".iolrc"

@@ -22,10 +22,10 @@
 
 #include <gtk/gtk.h>
 
-#include <newopt.h>
-#include <trace.h>
-#include <basename.h>
-#include <i18n.h>
+#include <libmisc/newopt.h>
+#include <libmisc/trace.h>
+#include <libmisc/basename.h>
+#include <libmisc/i18n.h>
 
 #include "ui.h"
 #include "../src/main.h"

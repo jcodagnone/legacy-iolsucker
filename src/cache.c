@@ -31,8 +31,8 @@
 #include <db.h>
 #include <glib.h>
 
-#include <trace.h>
-#include <strdup.h>
+#include <libmisc/trace.h>
+#include <libmisc/strdup.h>
 
 #include "cache.h"
 

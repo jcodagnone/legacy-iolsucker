@@ -42,15 +42,15 @@
 /*  #include <unix.h>*/
 #endif
 
-#include <trace.h>
-#include <strdup.h>
-#include <basename.h>
-#include <mkrdir.h>
-#include <dirname.h>
-#include <queue.h>
-#include <ftw_.h>
+#include <libmisc/trace.h>
+#include <libmisc/strdup.h>
+#include <libmisc/basename.h>
+#include <libmisc/mkrdir.h>
+#include <libmisc/dirname.h>
+#include <libmisc/queue.h>
+#include <libmisc/ftw_.h>
+#include <libmisc/i18n.h>
 
-#include "i18n.h"
 #include "iol.h"
 #include "link.h"
 #include "progress.h"

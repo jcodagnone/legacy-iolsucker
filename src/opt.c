@@ -26,11 +26,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include <trace.h>
-#include <newopt.h>
-#include <basename.h>
+#include <libmisc/trace.h>
+#include <libmisc/newopt.h>
+#include <libmisc/basename.h>
+#include <libmisc/i18n.h>
 
-#include "i18n.h"
 #include "main.h"
 
 const char *rs_program_name;

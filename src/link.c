@@ -19,7 +19,9 @@
  */
 #include <stdlib.h>
 #include <ctype.h>
-#include <stm.h>
+
+#include <libmisc/stm.h>
+
 #include "link.h"
 
 enum state {
