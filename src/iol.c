@@ -57,6 +57,7 @@
 #include "iol.h"
 #include "link.h"
 #include "progress.h"
+#include "cache.h"
 
 /** User Agent string reported to the webserver */
 #ifdef WIN32
@@ -80,6 +81,7 @@
 #define IOL_NEWS	URL_BASE"/novlistall.asp"
 #define IOL_MATERIAL_FOLDER	"material"
 #define IOL_MATERIAL_TMPFILE	".download.tmp"
+#define IOL_FILE_DB        	"files.db"
 
 struct buff 
 { 	char *data;
@@ -105,6 +107,7 @@ struct iolCDT
 	int verbose;		/**< print lots of information? */
 
 	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
+	cache_t fcache;
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -269,6 +272,8 @@ iol_destroy(iol_t iol)
 	free(iol->current_course);
 	free(iol->repository);
 
+	if( iol->fcache )
+		cache_destroy(iol->fcache);
 	free(iol);
 }
 
@@ -282,6 +287,22 @@ iol_set_repository(iol_t cdt, const char *path)
 	{ 	cdt->repository= strdup(path); 
 		if( cdt->repository == NULL )
 			ret = E_MEMORY;
+		else
+		{	if( cdt->fcache )
+			{	/** \todo  close and reopen the db ? 
+			 	  * mmmm
+			 	  */
+			 	  abort();
+			}
+			else
+			{	char *s = g_strdup_printf("%s/%s",
+				                          cdt->repository,
+				                          IOL_FILE_DB);
+				mkrdir(cdt->repository, 0755);
+				cdt->fcache = cache_new(s);
+				g_free(s);
+			}
+		}
 	}
 
 	return ret;
@@ -573,9 +594,9 @@ static int link_is_file(const char *url)
 {	const char *p,*q;
 
 	p = url;
-	q = "newmaterialdid.asp";
+	q = "download.asp";
 
-	return strncmp(p,q, strlen(q));
+	return strncmp(p,q, strlen(q))==0;
 }
 
 
@@ -596,6 +617,7 @@ struct tmp
 	GSList  *files;
 	char *prefix;
 	char *url_prefix;
+	iol_t iol;
 };
 
 static int
@@ -635,7 +657,95 @@ my_url_escape(const char *url)
 	return s;
 }
 
+static int
+get_fid_from_download_url(const char *url, char *buf, size_t size)
+{	size_t i;
+	char *p, *q;
 
+	p = strchr(url,'?');
+	if( p )
+	{	/** \todo a url_crack function  */
+		p++;
+		p = strstr(p,"id=");
+		p += sizeof("id=") -1;
+		q = strchr(p,'&');
+		if( q == NULL )
+			for( q=p; *q; q++)
+				;
+
+		for( i=0 ; i < size - 1 && p != q && isdigit(p[i]) ; i++ )
+			buf[i] = p[i];
+		buf[i]=0;
+	}
+
+	return -(p!=q);
+}
+
+/*
+ * #    #    ##    #####   #    #     #    #    #   ####
+ * #    #   #  #   #    #  ##   #     #    ##   #  #    #
+ * #    #  #    #  #    #  # #  #     #    # #  #  #
+ * # ## #  ######  #####   #  # #     #    #  # #  #  ###
+ * ##  ##  #    #  #   #   #   ##     #    #   ##  #    #
+ * #    #  #    #  #    #  #    #     #    #    #   ####
+ * Mon, 24 Mar 2003 14:21:36 -0300
+ * this is a tempory ugly hack, until i get a javascript parser
+ *
+ * get the filename url from the redirect page
+ */
+static char *
+javascript_get_refresh_link( struct buff *page )
+{	char *p, *q, *ret = NULL;
+
+	/* como diria un amigo.....a lo cabeza!!! 
+	 * niños, no intenten esto en sus casas
+	 */
+	page->data[page->size-1] = 0 ;
+	p = strstr(page->data,"javascript:window.open"); 
+	if( p )
+	{ 	p += sizeof("javascript:window.open");
+		p = strchr(p, '"' );
+		if( p )
+		{	p++;
+			q = strchr(p, '"' );
+			if( q )
+			{	*q = 0;
+				ret = g_strdup_printf("%s/%s",URL_BASE,p);
+			}
+		}	
+	}
+
+	return ret;
+}
+
+static char *
+get_real_download_file( iol_t iol,  const char *url )
+{	char buff[12]={0};
+	char *file;
+	char *ret = NULL;
+	
+	if( get_fid_from_download_url(url, buff,sizeof(buff)) == 0 )
+		;
+	else
+	{	
+		if( (file = cache_get_file(iol->fcache, buff)) )
+			ret = file;
+		else
+		{	struct buff page = {NULL, 0}; 
+
+			if( transfer_page(iol->curl, url, 0, &page) != E_OK)
+				;
+			else
+			{ 	ret = javascript_get_refresh_link(&page);
+				if( ret )
+					cache_add_file(iol->fcache, buff,ret);
+				free(page.data);
+			}
+		}
+	}
+
+	return ret;
+}
 
 static void
 link_files_fnc( const char *link, const char *comment, void *d ) 
@@ -656,9 +766,15 @@ link_files_fnc( const char *link, const char *comment, void *d )
 	
 	bFile = link_is_file(link);
 	if( bFile )
-	{ 	if( t->url_prefix == NULL )
-			t->url_prefix = path_get_dirname(link);
-		t->files = g_slist_prepend(t->files, s);
+	{ 	char *q;
+		q = get_real_download_file(t->iol, s);
+		g_free(s);
+		if( q )
+		{	if( t->url_prefix == NULL )
+				t->url_prefix = path_get_dirname(
+				                    q+strlen(URL_BASE)+1);
+			t->files = g_slist_prepend(t->files, q);
+		}
 	}
 	else if( !link_is_sort_link(link) )
 	{ 	if( is_father_folder(s,t->prefix) )
@@ -680,6 +796,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 		return E_MEMORY;
 	t.files = NULL;
 	t.url_prefix = NULL;
+	t.iol = iol;
 	queue_enqueue(t.pending, g_strdup(URL_MATERIAL));
 
 	while( ! queue_is_empty(t.pending) )
