@@ -72,13 +72,12 @@ static int
 suck(struct opt *opt)
 { 	iol_t iol;
 	int ret = EXIT_SUCCESS;
-	enum resync_flags flags;
+	enum resync_flags flags = IOL_RF_FILE | IOL_RF_FORUM * (opt->forum!=0) ;
 
 	iol = iol_new();
 	if( iol == NULL )
 	{	rs_log_error("creating IOL object. bye bye");
-		
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
 	}
 	
 	iol_set(iol, IOL_REPOSITORY, opt->repository);
@@ -94,19 +93,20 @@ suck(struct opt *opt)
 	{	const char *p = ret == E_NETWORK ? "login(): %s: %s" :
 	 	                                   "login(): %s";
 	 	                                   
-		rs_log_error(_("login(): login failed: %s"));
+		rs_log_error(_("login(): login failed:"));
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
-		return EXIT_FAILURE;
+		ret = EXIT_FAILURE;
 	}
-
-	flags = IOL_RF_FILE | IOL_RF_FORUM * (opt->forum!=0) ;
-	if( (ret=iol_resync_all(iol, flags)) != E_OK )
+	else if( (ret=iol_resync_all(iol, flags)) != E_OK )
 	{	const char *p = ret == E_NETWORK ? "resync_all(): %s: %s" :
 	 	                                   "resync_all(): %s";
 	 	                                   
 		rs_log_error(_("resync_all(): failed"));
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
-		return EXIT_FAILURE;
+
+		ret = EXIT_FAILURE;
+		rs_log_info(_("logging off"));
+		iol_logout(iol);
 	}
 	else
 	{	unsigned n;
@@ -121,10 +121,11 @@ suck(struct opt *opt)
 		}
 		else
 			rs_log_error(_("iol_get_new_novedades(): failed"));
+
+		rs_log_info(_("logging off"));
+		iol_logout(iol);
 	}
 
-	rs_log_info(_("logging off"));
-	iol_logout(iol);
 	iol_destroy(iol);
 
 	return ret;
