@@ -69,28 +69,6 @@ struct tmp
 };
 
 static void 
-hwndMain_quit( GtkWidget *widget, struct tmp *tmp)
-{
-	if( save_config_file(tmp->opt) == -1 )
-		show_error(_("no se ha podido guardar esta nueva "
-		             "informacion"));
-	g_free(tmp->msg);
-	g_free(tmp);
-	gtk_main_quit();
-}
-
-static gint
-hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
-{
-        hwndMain_quit(widget,data);
-        
-        return TRUE;
-}
-
-/*
- * BUTTONS
- */ 
-static void 
 sync_data(struct tmp *tmp)
 {	char *s, *ss;
 	int l;
@@ -155,6 +133,27 @@ sync_data(struct tmp *tmp)
 		tmp->opt->proxy_user = NULL;
 	}
 } 
+
+static void 
+hwndMain_quit( GtkWidget *widget, struct tmp *tmp)
+{
+	sync_data(tmp);
+	if( save_config_file(tmp->opt) == -1 )
+		show_error(_("no se ha podido guardar esta nueva "
+		             "informacion"));
+	g_free(tmp->msg);
+	g_free(tmp);
+	gtk_main_quit();
+}
+
+static gint
+hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
+{
+        hwndMain_quit(widget,data);
+        
+        return TRUE;
+}
+
 static void 
 resync_fnc( GtkWidget *widget, struct tmp *tmp )
 {
