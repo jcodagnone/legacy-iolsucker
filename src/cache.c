@@ -85,7 +85,8 @@ cache_destroy(cache_t cdt)
 	if( cdt == NULL )
 		return;
 
-	cdt->dbp->close(cdt->dbp, 0);	
+	cdt->dbp->close(cdt->dbp, 0);
+	free(cdt);
 }
 
 int
