@@ -12,15 +12,18 @@
 #include <i18n.h>
 
 #include "ui.h"
+#include "../src/main.h"
 
 #ifdef HAVE_CONFIG_H
   #include <config.h>
 #endif
 
+/*
 struct opt
 {
 	int foo;
 };
+*/
 
 const char *progname;
 const char *rs_program_name;
@@ -63,7 +66,7 @@ version( void )
 
 	exit( EXIT_SUCCESS );
 }
-
+#if 0
 static int
 parseOptions( int argc, char * const * argv, struct opt *opt)
 {	int i = 0;
@@ -87,17 +90,18 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	return i;
 }
 
+#endif
 
 int
 main(int argc,char *argv[])
 {	struct opt opt;
-
+	memset(&opt, 0,sizeof(opt));
 	progname = basename(argv[0]);
 
 	gtk_init(&argc,&argv);
 
-	if( parseOptions( argc, argv, &opt) < 0 )
-		return EXIT_FAILURE;
+	/*if( parseOptions( argc, argv, &opt) < 0 )
+		return EXIT_FAILURE;*/
 
 	create_ui((void *)&opt);
 
