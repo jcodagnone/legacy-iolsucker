@@ -67,7 +67,8 @@ struct tmp
 
 static void 
 sync_data(struct tmp *tmp)
-{	G_CONST_RETURN char *s, **ss;
+{	G_CONST_RETURN char *s;
+	G_CONST_RETURN char *p;
 	int l;
 
 	strncpy(tmp->opt->username,
@@ -115,14 +116,14 @@ sync_data(struct tmp *tmp)
 		
 	
 	s   = gtk_entry_get_text(GTK_ENTRY(tmp->edtPUser));
-	ss  = gtk_entry_get_text(GTK_ENTRY(tmp->edtPPass));
+	p  = gtk_entry_get_text(GTK_ENTRY(tmp->edtPPass));
 
 	if( *s )
 	{	free(tmp->opt->proxy_user);
-		if( *ss )
-		{	tmp->opt->proxy_user=malloc(strlen(s)+1+ strlen(ss) +1);
+		if( *p )
+		{	tmp->opt->proxy_user=malloc(strlen(s)+1+ strlen(p) +1);
 			if( tmp->opt->proxy_user )
-				sprintf(tmp->opt->proxy_user,"%s:%s", s, ss);
+				sprintf(tmp->opt->proxy_user,"%s:%s", s, p);
 		}
 		else
 			tmp->opt->proxy_user = strdup(s);		
