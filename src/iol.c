@@ -175,9 +175,12 @@ write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
 }
 
 #ifdef HAVE_CURLOPT_DEBUGDATA
+/**
+ *  prints the debug information of the curl library
+ */
 static int 
-curl_debug_fnc(CURL *curl ,curl_infotype type, char  *ptr, size_t size,
-iol_t iol)
+curl_debug_fnc(CURL *curl, curl_infotype type, char  *ptr, size_t size,
+               iol_t iol)
 {	
 	/* stolen from libcurl */
 	static const char * const s_infotype[CURLINFO_END] =
@@ -224,7 +227,8 @@ count_bytes(CURL *curl)
 }
 
 /**
- *  wraper to libcurl. Transfer the url, and saves it in the buffer page
+ *  wraper to libcurl. Transfer the url, and saves it in the buffer page or 
+ *  in a file.
  */
 static int
 transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
@@ -276,7 +280,10 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 	return res == 0 ? E_OK : E_NETWORK;
 }
 
-/** given url_part creates the url. can fail. 
+/**
+ * given url_part creates the url.
+ *
+ * \return NULL if fails.
  */
 static char *
 iol_get_url(iol_t iol, const char *url_part)
@@ -583,7 +590,7 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 			{	ret = table[i].fnc(iol,data);
 				break;
 			}
-		/* should never happen */
+		/* the user think he is funny ... */
 		if( i == sizeof(table)/sizeof(*table) )
 		{	rs_log_warning("iol_set(): unknown id `%d'",set);
 			ret = E_INVAL;
@@ -592,7 +599,7 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 
 	return ret;
 }
-/** validates wether @code is in the parameters in server's list */
+/** validates weather ::code is in the parameters in server's list */
 static int
 is_valid_course_code( const char *code )
 {	int b = 1;
@@ -653,9 +660,9 @@ link_courses_fnc( unsigned const char *link,
 	enum course_type type;
 	assert(d);
 
-	s = strstr(link,IOL_COURSE_PARAMETER);
+	s = strstr(link, IOL_COURSE_PARAMETER);
 	if( s == NULL )
-	{	s = strstr(link,IOL_DEPART_PARAMETER);
+	{	s = strstr(link, IOL_DEPART_PARAMETER);
 		if( s == NULL )
 			return;
 		else
@@ -665,7 +672,7 @@ link_courses_fnc( unsigned const char *link,
 		type = CT_COURSE;
 	
 	
-	/* get code */
+	/* get course code */
 	s =  strstr(link,"snivel=" );
 	if( s )
 	{	char *ss;
@@ -697,7 +704,8 @@ link_courses_fnc( unsigned const char *link,
 }
 
 /**
- * gets the list of courses that are linked at @page */
+ * gets the list of courses that are linked from the html at ::page 
+ */
 static unsigned 
 parse_courses(GSList **listptr, struct buff *page) 
 {	link_parser_t parser;
@@ -989,7 +997,7 @@ my_url_escape(const char *url)
 
 /**
  * \returns true if the url contains and file id (download.asp scheme).
- * Also copies the fid to @buf
+ * Also copy the fid to ::buf
  */
 static int
 url_has_fid(const char *url, char *buf, size_t size)
@@ -1140,14 +1148,17 @@ link_files_fnc( const unsigned char *link,
 	}
 }
 
-/* 
+/**
+ * retrives all the files available for the current course.
+ * They are stored in the list ::l. (not an url: just the path in the
+ * server).
  */
 static int
-get_flist_from_current(iol_t iol, GSList **l, char **url_prefix )
+get_file_list_from_current(iol_t iol, GSList **l, char **url_prefix )
 {	struct buff webpage = { NULL, 0 };
 	char *url; 
 	struct tmp t;
-	int ret;
+	int ret = E_OK;
 
 	t.pending = queue_new(); 
 	if( t.pending == NULL || (url=iol_get_url(iol, URL_MATERIAL))== NULL )
@@ -1234,6 +1245,7 @@ get_tty_columns( void )
 	return columns;
 }
 
+/** print some information of the url we are downloading to a log/tty */
 static void
 inform_url_and_date( FILE *fp, const char *url )
 {	time_t now =  time(NULL);
@@ -1243,7 +1255,7 @@ inform_url_and_date( FILE *fp, const char *url )
 	int bTTY = isatty(fileno(fp)) != 0;
 	
 	/* nice printing:
-	 *   do go ahead of $COLUMNS or 80
+	 *   don't go ahead of $COLUMNS or 80 chars
 	 */
 	if( fp == NULL || url == NULL )
 		return;
@@ -1259,7 +1271,7 @@ inform_url_and_date( FILE *fp, const char *url )
 	fprintf(fp, "%02d:%02d:%02d-- ", tm->tm_hour, tm->tm_min,tm->tm_sec);
 	if( bTTY )
 	{
-		n = 2+2+2+2+4+1; 
+		n = 2 + 2 + 2 + 2 + 4 + 1; 
 
 		if( n + len + 1 > columns )
 		{	off = len - (columns - 1 - n - 4);
@@ -1270,10 +1282,9 @@ inform_url_and_date( FILE *fp, const char *url )
 	fprintf(fp, "%s\n",url + off);
 }
 
-/** tries to download @file if it doesn't exist
- */
+/** tries to download ::file if it doesn't exist */
 static void
-foreach_getfile(char *file, struct tmp_resync_getfile *d)
+foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 {	size_t len;
 	char *local, *dirname, *download, *unquote;
 	const char *q;
@@ -1298,7 +1309,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		       len_url + (d->url_prefix[len_url - 1] != '/');
 		assert( strlen(file) > len );
 
-		/* IOL has files with out escape 
+		/* IOL has files without escape 
 		 *
 		 *unquote = curl_unescape(file+len,0);
 		 *if( !unquote )
@@ -1353,7 +1364,7 @@ convertRepository( const char *from, const char *to)
 	f = my_path_get_dirname(from);
 	t = my_path_get_dirname(to);
 	ret = rename(f, t);
-	/** \todo detect EISDIR EEXIST ENOTDIR */
+	/** \todo detect EISDIR EEXIST ENOTDIR ? */
 
 	g_free(f);
 	g_free(t);
@@ -1403,12 +1414,14 @@ iol_resync_download(iol_t iol, const struct course *course)
 	}
 	else
 	{       GSList *files = NULL;
-	
+
 		tmp.prefix = s;
 		tmp.iol = iol;
 		tmp.url_prefix = NULL;
-		get_flist_from_current(iol, &files, &(tmp.url_prefix));
+		
+		get_file_list_from_current(iol, &files, &(tmp.url_prefix));
 		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
+
 		free(tmp.url_prefix);
 	}
 
@@ -1467,7 +1480,7 @@ iol_resync(iol_t iol, const char *code, enum resync_flags flags)
 		ret = E_NETWORK;
 	} 
 	else
-	{	/* only do what the server capabilities says */
+	{	/* only do what the servers capabilities says */
 		flags &= iol->current_course->flags;
 		if( flags & IOL_RF_FILE && ret == E_OK )
 			ret = iol_resync_download(iol, c);
@@ -1506,6 +1519,7 @@ iol_resync_all(iol_t iol, enum resync_flags flags)
 	r.ret = 0;
 	r.iol = iol;
 	r.flags = flags;
+	
 	g_slist_foreach(iol->courses,(GFunc)foreach_resync,&r);
 
 	return r.ret;
@@ -1528,6 +1542,7 @@ static void
 link_news_fnc( unsigned const char *link,
                unsigned const char *comment, void *d )
 {	unsigned *i=d;
+
 	(*i)++;
 }
 
