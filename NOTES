@@ -1,3 +1,14 @@
+iolsucker-2.0.30: (Wed Mar 23 2005)
+  o nueva opción (--ask): Confirmación de transferencia. Si se activa, antes
+    de transferir cualquier página, el usuario debe confirmar que desea
+    que se realice la transferencia.
+    Util para probar iolsucker en entornos donde no ha sido probado antes.
+    (como por ejemplo con permisos de administración de material)
+  o material didactico: parser de links mas estrictos. antes, si se tenía
+    permiso para administrar una carpeta de material didactico, se seguian todos
+    los links, y se podía terminar llamando a los links que borraban material
+    didactico. Fix backporteado de jiolsucker, reportado por Fernando Zunino.
+      
 iolsucker-2.0.29: glib-2.6.x (Fri Feb 25 2005)
   o la glib-2.6.x tiene problemas con alguns funciones  inlines que provee.
     Generan un problema   e linkedicion. Gracias Javier Ruere!

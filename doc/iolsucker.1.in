@@ -34,6 +34,7 @@ iolsucker \- cliente no interactivo para IOL
 .RB [ \-\-fancy ]
 .RB [ \-\-wait ]
 .RB [ \-\-xenofobe ]
+.RB [ \-\-ask ]
 .RB [ \-\-user\  username]
 .RB [ \-r\  repository ]
 .RB [ \-f\  filename ]
@@ -78,6 +79,8 @@ de versiones < 2.0.14.
 .IP "\fB\-X\fR, \fB\-\-xenofobe\fR"
 Modo xenofobia: al terminar lista los archivos que se encuentran en nuestro
 repositorio y que no están en iol.
+.IP "\fB\-\-ask\fR"
+Pregunta al usuario antes de descargar cualquier pagina. Útil para entornos no probados anteriormente (como profesores)
 .IP "\fB\-r\fR repositorio"
 especifica el directorio donde se almacenan los archivos bajados.
 .IP "\fB\-f\fR"
