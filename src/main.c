@@ -68,27 +68,11 @@ validate_opt(struct opt* opt)
 	return ret;
 }
 
-/* Usually i include the function that parse the command line options
- * in the main.c, but this time the function is share with iolwizard
- */
-int
-main( int argc, char **argv )
-{	struct opt opt;
-	iol_t iol;
-	int ret;
+static int
+suck(struct opt *opt)
+{ 	iol_t iol;
+	int ret = EXIT_SUCCESS;
 	
-	rs_program_name = basename(argv[0]);
-	rs_trace_to(rs_trace_stderr);
-
-	if( parseOptions(argc, argv, &opt) == -1 )
-		return EXIT_FAILURE;
-
-	if( load_config_file(&opt) == -1 )
-		return EXIT_FAILURE;
-
-	if( validate_opt(&opt) == -1 )
-		return EXIT_FAILURE;
-
 	iol = iol_new();
 	if( iol == NULL )
 	{	rs_log_error("creating IOL object. bye bye");
@@ -96,16 +80,16 @@ main( int argc, char **argv )
 		return EXIT_FAILURE;
 	}
 	
-	iol_set(iol, IOL_REPOSITORY, opt.repository);
-	iol_set(iol, IOL_PROXY_HOST, opt.proxy);
-	iol_set(iol, IOL_PROXY_USER, opt.proxy_user);
-	iol_set(iol, IOL_PROXY_TYPE, opt.proxy_type);
-	iol_set(iol, IOL_DRY,        &(opt.dry));
-	iol_set(iol, IOL_VERBOSE,    &(opt.verbose));
-	iol_set(iol, IOL_FANCY_NAMES,&(opt.fancy));
+	iol_set(iol, IOL_REPOSITORY, opt->repository);
+	iol_set(iol, IOL_PROXY_HOST, opt->proxy);
+	iol_set(iol, IOL_PROXY_USER, opt->proxy_user);
+	iol_set(iol, IOL_PROXY_TYPE, opt->proxy_type);
+	iol_set(iol, IOL_DRY,        &(opt->dry));
+	iol_set(iol, IOL_VERBOSE,    &(opt->verbose));
+	iol_set(iol, IOL_FANCY_NAMES,&(opt->fancy));
 
-	rs_log_info(_("login on as `%s'"), opt.username);
-	if( (ret = iol_login(iol, opt.username, opt.password)) != E_OK )
+	rs_log_info(_("login on as `%s'"), opt->username);
+	if( (ret = iol_login(iol, opt->username, opt->password)) != E_OK )
 	{	const char *p = ret == E_NETWORK ? "login(): %s: %s" :
 	 	                                   "login(): %s";
 	 	                                   
@@ -139,8 +123,33 @@ main( int argc, char **argv )
 	iol_logout(iol);
 	iol_destroy(iol);
 
+	return ret;
+}
+
+/* Usually i include the function that parse the command line options
+ * in the main.c, but this time the function is share with iolwizard
+ */
+int
+main( int argc, char **argv )
+{	struct opt opt;
+	int ret;
+	
+	rs_program_name = basename(argv[0]);
+	rs_trace_to(rs_trace_stderr);
+
+	if( parseOptions(argc, argv, &opt) == -1 )
+		return EXIT_FAILURE;
+
+	if( load_config_file(&opt) == -1 )
+		return EXIT_FAILURE;
+
+	if( validate_opt(&opt) == -1 )
+		return EXIT_FAILURE;
+
+	ret = suck(&opt);
+	
 	free_options(&opt);
 	
-	return EXIT_SUCCESS;
+	return ret;
 }
 
