@@ -1,5 +1,6 @@
 
 SUBDIRS = \
+	lib \
 	src
 
 

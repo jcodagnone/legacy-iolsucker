@@ -2,6 +2,7 @@
 #define _IOL_H_
 
 #include <list>
+#include <queue>
 
 struct materia
 {	const char *name;
@@ -30,9 +31,12 @@ private:
 	/**
 	 * Get all the files for the current subject
 	 */
+	int get_file_list_recursive(const char *url, std::list<char *> *files,
+	                            std::queue<char *> *pending);
+
 	int get_file_list(std::list<char *> &l);
 	int set_current_course(const char *course);
-	unsigned loadCourses(struct buff *page);
+	unsigned load_courses(struct buff *page);
 	int transfer_page( const char *url, unsigned flags, struct buff *);
 	struct hidden *cdt;
 };

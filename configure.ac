@@ -54,14 +54,8 @@ AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strtol])
 AC_FUNC_STAT
 
-CFLAGS="$CFLAGS -Wall -ansi -pedantic"
-
-dnl Only use -Wall if we have gcc
-if test "x$GCC" = "xyes"; then
-  if test -z "`echo "$CFLAGS" | grep "\-Wall" 2> /dev/null`" ; then
-    CFLAGS="$CFLAGS -Wall -W -ansi -Wnested-externs -Winline -Wno-unused -I ../../libmisc"
-  fi
-fi
+CFLAGS="$CFLAGS -Wall -W -ansi -Wnested-externs -Winline -Wno-unused -I ../lib"
+CXXFLAGS=$CFLAGS
 
 dnl --------------------------------------------------------------------------
 dnl Optionnal stuff
@@ -85,6 +79,7 @@ dnl Output
 dnl --------------------------------------------------------------------------
 AC_OUTPUT([
 Makefile
+lib/Makefile
 src/Makefile],
 [echo ])
 
@@ -92,7 +87,7 @@ src/Makefile],
 echo
 echo "IOLsucker configure report:"
 echo
-echo "     CFLAGS                        : $ac_save_CFLAGS"
+echo "     CFLAGS                        : $CFLAGS"
 echo "     LIBS                          : $LIBS"
 echo "     Locales in use                : $ALL_LINGUAS"
 echo "==============================================================="

@@ -1,10 +1,29 @@
+/*
+ * main.cpp -- IOLsucker web robot implementation
+ *
+ * Copyright (C) 2003 by Juan F. Codagnone <juam@users.sourceforge.net>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
-
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+  #include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <list>
 #include <string.h>
 #include <ctype.h>
 
@@ -32,7 +51,8 @@
 #define URL_LOGIN_1	URL_BASE"/mynav.asp"
 #define URL_LOGIN_ARG	"txtdni=%s&txtpwd=%s&Submit=Conectar&cmd=login"
 #define URL_LOGOUT	URL_BASE"/mynav.asp?cmd=logout"
-#define URL_CHANGE 	URL_BASE"mynav.asp?cmd=ChangeContext&amp;nivel=4&amp;snivel=%s"
+#define URL_CHANGE 	URL_BASE"/mynav.asp?cmd=ChangeContext&amp;nivel=4&amp;snivel=%s"
+#define URL_FILE	URL_BASE"/newmaterialdid.asp"
 #define IOL_COURSE_PARAMETER	"nivel=4"
 
 struct buff {
@@ -188,7 +208,6 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 	if( s )
 	{	char *ss;
 		
-
 		s += sizeof("snivel=") -1 ;
 		for( ss = s; *ss && *ss != ';' ; ss++ )
 			;
@@ -197,7 +216,7 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 
 		for( ss = (char *)comment; *ss && isspace(*ss) ; ss++)
 			;
-		
+
 		course.code = strdup(s);
 		course.name = strdup(ss);
 
@@ -213,18 +232,17 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 
 
 unsigned 
-IOL::loadCourses(struct buff *page)
+IOL::load_courses(struct buff *page)
 {	link_parser_t parser;
 	unsigned i;	
-	int c;
 	
 	parser = link_parser_new();
 	if( parser == NULL )
 		return 0;
 		
 	link_parser_set_link_callback(parser,link_courses_fnc, &(cdt->courses));
-	for( i = 0 ; i< page->size && link_parser_proccess_char(parser,c)==0 ; 
-	     i++ )
+	for( i = 0 ; i< page->size && 
+	     link_parser_proccess_char(parser,page->data[i])==0 ; i++ )
 	     ;
 	link_parser_destroy(parser);
 
@@ -267,7 +285,7 @@ IOL::login( const char *user, const char *pass )
 				nRet = E_NETWORK;
                 	} 
                 	else
-                	{	if( loadCourses(&buf) == 0)
+                	{	if( load_courses(&buf) == 0)
                 		 rs_log_error(_("login(): login failed"));
                 		else
                 			cdt->bLogged = 1;
@@ -312,6 +330,78 @@ IOL::set_current_course(const char *course)
 }
 
 
+struct tmp {
+	std::queue<char *> *pending;
+	std::list<char *> *files;
+	char *prefix;
+};
+
+static bool
+url_is_file(const char *url)
+{	char *p,*q;
+
+	p = basename(url);
+	q = basename(URL_FILE);
+
+	return strncmp(p,q, strlen(q));
+}
+
+static void
+link_files_fnc( const char *link, const char *comment, void *d )
+{	struct  tmp *t = (struct tmp *)d;
+	bool bFile;
+
+	bFile = url_is_file(link);
+	
+	assert(d);
+}
+
+int IOL::get_file_list_recursive(const char *url, std::list<char *> *files,
+                                 std::queue<char *> *pending)
+{ 	struct buff webpage;
+	bool bFile;
+	int ret;
+
+	bFile = url_is_file(url);
+	if( bFile )
+		files->push_front((char *)url);
+	else
+	{
+		if( transfer_page(url,0,&webpage) != E_OK )
+			ret = E_NETWORK;
+		else
+		{	link_parser_t parser;
+			struct tmp tmp;
+			unsigned i;
+
+			tmp.pending = pending;
+			tmp.files = files;
+		
+			/* get and analize links */
+			parser = link_parser_new();
+			if( parser == NULL )
+				return 0;
+				
+			link_parser_set_link_callback(parser,link_courses_fnc,
+			                              &(cdt->courses));
+			for( i = 0 ; i< webpage.size && 
+			   link_parser_proccess_char(parser,webpage.data[i])==0;
+			   i++ )
+			     ;
+			link_parser_destroy(parser);
+
+			}
+	}
+}
+
+int IOL::get_file_list(std::list<char *> &l)
+{	std::queue<char *> pending;
+
+	/* queue is passed so each time i dont need to create a new queue */
+	get_file_list_recursive(URL_FILE,&l,&pending);
+
+}
+
 static int
 create_course_directory(const char *dir)
 {	struct stat buf;
@@ -333,7 +423,7 @@ int
 IOL::resync(const char *code)
 {	int ret = E_OK;
 
-	if( cdt->bLogged )
+	if( ! cdt->bLogged )
 		ret = E_NLOGED;
 	else if ( cdt->prefix == NULL || !is_valid_code(code) )
 		ret = E_INVAL;
@@ -352,7 +442,10 @@ IOL::resync(const char *code)
 		s[len-1]=0;
 
 		if( create_course_directory(s) == -1 )
+		{	rs_log_error("error creating dir `%s'",s);
+			rs_log_error("%s",strerror(errno) );
 			ret = E_FS;
+		}
 		else
 		{	std::list<char *> files;
 			std::list <char *>::iterator iter;
@@ -414,10 +507,11 @@ write_data_to_memory (void *ptr, size_t size, size_t nmemb, void *data)
 	
 	mem->data = (char *)realloc(mem->data, mem->size + realsize + 1);
 	if (mem->data) 
-	{ 	memcpy(&(mem->data[mem->size]), ptr, realsize);
+	{ 	memcpy(mem->data + mem->size, ptr, realsize);
 		mem->size += realsize;
 		mem->data[mem->size] = 0;
 	}
+
 	return realsize;
 }
            
