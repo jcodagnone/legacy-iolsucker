@@ -3,7 +3,8 @@
  *
  * Copyright (C) 2001 Free Software Foundation, Inc.
  *
- * ported to compile with IOL by Juan F. Codagnone
+ * ported to compile with IOL/curl by Juan F. Codagnone (2003)
+ * (the code that use tab as indentation :^D )
  *
  * GNU Wget is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,7 +130,7 @@ legible_1 (const char *repr)
    largest 64-bit number, the `-' sign in case it's negative, and the
    terminating '\0'.  */
 
-char *
+static char *
 number_to_string (char *buffer, long number)
 {
   char *p = buffer;
@@ -180,7 +181,7 @@ number_to_string (char *buffer, long number)
 }
 
 /* Legible -- return a static pointer to the legibly printed long.  */
-char *
+static char *
 legible (long l)
 {
   char inbuf[24];
@@ -849,7 +850,7 @@ create_image (struct bar_progress *bp, long dltime)
 /* Determine the width of the terminal we're running on.  If that's
    not possible, return 0.  */
 
-int
+static int
 determine_screen_width (void)
 {
   /* If there's a way to get the terminal size using POSIX
