@@ -1,3 +1,7 @@
+iolsucker-2.0.29: glib-2.6.x (Fri Feb 25 2005)
+  o la glib-2.6.x tiene problemas con alguns funciones  inlines que provee.
+    Generan un problema   e linkedicion. Gracias Javier Ruere!
+
 iolsucker-2.0.28: Jeepers Creepers  (Thu Sep 2 2004)
   o bugfix release: IOL ha cambiado nuevamente la interfase de material
     didactico: una pequeña variación de la antigua forma.
