@@ -90,6 +90,13 @@ SOURCE=..\..\lib\trio\compare.c
 # Begin Source File
 
 SOURCE=..\..\lib\trio\strio.h
+
+!IF  "$(CFG)" == "libmisc - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "libmisc - Win32 Debug"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -175,10 +182,20 @@ SOURCE=..\..\lib\queue.h
 # Begin Source File
 
 SOURCE=..\..\lib\snprintf.c
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\lib\snprintf.h
+# PROP Exclude_From_Build 1
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\lib\stm.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\lib\stm.h
 # End Source File
 # Begin Source File
 
