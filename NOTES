@@ -1,3 +1,6 @@
+iolsucker-2.0.21: Late nights
+  o faltaron algunos bits al ultimo item del 2.0.20
+
 iolsucker-2.0.20:
   o gen_func.sh no estaba en el cvs. Gracias Julio F. Pintos
   o ignorar links raros
