@@ -121,6 +121,13 @@ El archivo de configuración tiene una estructura jerarquica:
 .br
 		<rep>/tmp/iol</rep>
 .br
+		<fancy></fancy>
+.br
+                <forum/>
+.br
+                <wait/>
+
+.br
 	</login>
 .br
 	<proxy>
@@ -133,12 +140,7 @@ El archivo de configuración tiene una estructura jerarquica:
 .br
 		<type>socks5</type>
 .br	
-		<fancy></fancy>
-.br
-                <forum/>
-.br
-                <wait/>
-.br
+
 	</proxy>
 .br
 </iolsucker>
