@@ -32,6 +32,11 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef HAVE_ISATTY
+  #include <unistd.h>
+#else
+  #define isatty(m) (1)
+#endif
 
 #include <glib.h>
 #include <curl/curl.h>
@@ -157,43 +162,47 @@ static int
 transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 {	CURLcode res;
 	FILE *fp = NULL;
-	struct progress progress;
+	struct progress *progress = NULL;
 
 	if( curl == NULL || url == 0 || url[0]==0)
 		return E_INVAL;
 
-	/*rs_log_info(_("downloading %s"),url); 
-	 */
+	/* rs_log_info(_("downloading %s"),url);  */
 	
-	/*if( flags & TP_FILE )*/
-	{	
+	if( flags & TP_FILE )
+	{	void *ptr;
+
 		curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data_to_file);
-		fp = fopen(/*data*/"/tmp/pepe","wb");	
+		fp = fopen(data, "wb");	
 		if( fp == NULL )
 			return E_NETWORK;
 		curl_easy_setopt(curl, CURLOPT_FILE, fp);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, 
-		                  dot_progress_callback);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progress);
-		memset(&progress,0,sizeof(progress));
+
+		if( isatty(fileno(stdout)) )
+			ptr = bar_progress_callback;
+		else
+			ptr = dot_progress_callback;
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ptr);
+		progress = new_progress_callback(ptr);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
 	}
-	/*else
+	else
 	{ 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
 		                       write_data_to_memory);
 		curl_easy_setopt(curl, CURLOPT_FILE, data); 
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, TRUE);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, NULL);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, NULL);
-	}*/
+	}
 	
-	curl_easy_setopt(curl, CURLOPT_URL, /*url*/ "http://mini/1");
+	curl_easy_setopt(curl, CURLOPT_URL, url);
 	res = curl_easy_perform(curl);
 
 	if( fp )
 		fclose(fp);
-	if( progress.data )
-		dot_finish(progress.data, time(NULL));
+	if( progress )
+		destroy_progress_callback(progress);
 
 	return res == 0 ? E_OK : E_NETWORK;
 }
@@ -296,7 +305,6 @@ static void
 link_courses_fnc( const char *link, const char *comment, void *d )
 {	GSList **listptr =  d;
 	struct course *course; 
-	unsigned nivel;
 	char *s;
 
 	assert(d);
@@ -676,7 +684,6 @@ iol_resync(iol_t iol, const char *code)
 	else
 	{       char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
 	                                  IOL_MATERIAL_FOLDER);
-		struct stat buf;
 
 		/* try to create course folder */ 
 		if( create_course_directory(s) == -1 ) 

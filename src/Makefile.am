@@ -1,7 +1,7 @@
 AM_CFLAGS = @CFLAGS@ -I../lib @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@
 AM_LDFLAGS = @LDFLAGS@  -L../lib -L. 
 
-LIBS =  -lmisc @CURL_LIBS@ @LIBS@ -lefence  @XML_LIBS@ @GLIB_LIBS@
+LIBS =  @CURL_LIBS@ @LIBS@  @XML_LIBS@ @GLIB_LIBS@ -lefence
 
 bin_PROGRAMS = iolsuck link
 
@@ -18,7 +18,10 @@ iolsuck_SOURCES = \
 	link.h			\
 	link_debug.c		\
 	ask_pass.c		\
-	ask_pass.h
+	ask_pass.h		\
+	progress.c
+
+iolsuck_LDADD = ../lib/libmisc.a
 
 link_debug.c:	link.c gendebug.sh
 	gendebug.sh < link.c > link_debug.c
