@@ -10,6 +10,7 @@ SUBDIRS = \
 	doc \
 	win32 \
 	iolwizard \
+	iolunch \
 	extra
 
 WINPREFIX = /tmp/iol/$(distdir)
