@@ -111,6 +111,7 @@ rot13(char *data)
 #define IOL_HOST	"iol_host"
 #define IOL_XENOFOBE    "xenfobe"
 #define IOL_NO_CACHE    "no_cache"
+#define IOL_DUMP         "dump"
 
 int
 save_config_file(struct opt *opt)
@@ -152,6 +153,8 @@ save_config_file(struct opt *opt)
 	                          opt->xenofobe ? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_NO_CACHE, 
 	                          opt->no_cache? t : f);
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_DUMP, 
+	                          opt->dump ? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_VERBOSE, 
 	                          opt->verbose ? t : f);
 	return r == 1 ? 0 : -1;
@@ -271,6 +274,7 @@ load_config_file(struct opt *opt)
 		{ IOL_PROXY_TYPE, &(proxy_type),0, 0},
 		{ IOL_PROXY_USER, &(opt->proxy_user), 0, 1 },
 		{ IOL_HOST,	&(opt->server), 0, 0 }
+		{ IOL_DUMP,	&(opt->dump), 0, 0 }
 	};
 	struct config_bool table_bool[] =
 	{	{ IOL_DRY,	&(opt->dry),	0},

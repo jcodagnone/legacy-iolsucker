@@ -115,6 +115,11 @@ struct course
 	enum resync_flags flags;
 };
 
+struct dump 
+{	char *path;      /**< directory where dumps are dumped (duh!) */
+	unsigned index;  /**< index -> unique file */
+};
+
 /**
  * Concrete data type for the IOL object */
 struct iolCDT
@@ -135,6 +140,7 @@ struct iolCDT
 	int xenofobe;           /**< show forein files (the ones that aren't 
 	                             from iol's repository) */
 	int no_cache;           /**< use cache feature? */
+	struct dump dump;
 
 	FILE *logfp;		/**< logfile filepointer */
 
@@ -178,6 +184,34 @@ write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
 
 	
 	return fwrite(ptr, size, nmemb, fp);
+}
+
+struct dump_transfer
+{	struct buff *mem;
+	FILE *realfp;
+	FILE *dumpfp;
+};
+
+static size_t
+write_data_to_memory_and_dump(void *ptr, size_t size, size_t nmemb, void *data)
+{	struct dump_transfer *d = data;
+	size_t ret;
+	
+	ret = write_data_to_memory(ptr, size, nmemb, d->mem);
+	write_data_to_file(ptr, size, nmemb, d->dumpfp);
+
+	return ret;
+}
+
+static size_t
+write_data_to_file_and_dump(void *ptr, size_t size, size_t nmemb, void *data)
+{	struct dump_transfer *d = data;
+	size_t ret;
+
+	ret = write_data_to_file(ptr, size, nmemb, d->realfp);
+	write_data_to_file(ptr, size, nmemb, d->dumpfp);
+
+	return ret;
 }
 
 #ifdef HAVE_CURLOPT_DEBUGDATA
@@ -237,26 +271,54 @@ count_bytes(CURL *curl)
  *  in a file.
  */
 static int
-transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
-{	CURLcode res;
-	FILE *fp = NULL;
+transfer_page( CURL *curl, const char *url, unsigned flags, void *data, 
+               struct dump *dump)
+{	struct dump_transfer dt = { 0 };
 	struct progress *progress = NULL;
-
+	void *fnc = 0, *fncdata = 0;
+	CURLcode res; 
+	
 	if( curl == NULL || url == 0 || url[0]==0)
 		return E_INVAL;
 
-	/* rs_log_info(_("downloading %s"),url);  */
+	if( dump->path )
+	{	char *file = g_strdup_printf("%s/%03u_%s", dump->path, 
+		                             dump->index++, url);
+		char *s = file + strlen(dump->path) + 1;
+		
+		if( mkrdir(dump->path, 0700) == -1 && errno != EEXIST )
+			rs_log_warning("creating dump dir `%s'", dump->path );
+
+		for( ; *s ; s++ )
+			if( *s == '/' )
+				*s = '_';
+				
+		dt.dumpfp = fopen(file, "wb");
+		if( dt.dumpfp == NULL )
+			rs_log_warning("can't dump url `%s' to `%s' (ignoring)",
+			                url, file);
+
+		g_free(file);
+	}
 	
 	if( flags & TP_FILE )
 	{	void *ptr;
-
-		curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_data_to_file);
-		fp = fopen(data, "wb");	
-		if( fp == NULL )
+		
+		dt.realfp  = fopen(data, "wb");	
+		if( dt.realfp == NULL )
 			return E_INVAL;
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
 
+		if( dt.dumpfp == NULL )
+		{	fnc  = write_data_to_file_and_dump;
+			fncdata = &dt;
+		}
+		else
+		{	fnc = write_data_to_file;
+			fncdata = dt.realfp;
+		}
+		
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
+		
 		if( isatty(fileno(stdout)) )
 			ptr = bar_progress_callback;
 		else
@@ -266,20 +328,32 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, progress);
 	}
 	else
-	{ 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-		                       write_data_to_memory);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data); 
+	{ 	if( dt.dumpfp )
+		{	fnc     = write_data_to_memory_and_dump;
+			dt.mem = data;
+			fncdata = &dt;
+		}
+		else
+		{	fnc     = write_data_to_memory;
+			fncdata = data;
+		}
+		
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, TRUE);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, NULL);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, NULL);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA,     NULL);
 	}
-	
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, fncdata);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fnc);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
+
 	res = curl_easy_perform(curl);
 	count_bytes(curl);
 
-	if( fp )
-		fclose(fp);
+	if( dt.realfp )
+		fclose(dt.realfp);
+	if( dt.dumpfp)
+		fclose(dt.dumpfp);
+
 	if( progress )
 		destroy_progress_callback(progress);
 	curl_easy_setopt(curl, CURLOPT_URL, "");
@@ -613,6 +687,22 @@ iol_set_no_cache(iol_t cdt, int *no_cache)
 	return ret;
 }
 
+static int
+iol_set_dump(iol_t cdt, const char *dump)
+{	int ret = E_OK;
+	
+	if( dump )
+	{	cdt->dump.path  = strdup(dump);
+		cdt->dump.index = 0;
+		if( cdt->dump.path == NULL )
+			ret = E_MEMORY;
+	}
+	else
+		ret = E_INVAL;
+		
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -632,7 +722,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_WAIT,       (iol_set_fnc) iol_set_wait       },
 		{	IOL_HOST,       (iol_set_fnc) iol_set_host       },
 		{	IOL_XENOFOBE,   (iol_set_fnc) iol_set_xenofobe   },
-		{	IOL_NO_CACHE,   (iol_set_fnc) iol_set_no_cache   }
+		{	IOL_NO_CACHE,   (iol_set_fnc) iol_set_no_cache   },
+		{	IOL_DUMP,       (iol_set_fnc) iol_set_dump       }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -795,8 +886,8 @@ iol_login(iol_t iol, const char *user, const char *pass)
 	else
 	{       struct buff buf = {NULL, 0};
 		
-		/* yummm!!! get a cookie */ 
-		if( transfer_page(iol->curl, url, 0, NULL)!= E_OK )
+		/* yummm!!! cookiessss */ 
+		if( transfer_page(iol->curl, url, 0, NULL, &iol->dump)!= E_OK )
 			nRet = E_NETWORK;
 		else if( (url = iol_get_url(iol, URL_LOGIN_1)) == NULL) 
 			nRet = E_MEMORY;
@@ -813,7 +904,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			 */
 			curl_easy_setopt(iol->curl,CURLOPT_FAILONERROR, 0);
 			
-			if(transfer_page(iol->curl, url,0,&buf) != E_OK)
+			if(transfer_page(iol->curl,url,0,&buf,&iol->dump)!=E_OK)
 				nRet = E_NETWORK;
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
@@ -842,7 +933,7 @@ iol_logout(iol_t iol)
 	else if( (url = iol_get_url(iol, URL_LOGOUT) ) == NULL )
 		nRet = E_MEMORY;
 	else if( iol->bLogged  )
-	{	transfer_page(iol->curl, url, 0, NULL);
+	{	transfer_page(iol->curl, url, 0, NULL, &iol->dump);
 		iol->bLogged = 0;
 	}
 	else
@@ -960,7 +1051,7 @@ iol_set_current_course(iol_t iol, const char *course)
 		if( iol->wait )
 			sleep(5); 
 		
-		if( transfer_page(iol->curl, s, 0, &page) != E_OK )
+		if( transfer_page(iol->curl, s, 0, &page, &iol->dump) != E_OK )
 			ret = E_NETWORK;
 		else
 			c->flags = get_course_capabilities(&page);
@@ -1163,7 +1254,7 @@ _iol_get_url_from_fid(iol_t iol, unsigned long fid, const char *fid_sz)
 		snprintf(tmp, sizeof(tmp), IOL_SHOWFILE, fid_sz);
 		tmp[sizeof(tmp)-1]=0;
 		url = iol_get_url(iol, tmp);
-		if( transfer_page(iol->curl, url, 0, &buf) == E_OK )
+		if( transfer_page(iol->curl, url, 0, &buf, &iol->dump) == E_OK )
 		{
 			if( buf.size && buf.data  )
 			{	buf.data[buf.size - 1] = 0; /* hack */
@@ -1279,7 +1370,7 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		webpage.data = NULL;
 		webpage.size = 0;
 
-		if(transfer_page(iol->curl, eurl, 0, &webpage)!=E_OK)
+		if(transfer_page(iol->curl, eurl, 0, &webpage,&iol->dump)!=E_OK)
 			ret = E_NETWORK;
 		else
 		{	link_parser_t parser;
@@ -1437,7 +1528,8 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 				if( d->iol->dry )
 					;
 				else if( transfer_page(d->iol->curl, f,
-				                       TP_FILE, download) == 0 )
+				                       TP_FILE, download,
+						       &d->iol->dump) == 0 )
 					rename(download,local);
 				else
 				{	remove(download);
@@ -1546,7 +1638,7 @@ iol_resync_forum(iol_t iol, const struct course *courses)
 	char *url = iol_get_url(iol, IOL_FORUM);
 	int ret = E_OK;
 	
-	if(transfer_page(iol->curl,url,0,&webpage)!=E_OK)
+	if(transfer_page(iol->curl,url,0,&webpage, &iol->dump)!=E_OK)
 		ret = E_NETWORK;
 	else
 	{	
@@ -1681,7 +1773,7 @@ iol_get_new_novedades( iol_t iol, unsigned *n )
 	else if( (url=iol_get_url(iol, IOL_NEWS))== NULL )
 		ret = E_MEMORY;
 	else
-	{	if( transfer_page(iol->curl, url, 0, &page)!= E_OK )
+	{	if( transfer_page(iol->curl, url, 0, &page,&iol->dump)!= E_OK )
 	        	ret = E_NETWORK;
 	        else
 	        {	link_parser_t parser;

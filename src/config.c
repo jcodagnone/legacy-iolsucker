@@ -132,6 +132,7 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 		{  "wait", &(opt->wait),  0, CT_FLAG },
 		{  "xenofobe", &(opt->xenofobe),  0, CT_FLAG },
 		{  "no_cache", &(opt->no_cache),  0, CT_FLAG },
+		{  "dump",     &(opt->dump),  0, CT_SZ },
 		{  "host", &(opt->server),  0, CT_SZ },
 	};
 

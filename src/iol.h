@@ -16,6 +16,8 @@ enum iol_settings {
 	IOL_HOST,	/**< address or name of the server. data <host[:port]>*/
 	IOL_XENOFOBE,   /**< show forein files? default: FALSE data: (int *) */
 	IOL_NO_CACHE,   /**< don't use any cache. default: FALSE data: (int *)*/
+	IOL_DUMP,       /**< path donde dumpear todas las transferencias 
+	                 *   default FALSE. data: (char *) */
 	IOL_MAX
 };
 
