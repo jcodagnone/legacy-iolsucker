@@ -64,7 +64,7 @@ struct tmp
 	GtkWidget *hwnd, *frame_proxy;
 	GtkWidget *edtUser, *edtPass, *edtRep;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
-	GtkWidget *chkDry, *chkFancy, *chkForum;
+	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait;
 	char *msg;
 };
 
@@ -198,6 +198,8 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkDry), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkFancy), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkForum), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkVerbose), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkWait), 0);
 
 }
 
@@ -291,6 +293,21 @@ forum_fnc( GtkWidget *widget, struct tmp *tmp )
 	tmp->opt->forum =
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkForum));
 }
+
+static void
+verbose_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->verbose =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkVerbose));
+}
+
+static void
+wait_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->wait =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkWait));
+}
+
 
 /*
  * EDIT CONTROLS
@@ -419,18 +436,23 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 static void
 create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *chkDry, *chkFancy, *chkForum;
-	GtkWidget *vbox;
+{ 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait;
+	GtkWidget *table;
 
 	/* extra frame */
-	vbox = gtk_vbox_new(FALSE, 0);
+	table = gtk_table_new (3, 3, FALSE);
 	chkDry   = gtk_check_button_new_with_label(_("Dry Run"));
 	chkFancy = gtk_check_button_new_with_label(_("Fancy Names"));
 	chkForum = gtk_check_button_new_with_label(_("Resync Foros"));
-	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
-	gtk_box_pack_start(GTK_BOX(vbox), chkDry,   FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), chkFancy, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), chkForum, FALSE, FALSE, 0);
+	chkVerbose= gtk_check_button_new_with_label(_("Verbose"));
+	chkWait = gtk_check_button_new_with_label(_("Wait"));
+	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
+
+	gtk_table_attach(GTK_TABLE(table),chkDry,0,1,0,1,GTK_FILL,     0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkFancy,0,1,1,2,GTK_FILL,   0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkForum,1,2,0,1,GTK_FILL,   0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkVerbose,1,2,1,2,GTK_FILL, 0, 4,0);
+	gtk_table_attach(GTK_TABLE(table),chkWait,2,3,0,1,GTK_FILL, 0, 4,0);
 
 	/* signals */
 	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
@@ -439,6 +461,11 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                           GTK_SIGNAL_FUNC(fancy_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkForum),"toggled",
 	                           GTK_SIGNAL_FUNC(forum_fnc), tmp);
+	gtk_signal_connect(GTK_OBJECT(chkVerbose),"toggled",
+	                           GTK_SIGNAL_FUNC(verbose_fnc), tmp);
+	gtk_signal_connect(GTK_OBJECT(chkVerbose),"toggled",
+	                           GTK_SIGNAL_FUNC(wait_fnc), tmp);
+	                           
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
          _("activar la ejecucion en seco: no se descarga ningun archivo"),NULL);
@@ -447,15 +474,26 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkForum,
 	 _("resincronizar los foros? por ahora solo advierte de cambios en los"
 	   "los foros. (no baja los mensajes)"),NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkVerbose,
+	 _("imprime información extra sobre la conexion. util para cuando las"
+	   "cosas no funcionan"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkWait,
+	 _("esperar unos segundos en el cambio de contexo de materias. "
+	   "Util cuando el programa imprime el mensaje de que el server tiene "
+	   "problemas con los contextos"), NULL);
+	   
 	/* save data */
 	tmp->chkDry = chkDry;
 	tmp->chkFancy = chkFancy;
 	tmp->chkForum = chkForum;
-
+	tmp->chkVerbose = chkVerbose;
+	
 	/* default values */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkFancy),tmp->opt->fancy);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkForum),tmp->opt->forum);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkVerbose),
+	                             tmp->opt->verbose);
 }
 
 
