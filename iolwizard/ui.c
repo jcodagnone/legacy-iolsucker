@@ -67,7 +67,7 @@ struct tmp
 
 static void 
 sync_data(struct tmp *tmp)
-{	char *s, *ss;
+{	G_CONST_RETURN char *s, **ss;
 	int l;
 
 	strncpy(tmp->opt->username,
@@ -80,7 +80,7 @@ sync_data(struct tmp *tmp)
 	        gtk_entry_get_text(GTK_ENTRY(tmp->edtRep)),
 	        sizeof(tmp->opt->repository));
 	s=gtk_entry_get_text(GTK_ENTRY(tmp->edtSHost));
-	tmp->opt->server = s && *s ? s : NULL;
+	tmp->opt->server = s && *s ? strdup(s) : NULL;
 
 	tmp->opt->username[sizeof(tmp->opt->username)-1] = 0;
 	tmp->opt->password[sizeof(tmp->opt->password)-1] = 0;
@@ -122,7 +122,7 @@ sync_data(struct tmp *tmp)
 		if( *ss )
 		{	tmp->opt->proxy_user=malloc(strlen(s)+1+ strlen(ss) +1);
 			if( tmp->opt->proxy_user )
-				sprintf(tmp->opt->proxy_user,"%s:%s",s,ss);
+				sprintf(tmp->opt->proxy_user,"%s:%s", s, ss);
 		}
 		else
 			tmp->opt->proxy_user = strdup(s);		
@@ -220,7 +220,7 @@ repbrowse_cancel( GtkWidget *widget, struct repbrowse *rb)
 
 static void
 repbrowse_ok( GtkWidget *widget, struct repbrowse *rb)
-{	char *s;
+{	G_CONST_RETURN char *s;
 
 	s = gtk_file_selection_get_filename(GTK_FILE_SELECTION(rb->fs));
 	gtk_entry_set_text(GTK_ENTRY(rb->tmp->edtRep), s);
@@ -231,7 +231,7 @@ static void
 repbrowse_fnc( GtkWidget *widget, struct tmp *tmp )
 { 	GtkWidget *browse;
 	struct repbrowse *rb;
-	gchar *s;
+	G_CONST_RETURN gchar *s;
 
 	rb = malloc(sizeof(*rb));
 	if( rb == NULL )
@@ -259,7 +259,7 @@ repbrowse_fnc( GtkWidget *widget, struct tmp *tmp )
  */
 static void
 changed_combo_fnc( GtkCombo *widget, struct tmp *tmp)
-{	gchar *s;
+{	G_CONST_RETURN gchar *s;
 
 	s = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(tmp->cmbType)->entry));
 
@@ -329,7 +329,7 @@ no_cache_fnc( GtkWidget *widget, struct tmp *tmp )
  */
 static void
 edtUser_changed( GtkWidget *widget, struct tmp *tmp )
-{	gchar *s;
+{	G_CONST_RETURN gchar *s;
 
 	s = gtk_entry_get_text(GTK_ENTRY(widget));
 	gtk_widget_set_sensitive(tmp->edtPass, ( s && *s ) );
@@ -339,7 +339,7 @@ edtUser_changed( GtkWidget *widget, struct tmp *tmp )
 
 static void
 edtHost_changed( GtkWidget *widget, struct tmp *tmp )
-{	gchar *s;
+{	G_CONST_RETURN gchar *s;
 
 	s = gtk_entry_get_text(GTK_ENTRY(widget));
 	gtk_widget_set_sensitive(tmp->spnPort, ( s && *s ) );
