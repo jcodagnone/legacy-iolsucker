@@ -213,8 +213,9 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data, int *err
 		fclose(fp);
 	if( progress )
 		destroy_progress_callback(progress);
+	if( error )
+		*error = res;
 
-	*error = res;
 	return res == 0 ? E_OK : E_NETWORK;
 }
 

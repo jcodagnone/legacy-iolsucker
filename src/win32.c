@@ -91,13 +91,14 @@ rot13(char *data)
 		         ((*s- 'A' + 13) % 26 + 'A') :
 		         *s) | cap;
 	}
-	
+	return data;
 }
 
 #define IOL_ROOT	HKEY_CURRENT_USER
 #define IOL_PATH	"Software\\Embryo Software\\iolsucker"
 #define IOL_USER	"username"
 #define IOL_PASS	"password"
+#define IOL_REPO	"repository"
 #define IOL_DRY 	"dry_run"
 #define IOL_PROXY_HOST	"proxy"
 #define IOL_PROXY_USER	"proxy_user"
@@ -108,13 +109,23 @@ save_config_file(struct opt *opt)
 	char *t = "1", *f = "0";
 	
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,opt->username); 
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_REPO,opt->repository);
+	rot13(opt->password);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PASS,opt->password); 
-	if( opt->proxy )
-		 r&=registry_change_string(IOL_ROOT,IOL_PATH,
-		                          IOL_PROXY_HOST,opt->proxy);
-	if( opt->proxy_user )
-		 r&=registry_change_string(IOL_ROOT,IOL_PATH,
+	rot13(opt->password);
+
+	r&=registry_change_string(IOL_ROOT,IOL_PATH, IOL_PROXY_HOST,
+	                          opt->proxy ? opt->proxy : "" );
+	if(opt->proxy_user )
+	{	rot13(opt->proxy_user);
+		r&=registry_change_string(IOL_ROOT,IOL_PATH,
 		                           IOL_PROXY_USER, opt->proxy_user); 
+		rot13(opt->proxy_user);
+	}
+	else
+	{	r&=registry_change_string(IOL_ROOT,IOL_PATH,
+		                           IOL_PROXY_USER, ""); 
+	}
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_DRY, opt->dry ? t : f);
 	
 	return r == 1 ? 0 : -1;
@@ -138,6 +149,14 @@ load_config_file(struct opt *opt)
 			opt->password[sizeof(opt->password)-1] = 0;
 			rot13(opt->password);
 		}
+
+	}
+	if( opt->repository[0] == 0 )
+	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_REPO, buf,
+                                        sizeof(buf) ) == TRUE )
+		{	strncpy(opt->repository,buf,sizeof(opt->repository));
+			opt->repository[sizeof(opt->repository)-1] = 0;
+		}
 	}
 	if( opt->proxy == NULL )
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
@@ -154,12 +173,11 @@ load_config_file(struct opt *opt)
                                         sizeof(buf) ) == TRUE )
 			opt->proxy_user = strdup(buf);
 			if( opt->proxy_user && opt->proxy_user[0] == 0 )
-			{	if( opt->proxy_user[0] == 0 )
-				{	free(opt->proxy_user);
-					opt->proxy_user = NULL;
-					rot13(opt->proxy_user);
-				}
+			{	free(opt->proxy_user);
+				opt->proxy_user = NULL;
 			}
+			else
+				rot13(opt->proxy_user);
 	}
 
 	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_DRY, buf,

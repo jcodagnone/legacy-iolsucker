@@ -27,6 +27,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#ifdef HAVE_UNISTD_H
+	#include <unistd.h>
+#else
+	#include <unix.h>
+#endif
 
 #include <i18n.h>
 #include <trace.h>
@@ -47,12 +52,14 @@
 #define SIZE_X	320
 #define SIZE_Y	320
 
+static int exec_iolwizard(void);
+
 struct tmp 
 { 	struct opt *opt;
 	GtkWidget *hwnd, *frame_proxy;
 	GtkWidget *edtUser, *edtPass, *edtRep;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass;
-	GtkWidget *chkProxy, *chkDry;
+	GtkWidget *chkDry;
 	char *msg;
 };
 
@@ -75,9 +82,8 @@ hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
 /*
  * BUTTONS
  */ 
- 
 static void 
-resync_fnc( GtkWidget *widget, struct tmp *tmp )
+sync_data(struct tmp *tmp)
 {	char *s, *ss;
 	int l;
 
@@ -106,6 +112,11 @@ resync_fnc( GtkWidget *widget, struct tmp *tmp )
 		{	sprintf(tmp->opt->proxy,"%s:%d",s,l);
 		}
 	}
+	else
+	{	free(tmp->opt->proxy);
+		tmp->opt->proxy =NULL;
+	}
+		
 	
 	s   = gtk_entry_get_text(GTK_ENTRY(tmp->edtPUser));
 	ss  = gtk_entry_get_text(GTK_ENTRY(tmp->edtPPass));
@@ -120,9 +131,31 @@ resync_fnc( GtkWidget *widget, struct tmp *tmp )
 		else
 			tmp->opt->proxy_user = strdup(s);		
 	}
+	else
+	{	free(tmp->opt->proxy_user);
+		tmp->opt->proxy_user = NULL;
+	}
+} 
+static void 
+resync_fnc( GtkWidget *widget, struct tmp *tmp )
+{
 
-	if( save_config_file(tmp->opt) == -1 )
-		show_error(_("no se ha podido guardar esta nueva informacion"));
+	sync_data(tmp);
+	if( access(tmp->opt->repository, W_OK|X_OK) == -1 )
+		show_error(_("el directorio del repositorio no existe,\n"
+		             "o usted no tiene suficientes permisos sobre el"));
+	else if( tmp->opt->username[0]==0 || tmp->opt->password[0]==0 )
+		show_error(
+		_("el nombre de usuario o la password estan vacias"));
+	else
+	{
+		sync_data(tmp);
+	 	if( save_config_file(tmp->opt) == -1 )
+			show_error(_("no se ha podido guardar esta nueva "
+			             "informacion"));
+		else
+			exec_iolwizard();
+	}
 }
 
 static void
@@ -132,6 +165,7 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	memset(tmp->opt->password,0,sizeof(tmp->opt->password));
 	free(tmp->opt->proxy);
 	free(tmp->opt->proxy_user);
+	tmp->opt->proxy = tmp->opt->proxy_user = NULL;
 	tmp->opt->dry = 0;
 	if( save_config_file(tmp->opt) == -1 )
 		show_error(_("no se ha podido guardar esta nueva informacion"));
@@ -144,7 +178,6 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_entry_set_text(GTK_ENTRY(tmp->edtPPass),"");
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(tmp->spnPort),(double)1080);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkDry), 0);
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkProxy), 0);
 
 }
 
@@ -168,14 +201,6 @@ repbrowse_fnc( GtkWidget *widget, struct tmp *tmp )
 
 /*  CHECK-BOXES
  */
-static void
-useproxy_fnc(  GtkWidget *widget, struct tmp *tmp )
-{	gboolean b;
-
-	b =  gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkProxy));
-	gtk_widget_set_sensitive(tmp->frame_proxy, b);
-}
-
 
 static void
 dryrun_fnc( GtkWidget *widget, struct tmp *tmp )
@@ -304,37 +329,26 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 
 static void
 create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
-{ 	GtkWidget *chkProxy, *chkDry;
+{ 	GtkWidget *chkDry;
 	GtkWidget *vbox;
 
 	/* extra frame */
 	vbox = gtk_vbox_new(FALSE, 0);
-	chkProxy = gtk_check_button_new_with_label(_("Use Proxy"));
 	chkDry   = gtk_check_button_new_with_label(_("Dry Run"));
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
-	gtk_box_pack_start(GTK_BOX(vbox), chkProxy, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), chkDry,   FALSE, FALSE, 0);
 
 	/* signals */
-	gtk_signal_connect(GTK_OBJECT(chkProxy),"toggled",
-	                           GTK_SIGNAL_FUNC(useproxy_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
 	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
 	/* tooltips */
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkProxy,
-	                    _("activar soporte para proxy. si no sabe lo que "
-	                      "es un proxy no lo active :^)"),NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
 	                    _("activar la ejecucion en seco: no se descarga "
 	                      "ningun archivo"),NULL);
 	/* save data */
-	tmp->chkProxy = chkProxy;
 	tmp->chkDry = chkDry;
 	
 	/* default values */
-	gtk_signal_emit_by_name(GTK_OBJECT(chkProxy),"toggled");
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkProxy),
-	                             tmp->opt->proxy!=NULL);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);
 }
 
@@ -410,6 +424,9 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 			gtk_entry_set_text(GTK_ENTRY(edtHost), tmp->opt->proxy);
 
 	}
+	else
+		gtk_entry_set_text(GTK_ENTRY(edtHost),"");
+
 	if( tmp->opt->proxy_user )
 	{	char *s;
 		s = strrchr(tmp->opt->proxy_user,':');
@@ -421,6 +438,10 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 			gtk_entry_set_text(GTK_ENTRY(edtPPass),s+1);
 			*s = ':';
 		}
+		else
+			gtk_entry_set_text(GTK_ENTRY(edtPUser),
+			                   tmp->opt->proxy_user);
+
 	}
 }
 
@@ -489,3 +510,21 @@ create_ui(struct opt *opt)
 
 
 }
+
+#ifdef WIN32
+#include <windows.h>
+static int
+exec_iolwizard(void)
+{	HINSTANCE ret;
+
+	ret = ShellExecute(NULL,"open", "iolsucker", "", NULL, SW_SHOW);
+	
+	return ret < 31 ? -1 : 0;
+}
+#else
+static int
+exec_iolwizard(void)
+{	
+	return -1;
+}
+#endif
