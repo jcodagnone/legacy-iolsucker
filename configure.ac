@@ -40,7 +40,6 @@ AC_ISC_POSIX
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
-AC_CHECK_HEADERS([stdlib.h string.h ])
 AC_CHECK_HEADERS([stdlib.h string.h unistd.h limits.h sys/file.h])
 AC_CHECK_HEADERS([termios.h syslog.h])
 
@@ -57,7 +56,7 @@ AM_PATH_GLIB_2_0
 
 AC_CHECK_FUNCS([memset strchr strtol strrchr])
 AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
-AC_CHECK_FUNCS([strtol])
+AC_CHECK_FUNCS([strtol isatty])
 AC_FUNC_STAT
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
