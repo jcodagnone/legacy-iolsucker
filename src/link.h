@@ -4,13 +4,23 @@
 typedef void (*link_callback)(const char *link, const char *callback, void *);
 typedef struct link_parserCDT * link_parser_t;
 
-
+/** creates a parser object */
 link_parser_t link_parser_new(void);
-void link_parser_set_debug(link_parser_t parser, int b);
+
+/** destroys a parser object */
 void link_parser_destroy(link_parser_t parser);
+
+/** enable printing debug information */
+void link_parser_set_debug(link_parser_t parser, int b);
+
+/** 
+ * set the callback for the function that is called 
+ * every time a link is found
+ */
 void link_parser_set_link_callback(link_parser_t parser,link_callback call,
                                     void *d );
 
+/** feed the state machine with one character */
 int link_parser_proccess_char( link_parser_t parser, int c );
 
 void link_parser_end(link_parser_t parser);

@@ -3,9 +3,19 @@
 
 #include "main.h"
 
+/**
+ *  load settings from rcfile
+ *
+ *  \returns 0 if everything is ok.
+ */
 int
 load_config_file(struct opt *opt);
 
+/**
+ * save current settings to the rcfile
+ *
+ *  \returns 0 if everything is ok.
+ */
 int
 save_config_file(const struct opt *opt);
 

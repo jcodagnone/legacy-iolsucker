@@ -1,7 +1,8 @@
 #ifndef Z379A95B12D99D055293635656DD491C6
 #define Z379A95B12D99D055293635656DD491C6
 
-
+/* magic numbers 
+ */
 enum {
 	MAX_USERNAME = 16,
 	MAX_PASSWORD = 128,
@@ -9,6 +10,9 @@ enum {
 	MAX_REPOSITORY = MAX_CONFIGFILE
 };
 
+/**
+ * command line options
+ */
 struct opt {
 	char username[MAX_USERNAME];
 	char password[MAX_PASSWORD];
@@ -23,10 +27,10 @@ struct opt {
 	int forum;
 };
 
-int
-parseOptions( int argc, char * const * argv, struct opt *opt);
+/** parse command line options */
+int parseOptions( int argc, char * const * argv, struct opt *opt);
 
-void
-free_options( struct opt *opt );
+/** free a struct opt structure */
+void free_options( struct opt *opt );
 
 #endif
