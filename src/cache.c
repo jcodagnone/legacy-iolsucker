@@ -33,6 +33,7 @@
 
 #include <sys/types.h>
 #include <db.h>
+#include <glib.h>
 
 #include <trace.h>
 #include <strdup.h>
@@ -135,7 +136,6 @@ cache_get_file( cache_t cdt, const char *id)
 			/* yes. use g_strdup. the rest of the program
 			 * is made for a g_ */
 			s = g_strdup(data.data);
-			;
 		else
 			cdt->dbp->err(cdt->dbp, ret, "DB->get");
 	}
