@@ -1,5 +1,5 @@
 /*
- * main.cpp -- IOLsucker web robot implementation
+ * iol.c -- IOLsucker web robot implementation
  *
  * Copyright (C) 2003 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -44,7 +44,7 @@
 #include "link.h"
 
 /** User Agent string reported to the webserver */
-#define USERAGENT	"test"
+#define USERAGENT	"Links (0.97; Unix; 80x25)"
 #define COOKIEFILE	"cookieiol"
 
 #define IOL_HOST        "silvestre.itba.edu.ar"
@@ -56,7 +56,7 @@
 #define URL_LOGIN_1	URL_BASE"/mynav.asp"
 #define URL_LOGIN_ARG	"txtdni=%s&txtpwd=%s&Submit=Conectar&cmd=login"
 #define URL_LOGOUT	URL_BASE"/mynav.asp?cmd=logout"
-#define URL_CHANGE 	URL_BASE"/mynav.asp?cmd=ChangeContext&amp;nivel=4&amp;snivel=%s"
+#define URL_CHANGE 	URL_BASE"/mynav.asp?cmd=ChangeContext&nivel=4&snivel=%s"
 #define URL_MATERIAL	URL_BASE"/newmaterialdid.asp" 
 #define IOL_COURSE_PARAMETER	"nivel=4"
 
@@ -78,7 +78,7 @@ struct iolCDT
 	char *cookie_file;	/**< ehhhh */
 	GSList *courses;	/**< loaded courses */ 
 	char *current_course;
-	char *repository;	 /**< repository directory */
+	char *repository;	/**< repository directory */
 };
 
 
@@ -91,8 +91,8 @@ get_cookies_file(void)
 {	char *nRet,*p;
 	size_t n;
 
-	nRet = curl_getenv("TMP"); if( nRet  == NULL ) {       if(
-	SYSTEM == UNIX )
+	nRet = curl_getenv("TMP"); if( nRet  == NULL ) 
+	{       if( SYSTEM == UNIX )
 			nRet = strdup("/tmp");
 		else if( SYSTEM == WINDOWS )
 			nRet = strdup( ".\\");
@@ -103,8 +103,7 @@ get_cookies_file(void)
 
 	n = strlen(nRet) + strlen(COOKIEFILE) + 2; p = malloc( n );
 	if( p != NULL )
-	{
-		g_snprintf(p,n,"%s%c%s",nRet, 
+	{ 	g_snprintf(p,n,"%s%c%s",nRet, 
 		          SYSTEM == UNIX ? '/' : '\\', COOKIEFILE);
 		p[n-1] = '\0'; free(nRet);
 	}
@@ -130,7 +129,7 @@ write_data_to_memory (void *ptr, size_t size, size_t nmemb, void *data)
 		mem->size += realsize; mem->data[mem->size] = 0;
 	}
 
-	return realsize;
+	return nmemb;
 }
 
 /**
@@ -308,7 +307,8 @@ parse_courses(GSList **listptr, struct buff *page)
 	return (*listptr)== NULL ? -1 : 0;
 }
 
-int iol_login(iol_t iol, const char *user, const char *pass)
+int
+iol_login(iol_t iol, const char *user, const char *pass)
 {	int nRet = E_OK;
 
 	if( !IS_IOL_T(iol) || user == NULL || pass == NULL || !*user || !*pass )
@@ -341,6 +341,7 @@ int iol_login(iol_t iol, const char *user, const char *pass)
 			curl_easy_setopt(iol->curl,CURLOPT_HTTPGET,1L);
 			g_free(s);
 		}
+		free(buf.data);
 	}
 
 	return nRet;
@@ -388,7 +389,6 @@ iol_set_current_course(iol_t iol, const char *course)
 
 	if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
 		ret = E_NETWORK;
-	g_free(s);
 
 	return	ret;
 }
@@ -415,7 +415,7 @@ static void
 foreach_printdebug(char *file, void *user_data) 
 {
 	if( file )
-		printf("%s",file);
+		printf("%s\n",file);
 }
 
 static int get_current_file_list(iol_t iol, GSList **l);
@@ -444,7 +444,6 @@ iol_resync(iol_t iol, const char *code)
 		}
 		else
 		{       GSList *files;
-
 			get_current_file_list(iol, &files);
 			g_slist_foreach(files, (GFunc)foreach_printdebug, NULL);
 		}
@@ -457,7 +456,7 @@ iol_resync(iol_t iol, const char *code)
 
 /**/
 
-/** comunication between #iol_resync_all and #foreach_resync() */ 
+/** comunication between #iol_resync_all() and #foreach_resync() */ 
 struct foreach_resync 
 {	int ret;
 	iol_t iol;
@@ -486,7 +485,7 @@ iol_resync_all(iol_t iol)
 }
 
 
-/* Download Material didactico secction
+/* Download Material didactico section
  */
 
 static int url_is_file(const char *url) 
@@ -504,40 +503,95 @@ struct tmp
 	char *prefix;
 };
 
-static void link_files_fnc( const char *link, const char *comment, void *d ) 
+static int
+is_external_link( const char *link )
+{
+	return strstr(link,"://") !=NULL;
+}
+
+static int
+is_javascript_link( const char *link)
+{	
+	return !strncmp(link,"javascript:",sizeof("javascript:"));
+}
+
+/* this is no very serius. just call curl_escape() */
+static char *
+my_url_escape(const char *url)
+{	char *s;
+	unsigned i=0,len=0;
+	
+	for(s=(char *)url; *s ; s++,len ++)
+		if( *s == ' ' )
+			i++;
+	s = malloc(len + i*2 + 1);
+	if( s == NULL )
+		return NULL;
+	for( i=0; *url; url++ , i++)
+		if( *url == ' ' )
+		{	s[i++] = '%';
+			s[i++] = '2';
+			s[i]   = '0';
+		}
+		else
+			s[i] = *url;
+	s[i]=0;
+
+	return s;
+}
+
+static int
+is_father_folder( const char *child, const char *father)
+{
+	return strstr(father, child)!=NULL;
+}
+
+static void
+link_files_fnc( const char *link, const char *comment, void *d ) 
 {	struct  tmp *t = (struct tmp *)d;
 	int bFile;
-	char *s;
+	char *s, *p;
 
-	s = g_strdup_printf("%s/%s",URL_BASE,link);
+	if( is_external_link(link) || is_javascript_link(link) )
+		return ;
+
+	p = my_url_escape(link);
+	if( p == NULL )
+		return;
+	s = g_strdup_printf("%s/%s",URL_BASE,p);
+	free(p);
 	if( s == NULL )
 		return;
-
+	rs_log_info("adding `%s'",link);
 	bFile = url_is_file(link);
 	if( bFile )
 		t->files = g_slist_prepend(t->files, s);
 	else
-		g_queue_push_head(t->pending, s);
-
+	{ 	if( is_father_folder(link,t->prefix) )
+			free(s);
+		else
+			g_queue_push_head(t->pending, s);
+	}
 }
-
 
 static int
 get_current_file_list(iol_t iol, GSList **l)
 {	struct buff webpage = { NULL, 0 };
+	char *url; 
 	struct tmp t;
-	char *url = URL_MATERIAL;
-	int bFile;
 	int ret;
 
 	t.pending = g_queue_new(); 
 	t.files = NULL;
-	g_queue_push_head(t.pending, url);
-	bFile = url_is_file(url);
-	if( bFile )
-		t.files = g_slist_prepend(t.files, (void *)g_strdup(url));
-	else
-	{
+	g_queue_push_head(t.pending, strdup(URL_MATERIAL));
+
+	while( ! g_queue_is_empty(t.pending) )
+	{	
+		url = g_queue_pop_head(t.pending);
+		t.prefix = url;
+		webpage.data = NULL;
+		webpage.size = 0;
+
 		if( transfer_page(iol->curl, url,0,&webpage) != E_OK )
 			ret = E_NETWORK;
 		else
@@ -548,7 +602,7 @@ get_current_file_list(iol_t iol, GSList **l)
 			parser = link_parser_new();
 			if( parser == NULL )
 				return 0;
-				
+			
 			link_parser_set_link_callback(parser,link_files_fnc,&t);
 			for( i = 0 ; i< webpage.size && 
 			   link_parser_proccess_char(parser,webpage.data[i])==0;
@@ -556,8 +610,10 @@ get_current_file_list(iol_t iol, GSList **l)
 			     ;
 			link_parser_destroy(parser);
 		}
+		free(url);
+		free(webpage.data);
 	}
-
+	
 	assert(g_queue_is_empty(t.pending));
 	g_queue_free(t.pending); 
 	*l = t.files;
