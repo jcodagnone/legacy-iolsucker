@@ -60,6 +60,7 @@ AC_STRUCT_TM
 
 # Checks for library functions.
 AM_PATH_CURL(,,AC_MSG_ERROR([$PACKAGE requiere de libcurl]))
+AM_PATH_DB(,,)
 AM_CURL_WORKING_VERSION
 AC_TRY_RUN([
 	#include <curl/curl.h>
@@ -75,6 +76,7 @@ AM_PATH_XML2(,,AC_MSG_ERROR([$PACKAGE requiere de libxml2]))
 AM_PATH_GLIB_2_0(,,[AM_PATH_GLIB(,,AC_MSG_ERROR([$PACKAGE requiere la GLIB]))])
 AM_PATH_GTK_2_0(,[iolsucker_gtk="yes"],[AM_PATH_GTK(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])])
 
+
 AC_CHECK_FUNCS([memset strchr strtol strrchr tcgetattr tcsetattr])
 AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
 AC_CHECK_FUNCS([strtol isatty])
@@ -85,6 +87,7 @@ AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 AC_FUNC_FORK
+	
 
 CFLAGS="$CFLAGS -Wall  -I ../lib"
 

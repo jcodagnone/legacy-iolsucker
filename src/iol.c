@@ -57,7 +57,7 @@
 #include "forum.h"
 #include "stringset.h"
 #include "common.h"
-
+#include "cache.h"
 
 #ifndef CURLOPT_WRITEDATA
   #define CURLOPT_WRITEDATA	CURLOPT_FILE	/* libcurl < 7.9.7 */
@@ -88,7 +88,7 @@
 #define URL_MATERIAL	"/newmaterialdid.asp" 
 #define IOL_FORUM  	"/foroDis.asp"
 #define IOL_NEWS	"/novlistall.asp"
-
+#define IOL_SHOWFILE	"/showfile.asp?fiid=%s&volvera="
 #define URL_LOGIN_ARG	"txtdni=%s&txtpwd=%s&Submit=Conectar&cmd=login"
 #define IOL_COURSE_PARAMETER	"nivel=4"
 #define IOL_DEPART_PARAMETER	"nivel=3"
@@ -141,6 +141,8 @@ struct iolCDT
 	char *url_tmp_pt;
 	
 	stringset_t repfiles;
+
+	cache_t fid_cache;      /**< file id's cache (for material didactico */
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -335,6 +337,8 @@ iol_new(void)
 	{	free(cdt);
 		return NULL;
 	}
+
+	
 	
 	cdt->host = IOL_HOSTN;
 
@@ -407,6 +411,7 @@ iol_destroy(iol_t iol)
 	if( iol->bLogged )
 		iol_logout(iol);
 
+	cache_destroy(iol->fid_cache);
 	show_curl_stats(iol->curl);
 	curl_easy_cleanup(iol->curl); 
 	curl_global_cleanup();
@@ -437,13 +442,21 @@ iol_set_repository(iol_t cdt, const char *path)
 		else
 		{
 			if( cdt->logfp )
-				fclose(cdt->logfp);
+			{	fclose(cdt->logfp);
+				cache_destroy(cdt->fid_cache);
+				cdt->fid_cache = 0;
+			}
 			s = g_strdup_printf("%s/%s", cdt->repository,
 			                    IOLSUCKER_LOGFILE);
 			if( !s || (cdt->logfp = fopen(s,"a")) == NULL)
 			{	rs_log_warning(_("could not open log file"));
 				rs_log_warning("%s:%s", s, strerror(errno));
 			}
+			g_free(s); 
+			s=g_strdup_printf("%s/%s",cdt->repository, IOL_FILE_DB);
+			if( s == 0 || !cache_is_valid((cdt->fid_cache =
+			            cache_new(s)))  )
+				rs_log_warning(_("opening fid cache"));
 			g_free(s);
 		}
 	}
@@ -1048,6 +1061,12 @@ link_is_rare_for_file( const char *link )
 	return !strncmp(link, "./",  2) || !strncmp(link, "../", 3) ;
 }
 
+static int
+link_is_special_download(const char *link)
+{
+	return link[0]=='#' && link[1]=='\0';
+}
+
 /**
  * callback called for every link found in `material didacticos` pages
  * creates the list of files to download
@@ -1060,7 +1079,7 @@ link_files_fnc( const unsigned char *link,
 	char *s, *q ;
 
 	if( (is_external_link(link) &&!is_localhost_link(t->iol->host, link))|| 
-	    is_javascript_link(link) )
+	    is_javascript_link(link) || link_is_special_download(link) )
 		return ;
 
 	if( link_is_rare_for_file(link) )
@@ -1112,6 +1131,108 @@ link_files_fnc( const unsigned char *link,
 	
 }
 
+/** 
+ * Retrives the real url for a iol's file id
+ *
+ * \returns NULL on error
+ */
+static char *
+_iol_get_url_from_fid(iol_t iol, unsigned long fid, const char *fid_sz)
+{	char * url, *s, *p, tmp[64];
+	char *ret = 0;
+	char needle[]="\"fileviewer\" SRC=\"";
+	
+	 if( (s=cache_get_file(iol->fid_cache, fid_sz)) )
+	 	ret = g_strdup(s);
+	 else
+	 {
+	 	struct buff buf = {NULL, 0};
+		snprintf(tmp, sizeof(tmp), IOL_SHOWFILE, fid_sz);
+		tmp[sizeof(tmp)-1]=0;
+		url = iol_get_url(iol, tmp);
+		if( transfer_page(iol->curl, url, 0, &buf) == E_OK )
+		{
+			if( buf.size && buf.data  )
+			{	buf.data[buf.size - 1] = 0; /* hack */
+				
+				/* la pagina que descargamos, contiene
+				 * dos frames. 
+				 *    1. contiene la descripcion 
+				 *       del archivo y un form con acciones
+				 *       (imprimir, marcar como leido, volver);
+				 *    2. contiene la direccion del archivo
+				 *       El frame se llama fileviewer
+				 * 
+				 *  Solo nos interesa encontrar el segundo
+				 */
+				 s = strstr(buf.data, needle);
+				 if( s )
+				 {	s += sizeof(needle) - 1;
+				 	p = strchr(s, '"');
+					if( p )
+						*p = '\0';
+
+					ret = g_strdup(s);
+					cache_add_file(iol->fid_cache,fid_sz,s);
+				 }
+				 else
+				 	rs_log_warning("_iol_get_url_from_fid: "
+					 "hmmm...no encontré el url hacia el "
+					 "archivo en `%s'. Contactese con el "
+					 "mantenedor del programa");
+					 
+			}
+			free(buf.data);
+		}
+	}
+
+	return ret;
+}
+
+/**
+ * Second pass. 
+ * Try to get the file_id's and theirs url
+ *
+ */
+static void
+link_files_fnc2( iol_t iol,  const char *webpage, GSList **_files )
+{	const char needle[] = "javascript:BajaArch(", *s;
+	char *err, *url;
+	unsigned i;
+	unsigned long fid, last_fid=0;
+	char fid_sz[128];
+	size_t nbuff = sizeof(fid_sz);
+	GSList *files = *_files;
+	
+	for( s=webpage ;  (s=strstr(s, needle)) ; )
+	{
+		s += sizeof(needle) - 1;
+		for( i=0 ; isdigit(*s) && i<nbuff ; s++)
+			fid_sz[i++]=*s;
+		fid_sz[i]=0;
+		err = 0;
+		fid = strtoul(fid_sz, &err, 10);
+		if( *err )
+			; /* error. fid is not an int */
+		else
+		{	/* hack: en general, en la pagina aparecen 2 veces
+			 * seguidos los fids. No duele procesar los dos
+			 * ya que _iol_get_url_from_fid va a tener un cache,
+			 * y que la url se va a descargar una sola vez
+			 * dado que el archivo ya va existir
+			 */
+			if( fid != last_fid )
+			{	url = _iol_get_url_from_fid(iol, fid, fid_sz);
+				if( url )
+					files = g_slist_prepend(files, url);
+
+				last_fid = fid;
+			}
+		}
+	}
+	*_files = files;
+}
+
 /**
  * retrives all the url for the available files in the current course.
  * They are stored in the list ::l.
@@ -1150,11 +1271,19 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		else
 		{	link_parser_t parser;
 			unsigned i;
-
+		                        
 			parser = link_parser_new();
 			if( parser == NULL )
 				return 0;
 			
+			/* Algoritmo de dos pasadas:
+			 *
+			 * la primer pasada es con la maquina de estados
+			 * finitos que parsea links. Antes los downloads
+			 * estaban como links. Ahora, están como javascript.
+			 * La segunda pasada busca por javascripts, y resuelve
+			 * los id de los archivos a urls
+			 */
 			link_parser_set_link_callback(parser,link_files_fnc,&t);
 			for( i = 0 ; i< webpage.size && 
 			   link_parser_process_char(parser,webpage.data[i])==0;
@@ -1162,6 +1291,10 @@ get_file_list_from_current(iol_t iol, GSList **l)
 			     ;
 			link_parser_end(parser);    
 			link_parser_destroy(parser);
+			
+			/* segunda pasada */
+			webpage.data[webpage.size-1]=0; 
+			link_files_fnc2(iol, webpage.data, &(t.files) );
 		}
 		if( url != eurl )
 			g_free(eurl);
