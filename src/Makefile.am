@@ -5,7 +5,8 @@ srcdir = @srcdir@
 
 #########
 
-EXTRA_DIST = win32.h win32.c 
+SUBDIRS = demo
+EXTRA_DIST = win32.h win32.c
 
 EXTRA_PROGRAMS = link
 bin_PROGRAMS = iolsucker 
