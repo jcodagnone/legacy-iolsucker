@@ -22,10 +22,10 @@ windist:	dist	doc/iolsucker.html
 	cp doc/iolsucker.html $(WINPREFIX)/data
 	if [[ -d $(WINPREFIX)/source ]]; then  \
 		tar -C $(WINPREFIX)/source -xjf $(distdir).tar.bz2 ; \
-		if [[ -d unix ]] ; then \
-			cp -R unix $(WINPREFIX)/source ; \
-			cp unix/dll/*.dll $(WINPREFIX)/data; \
-		fi \
 	fi
 	tar -C $(WINPREFIX)/compile -xjf $(distdir).tar.bz2
+	if [[ -d $(WINPREFIX)/compile ]] ; then \
+		cp -R unix $(WINPREFIX)/source ; \
+		cp unix/dll/*.dll $(WINPREFIX)/data; \
+	fi 
 	chmod o+w -R $(WINPREFIX)
