@@ -60,7 +60,7 @@ AC_STRUCT_TM
 
 # Checks for library functions.
 AM_PATH_CURL(,,AC_MSG_ERROR([$PACKAGE requiere de libcurl]))
-AM_PATH_DB(,,)
+AM_PATH_DB([iol_have_db=1],[iol_have_db=0])
 AM_CURL_WORKING_VERSION
 AC_TRY_RUN([
 	#include <curl/curl.h>
@@ -128,6 +128,8 @@ if [[ ${iol_have_ps2pdf} == "yes" ]] ; then
 else
     iol_have_ps2pdf="no"
 fi
+
+AM_CONDITIONAL(LIBDB, test "$iol_have_db" = 1 && test "$enable_dbtest" == 'yes')
 
 AC_SUBST(PACKAGE)
 AC_SUBST(IOL_VERSION)

@@ -1,3 +1,5 @@
 
 EXTRA_DIST = checksX.bmp gpl.txt iolsucker.nsi new_nsis_2.ico  \
-             normal-uninstall.ico source data data source
+             normal-uninstall.ico 
+
+EXTRA_DIR = source
