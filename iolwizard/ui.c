@@ -71,6 +71,9 @@ struct tmp
 static void 
 hwndMain_quit( GtkWidget *widget, struct tmp *tmp)
 {
+	if( save_config_file(tmp->opt) == -1 )
+		show_error(_("no se ha podido guardar esta nueva "
+		             "informacion"));
 	g_free(tmp->msg);
 	g_free(tmp);
 	gtk_main_quit();
