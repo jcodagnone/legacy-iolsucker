@@ -5,15 +5,11 @@ AC_DEFUN(AM_PATH_DB,
 [dnl
 dnl Get the cflags and libraries
 dnl
-AC_ARG_WITH(db,[  --with-db=PFX   Prefix where libdb is installed
-(optional)], db="$withval", db_prefix="")
-AC_ARG_WITH(db-libraries,[  --with-db-libraries=DIR   Directory where
-libdb library is installed (optional)], db_libraries="$withval",
+AC_ARG_WITH(db,[  --with-db=PFX   Prefix where libdb is installed (optional)], db="$withval", db_prefix="")
+AC_ARG_WITH(db-libraries,[  --with-db-libraries=DIR   Directory where libdb library is installed (optional)], db_libraries="$withval",
 db_libraries="")
-AC_ARG_WITH(db-includes,[  --with-db-includes=DIR   Directory where
-libdb header files are installed (optional)], db_includes="$withval",
-db_includes="")
-AC_ARG_ENABLE(dbtest, [  --disable-dbtest       Do not try to compile and
+AC_ARG_WITH(db-includes,[  --with-db-includes=DIR   Directory where libdb header files are installed (optional)], db_includes="$withval", db_includes="")
+AC_ARG_ENABLE(dbtest, [  --without-db               Do not try to compile and
 run a test libdb program],, enable_dbtest=yes)
 
 if test "x$db_prefix" != "xno" ; then
