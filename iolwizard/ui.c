@@ -346,36 +346,41 @@ entry_nospaces_insert(GtkEditable *editable, const gchar *text, gint length,
 static void
 create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 { 	GtkWidget *edtUser, *edtPass, *edtRep, *btnRep;
-	GtkWidget  *hbox, *label,  *vbox_label, *vbox_edit;;
-
+	GtkWidget *table, *hbox;
+	GtkWidget *label;
+	
 	/* login frame */
 	edtUser    = gtk_entry_new();
 	edtPass    = gtk_entry_new();
 	edtRep     = gtk_entry_new();
-	hbox       = gtk_hbox_new(FALSE, 0);
-	vbox_label = gtk_vbox_new(FALSE, 0);
-	vbox_edit  = gtk_vbox_new(FALSE, 0);
 	btnRep     = gtk_button_new_with_label(_("..."));
 	gtk_entry_set_visibility(GTK_ENTRY(edtPass), 0);
 	gtk_widget_set_sensitive(GTK_WIDGET(edtPass), 0);
 
-	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(hbox));
-	gtk_box_pack_start(GTK_BOX(hbox),vbox_label, FALSE,FALSE,2);
-	gtk_box_pack_start(GTK_BOX(hbox),vbox_edit,  TRUE, TRUE, 2);
-
-	label = gtk_label_new(_("User:"));
-	gtk_box_pack_start(GTK_BOX(vbox_label), label, FALSE, FALSE, 2);
-	label = gtk_label_new(_("Password:"));
-	gtk_box_pack_start(GTK_BOX(vbox_label), label, FALSE, FALSE, 2);
-	label = gtk_label_new(_("Repository:"));
-	gtk_box_pack_start(GTK_BOX(vbox_label), label, FALSE, FALSE, 2);
 	
-	gtk_box_pack_start(GTK_BOX(vbox_edit),edtUser, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(vbox_edit),edtPass, FALSE, FALSE, 2);
-	hbox = gtk_hbox_new(FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox),edtRep, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox),btnRep, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox_edit),hbox,  FALSE, FALSE, 2);
+	table = gtk_table_new (3, 2, FALSE);
+	hbox  = gtk_hbox_new(FALSE,0);
+	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
+	
+	label = gtk_label_new(_("User:"));
+	gtk_table_attach(GTK_TABLE(table),label,0,1,0,1,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+	label = gtk_label_new(_("Password:"));
+	gtk_table_attach(GTK_TABLE(table),label,0,1,1,2,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
+	label = gtk_label_new(_("Repository:"));
+	gtk_table_attach(GTK_TABLE(table),label,0,1,2,3,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
+
+	gtk_box_pack_start(GTK_BOX(hbox), edtRep, TRUE,  TRUE,  0);
+	gtk_box_pack_start(GTK_BOX(hbox), btnRep, FALSE, FALSE, 0);
+
+	gtk_table_attach(GTK_TABLE(table), edtUser, 1, 2, 0, 1,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
+	gtk_table_attach(GTK_TABLE(table), edtPass, 1, 2, 1, 2,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
+	gtk_table_attach(GTK_TABLE(table), hbox, 1, 2, 2, 3,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
 
 	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->username);
 	gtk_entry_set_text(GTK_ENTRY(edtRep), tmp->opt->password);
@@ -469,12 +474,9 @@ fill_proxy_type_combo( GtkCombo *combo )
 static void
 create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 { 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
-	GtkWidget *vbox, *hbox, *label;
+	GtkWidget *hbox, *label, *table;
 	GtkObject *adj;
 	
-	vbox = gtk_vbox_new(FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(vbox));
-
 	adj      = gtk_adjustment_new(1080,1,0xffff,1,10,10); 
 	edtHost  = gtk_entry_new();
 	spnPort  = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0.5, 0);
@@ -484,31 +486,34 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_entry_set_visibility(GTK_ENTRY(edtPPass), 0);
 	fill_proxy_type_combo(GTK_COMBO(cmbType));
 
-	hbox = gtk_hbox_new(FALSE, 0);
-	label = gtk_label_new(_("Host:"));
-	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(hbox),edtHost, TRUE, TRUE, 2);
-	gtk_box_pack_start(GTK_BOX(hbox),spnPort, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
-
-	hbox = gtk_hbox_new(FALSE, 0);
-	label = gtk_label_new(_("Type:"));
-	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(hbox),cmbType, TRUE, TRUE, 2);
-	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
+	table = gtk_table_new (4, 2, FALSE);
+	hbox  = gtk_hbox_new(FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
 	
-	hbox = gtk_hbox_new(FALSE, 0);
+	label = gtk_label_new(_("Host:"));
+	gtk_table_attach(GTK_TABLE(table),label,0,1,0,1,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+	label = gtk_label_new(_("Type:"));
+	gtk_table_attach(GTK_TABLE(table),label,0,1,1,2,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 	label = gtk_label_new(_("User:"));
-	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(hbox),edtPUser, TRUE, TRUE, 2);
-	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
-	hbox = gtk_hbox_new(FALSE, 0);
-
-	hbox = gtk_hbox_new(FALSE, 0);
+	gtk_table_attach(GTK_TABLE(table),label,0,1,2,3,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 	label = gtk_label_new(_("Pass:"));
-	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(hbox),edtPPass, TRUE, TRUE, 2);
-	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
+	gtk_table_attach(GTK_TABLE(table),label,0,1,3,4,GTK_FILL, 0, 4,0);
+	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+
+	gtk_box_pack_start(GTK_BOX(hbox),edtHost, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox),spnPort, TRUE, TRUE, 0);
+	gtk_table_attach(GTK_TABLE(table), hbox, 1, 2, 0, 1,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
+	gtk_table_attach(GTK_TABLE(table), edtPUser, 1, 2, 1, 2,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
+	gtk_table_attach(GTK_TABLE(table), edtPPass, 1, 2, 2, 3,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
+	gtk_table_attach(GTK_TABLE(table), cmbType, 1, 2, 3, 4,
+	                 (GTK_EXPAND | GTK_FILL), 0, 4, 0);
+	
 
 
 	/* signals */
