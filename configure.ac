@@ -149,7 +149,6 @@ lib/Makefile
 lib/libmisc/Makefile
 lib/libcrash/Makefile
 src/Makefile
-src/demo/Makefile
 win32/Makefile
 win32/libmisc/Makefile
 win32/iolsucker/Makefile
