@@ -48,7 +48,8 @@ thread_exec( void *d )
 
 	ZeroMemory( &a, sizeof(STARTUPINFO) );
 	a.cb = sizeof(STARTUPINFO); 
-	if(!CreateProcess(NULL, data->program, 0,0,FALSE,0,NULL,NULL,&a,&pi))
+	if(!CreateProcess(NULL, (char*)data->program, 0, 0, FALSE, 0, NULL, 
+	                  NULL, &a, &pi))
 		fprintf(stderr,"error executing '%s'\n", data->program);
 	else
 	{	if( pi.hProcess != INVALID_HANDLE_VALUE )
