@@ -174,7 +174,7 @@ load_config_file(struct opt *opt)
 			opt->repository[sizeof(opt->repository)-1] = 0;
 		}
 	}
-	if( *opt->proxy_type == 0)
+	if( opt->proxy_type[0] == 0)
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_TYPE, buf,
 		                        sizeof(buf) ) == TRUE )
 		{
@@ -188,7 +188,8 @@ load_config_file(struct opt *opt)
 	}
 
 	if( opt->proxy == NULL )
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
+	{	buf[0]=0;
+		if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
                                         sizeof(buf) ) == TRUE )
 		{	opt->proxy = strdup(buf);
 			if( opt->proxy && opt->proxy[0] == 0 )
@@ -199,7 +200,8 @@ load_config_file(struct opt *opt)
 	}
 
 	if( opt->proxy_user == NULL )
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_USER, buf,
+	{	buf[0]=0;
+		if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_USER, buf,
                                         sizeof(buf) ) == TRUE )
 		{ 	opt->proxy_user = strdup(buf);
 			if( opt->proxy_user && opt->proxy_user[0] == 0 )
