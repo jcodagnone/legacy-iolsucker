@@ -12,6 +12,14 @@
 #include "../src/main.h"
 #include "dirbrowser.h"
 
+#ifdef HAVE_CONFIG_H
+  #ifdef WIN32
+    #include "../winconfig.h"
+  #else
+    #include <config.h>
+  #endif
+#endif
+
 #define SIZE_X	320
 #define SIZE_Y	320
 

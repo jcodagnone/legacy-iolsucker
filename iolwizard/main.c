@@ -15,7 +15,11 @@
 #include "../src/main.h"
 
 #ifdef HAVE_CONFIG_H
-  #include <config.h>
+  #ifdef WIN32
+    #include "../winconfig.h"
+  #else
+    #include <config.h>
+  #endif
 #endif
 
 /*
