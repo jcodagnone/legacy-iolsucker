@@ -1,3 +1,9 @@
+iolsucker-2.0.19:
+  o un memory leak
+  o cambio en algunos comentarios
+  o codigo mas robusto ante posibles cambios de iol (pide al usuario que 
+    descarge la ultima version o me contacte)
+  o ahorro de algunos bytes de memoria
 
 iolsucker-2.0.18:
   o forzar permisos tacaños  en el archivo de configuración. 
