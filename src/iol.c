@@ -1098,8 +1098,6 @@ struct tmp
 	char *prefix;
 	char *url_prefix;
 	iol_t iol;
-	stringset_t set;
-	char stringurl[2048];
 };
 
 static int
@@ -1221,18 +1219,7 @@ link_files_fnc( const unsigned char *link,
 	else if( is_father_folder(s,t->prefix) )
 		g_free(s);
 	else
-	{
-		/*queue_enqueue(t->pending, s);*/
-		if( stringset_look(t->set, s) == E_STRINGSET_NOTFOUND )
-			queue_enqueue(t->pending, s);
-		else
-		{
-			rs_log_notice("dup url `%s' from `%s'", s,
-			              t->stringurl);
-			g_free(s);
-		}
-	}
-	
+		queue_enqueue(t->pending, s);
 }
 
 /** 
@@ -1353,7 +1340,6 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		return E_MEMORY;
 	t.files = NULL;
 	t.iol = iol;
-	t.set = stringset_new();
 
 	queue_enqueue(t.pending, g_strdup(url));
 
@@ -1364,8 +1350,6 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		eurl = eurl ? eurl : url;
 		
 		t.prefix = url;
-		strncpy(t.stringurl, eurl, sizeof(t.stringurl));
-		t.stringurl[sizeof(t.stringurl)-1] = 0;
 
 		webpage.data = NULL;
 		webpage.size = 0;
@@ -1415,7 +1399,6 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		g_free( queue_dequeue(t.pending) );
 	
 	queue_free(t.pending); 
-	stringset_destroy(t.set);
 	*l = t.files;
 
 	return ret;
