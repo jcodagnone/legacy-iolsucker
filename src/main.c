@@ -110,7 +110,7 @@ main( int argc, char **argv )
 	 	                                   
 		rs_log_error(_("login(): login failed"));
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
-		return 0;
+		return EXIT_FAILURE;
 	}
 
 	if( (ret=iol_resync_all(iol)) != E_OK )
@@ -119,7 +119,7 @@ main( int argc, char **argv )
 	 	                                   
 		rs_log_error(_("resync_all(): login failed"));
 		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
-		return 0;
+		return EXIT_FAILURE;
 	}
 	else
 	{
@@ -140,6 +140,6 @@ main( int argc, char **argv )
 
 	free_options(&opt);
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
 
