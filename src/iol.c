@@ -578,6 +578,19 @@ static int link_is_file(const char *url)
 	return strncmp(p,q, strlen(q));
 }
 
+
+static int
+link_is_sort_link( const char *url)
+{
+	return !link_is_file(url) && (strstr(url,"&ordenX="));
+}
+
+static int
+is_father_folder( const char *child, const char *father)
+{
+	return strstr(father, child)!=NULL;
+}
+
 struct tmp 
 { 	queue_t pending;
 	GSList  *files;
@@ -622,11 +635,7 @@ my_url_escape(const char *url)
 	return s;
 }
 
-static int
-is_father_folder( const char *child, const char *father)
-{
-	return strstr(father, child)!=NULL;
-}
+
 
 static void
 link_files_fnc( const char *link, const char *comment, void *d ) 
@@ -651,7 +660,7 @@ link_files_fnc( const char *link, const char *comment, void *d )
 			t->url_prefix = path_get_dirname(link);
 		t->files = g_slist_prepend(t->files, s);
 	}
-	else
+	else if( !link_is_sort_link(link) )
 	{ 	if( is_father_folder(s,t->prefix) )
 			g_free(s);
 		else
