@@ -64,7 +64,7 @@ AM_PATH_XML2(,,AC_MSG_ERROR([$PACKAGE requiere de libxml2]))
 AM_PATH_GLIB(,,AC_MSG_ERROR([$PACKAGE requiere la GLIB]))
 AM_PATH_GTK(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])
 
-AC_CHECK_FUNCS([memset strchr strtol strrchr])
+AC_CHECK_FUNCS([memset strchr strtol strrchr tcgetattr tcsetattr])
 AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
 AC_CHECK_FUNCS([strtol isatty])
 AC_CHECK_FUNCS([memchr])
