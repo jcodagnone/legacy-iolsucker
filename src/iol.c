@@ -111,9 +111,9 @@ enum course_type {
 };
 
 struct course 
-{       char *code;
-	char *name;
-	enum course_type type;
+{       char *code;	/**< code name: eg: "21.71" */
+	char *name;     /**< human name: Base de datos I */
+	enum course_type type; 
 };
 
 /**
@@ -131,6 +131,7 @@ struct iolCDT
 	int dry;		/**< dry run ? */
 	int verbose;		/**< print lots of information? */
 	int fancy;		/**< use fancy names */
+	int wait;		/**< seconds to wait when changing context */
 
 	cache_t fcache;		/**< cache of files for download.asp **/
 	FILE *logfp;		/**< logfile filepointer */
@@ -199,6 +200,9 @@ iol_t iol)
 }
 #endif
 
+/**
+ * acumulate transfered bytes
+ */
 static void
 count_bytes(CURL *curl)
 {
@@ -308,7 +312,7 @@ free_courses_list( struct course *data, gpointer user_data )
 }
 
 static void
-show_curl_info( CURL *curl)
+show_curl_stats( CURL *curl)
 {	
 #ifdef HAVE_CURLOPT_PRIVATE	/* libcurl >= 7.10.3 */
 	static const char *unit[]={"bytes","KB","MB","GB","TB"};
@@ -340,7 +344,7 @@ iol_destroy(iol_t iol)
 	if( iol->bLogged )
 		iol_logout(iol);
 
-	show_curl_info(iol->curl);
+	show_curl_stats(iol->curl);
 	curl_easy_cleanup(iol->curl); 
 	curl_global_cleanup();
 
@@ -480,6 +484,19 @@ iol_set_fancy_names(iol_t cdt, int *fancy)
 	return ret;
 }
 
+
+static int
+iol_set_wait(iol_t cdt, int *wait)
+{	int ret = E_OK;
+
+	if( wait )
+		cdt->wait = *wait != 0;
+	else
+		ret = E_INVAL;
+		
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -495,7 +512,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user },
 		{	IOL_DRY,        (iol_set_fnc) iol_set_download   },
 		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    },
-		{	IOL_FANCY_NAMES,(iol_set_fnc) iol_set_fancy_names}
+		{	IOL_FANCY_NAMES,(iol_set_fnc) iol_set_fancy_names},
+		{	IOL_WAIT,       (iol_set_fnc) iol_set_wait       }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -515,7 +533,7 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 
 	return ret;
 }
-
+/** validates wether @code is in the parameters in server's list */
 static int
 is_valid_course_code( const char *code )
 {	int b = 1;
@@ -756,10 +774,10 @@ iol_set_current_course(iol_t iol, const char *course)
 			s = g_strdup_printf(URL_CHANGE_DPT, course);
 		else
 			assert(0);
-
-		#ifndef IOLDEMO
-		sleep(5); 
-		#endif
+			
+		if( iol->wait )
+			sleep(5); 
+		
 		if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
 			ret = E_NETWORK;
 		g_free(s);

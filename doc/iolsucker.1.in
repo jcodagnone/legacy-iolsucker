@@ -25,12 +25,13 @@ iolsucker \- cliente no interactivo para IOL
 .SH SYNOPSIS
 .HP 10
 .BR iolsucker
-.RB [ \-hnVv ]
+.RB [ \-hnVvW ]
 .RB [ \-\-help ] 
 .RB [ \-\-version ]
 .RB [ \-\-verbose ]
 .RB [ \-\-dry\-run ]
 .RB [ \-\-fancy ]
+.RB [ \-\-wait ]
 .RB [ \-\-user\  username]
 .RB [ \-r\  repository ]
 .RB [ \-f\  filename ]
@@ -65,6 +66,11 @@ corre en seco: no descarga ningún archivo. Solo reporta cambios.
 usar nombres lindos en los nombres de los directorios de las materias. la
 opcion es inteligente: sabe determinar si la ultima ves se utilizó la opcion
 (y en caso negativo) reacomoda el repositorio.
+.IP "\fB\-W\fR, \fB\-\-wait\fR"
+esperar 5 segundos al pasar de materia antes de hacer nada. 
+Si el programa le dice que hubo problemas con el servidor (algo de una
+carrera/race del servidor) activela. Esperar 5 segundos era el comportamiento 
+de versiones < 2.0.14.
 .IP "\fB\-r\fR repositorio"
 especifica el directorio donde se almacenan los archivos bajados.
 .IP "\fB\-f\fR"
@@ -124,6 +130,8 @@ El archivo de configuración tiene una estructura jerarquica:
 		<fancy></fancy>
 .br
                 <forum/>
+.br
+                <wait/>
 .br
 	</proxy>
 .br

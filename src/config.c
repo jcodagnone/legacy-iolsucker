@@ -87,6 +87,11 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 			opt->forum = 1;
 			xmlFree(key);
 		}
+		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"wait")))
+		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
+			opt->wait = 1;
+			xmlFree(key);
+		}
 		cur = cur->next;
 	}
 
@@ -231,7 +236,10 @@ save_config_file( const struct opt *opt)
 		fprintf(fp,"\t\t<fancy></fancy>\n");
 	if( opt->forum )
 		fprintf(fp,"\t\t<forum></forum>\n");
-		
+	if( opt->verbose )
+		fprintf(fp,"\t\t<verbose></verbose>\n");
+	if( opt->wait )
+		fprintf(fp,"\t\t<wait></wait>\n");
         fprintf(fp,"\t</login>\n");
         fprintf(fp,"\t<proxy>\n");
         if( opt->proxy_type[0] )

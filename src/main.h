@@ -25,6 +25,7 @@ struct opt {
 	int verbose;
 	int fancy;
 	int forum;
+	int wait;
 };
 
 /** parse command line options */

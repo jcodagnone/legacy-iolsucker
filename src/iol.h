@@ -11,6 +11,8 @@ enum iol_settings {
 	IOL_DRY,	/**< dry run? default FALSE. data: (int *) */
 	IOL_VERBOSE,	/**< verbose information. default FALSE. data: (int *)*/
 	IOL_FANCY_NAMES,/**< course fancy names? default FALSE. data: (int *)*/
+	IOL_WAIT,       /**< wait when changing context? 
+	                 *   default FALSE. data: (int *) */
 	IOL_MAX
 };
 
