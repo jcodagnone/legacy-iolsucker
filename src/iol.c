@@ -1185,13 +1185,13 @@ link_news_fnc( const char *link, const char *comment, void *d )
 }
 
 int
-iol_get_new_novedades( iol_t iol )
+iol_get_new_novedades( iol_t iol, unsigned *n )
 { 	struct buff page = { NULL, 0};
 	unsigned j = 0;
 	int ret = 0;
 	
-	if( !IS_IOL_T(iol) )
-		ret = -1;
+	if( !IS_IOL_T(iol) || !n )
+		ret = E_INVAL;
 	else
 	{	if( transfer_page(iol->curl, IOL_NEWS, 0, &page)!= E_OK )
 	        	ret = E_NETWORK;
@@ -1209,9 +1209,10 @@ iol_get_new_novedades( iol_t iol )
 			     i++ ) ;
 
 			link_parser_destroy(parser);
+			*n = j;
 		}
 		free(page.data);
 	}
 
-	return ret == 0 ? j : ret ;
+	return ret; 
 }

@@ -109,16 +109,18 @@ suck(struct opt *opt)
 		return EXIT_FAILURE;
 	}
 	else
-	{
+	{	unsigned n;
+
 		rs_log_info(_("hay novedades?"));
-		ret = iol_get_new_novedades(iol);
-		if( ret != -1 )
-		{ 	if( ret == 0 )
+		ret = iol_get_new_novedades(iol,&n);
+		if( ret == E_OK )
+		{ 	if( n == 0 )
 				rs_log_info(_("no hay noticias :^("));
 			else
-				rs_log_info(_("si. hay %d"),ret);
+				rs_log_info(_("si. hay %d"),n);
 		}
-
+		else
+			rs_log_error(_("iol_get_new_novedades(): failed"));
 	}
 
 	rs_log_info(_("logging off"));
