@@ -102,8 +102,9 @@ struct iolCDT
 	char *repository;	/**< repository directory */
 
 	int dry;		/**< dry run ? */
-	int neterr;
-	int verbose;
+	int verbose;		/**< print lots of information? */
+
+	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
 };
 
 #define IS_IOL_T( iol ) ( iol != NULL  )
@@ -139,12 +140,38 @@ write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
 	
 	return fwrite(ptr, size, nmemb, fp);
 }
-                                            
+
+static int 
+curl_debug_fnc(CURL *curl ,curl_infotype type, char  *ptr, size_t size,
+iol_t iol)
+{	/* stolen from libcurl */
+	static const char * const s_infotype[CURLINFO_END] =
+        { "* ", "< ", "> ", "{ ", "} " };
+
+	if( iol->verbose )
+	{
+		switch(type) 
+		{	case CURLINFO_TEXT:
+			case CURLINFO_HEADER_OUT:
+				fwrite(s_infotype[type], 
+				       sizeof(s_infotype[type])-1, 1, stderr);
+		       		fwrite(ptr, size, 1, stderr);
+		       		if( ptr[size - 1]!='\n' )
+		       			fwrite("\n", 1, 1, stderr);
+		     		break;
+		        default:
+		        	break;
+		}
+	}
+
+	return 0;
+}
+
 /**
  *  wraper to libcurl. Transfer the url, and saves it in the buffer page
  */
 static int
-transfer_page( CURL *curl, const char *url, unsigned flags, void *data, int *error)
+transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 {	CURLcode res;
 	FILE *fp = NULL;
 	struct progress *progress = NULL;
@@ -188,8 +215,6 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data, int *err
 		fclose(fp);
 	if( progress )
 		destroy_progress_callback(progress);
-	if( error )
-		*error = res;
 
 	return res == 0 ? E_OK : E_NETWORK;
 }
@@ -209,7 +234,9 @@ iol_new(void)
 	curl_easy_setopt(cdt->curl,CURLOPT_COOKIEJAR, "");
 	curl_easy_setopt(cdt->curl,CURLOPT_USERAGENT,USERAGENT);
 	curl_easy_setopt(cdt->curl,CURLOPT_FAILONERROR, 1);
-
+	curl_easy_setopt(cdt->curl,CURLOPT_ERRORBUFFER, cdt->errorbuf);
+	curl_easy_setopt(cdt->curl,CURLOPT_DEBUGFUNCTION, curl_debug_fnc);
+	curl_easy_setopt(cdt->curl,CURLOPT_DEBUGDATA, cdt);
 
 	return cdt;
 }
@@ -464,8 +491,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 	{       struct buff buf = {NULL, 0};
 
 		/* yummm!!! get a cookie */ 
-		if( transfer_page(iol->curl, URL_LOGIN, 0, NULL, 
-		    &(iol->neterr))!= E_OK )
+		if( transfer_page(iol->curl, URL_LOGIN, 0, NULL)!= E_OK )
 			nRet = E_NETWORK;
 		else
 		{       char *s = g_strdup_printf(URL_LOGIN_ARG,user,pass);
@@ -473,8 +499,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			/* login */
 			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, s);
 
-			if(transfer_page(iol->curl, URL_LOGIN_1,0,&buf,
-			                 &(iol->neterr)) != E_OK)
+			if(transfer_page(iol->curl, URL_LOGIN_1,0,&buf) != E_OK)
 				nRet = E_NETWORK;
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
@@ -497,7 +522,7 @@ iol_logout(iol_t iol)
 	if( !IS_IOL_T(iol)  )
 		nRet = E_INVAL;
 	else if( iol->bLogged  )
-	{	transfer_page(iol->curl, URL_LOGOUT,0,NULL,&(iol->neterr));
+	{	transfer_page(iol->curl, URL_LOGOUT,0,NULL);
 		iol->bLogged = 0;
 	}
 	else
@@ -530,7 +555,7 @@ iol_set_current_course(iol_t iol, const char *course)
 
 	s = g_strdup_printf(URL_CHANGE,course);
 	sleep(5); 
-	if( transfer_page(iol->curl, s, 0, NULL, &(iol->neterr)) != E_OK )
+	if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
 		ret = E_NETWORK;
 
 	return	ret;
@@ -653,7 +678,7 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 		webpage.data = NULL;
 		webpage.size = 0;
 
-		if(transfer_page(iol->curl,url,0,&webpage,&(iol->neterr))!=E_OK)
+		if(transfer_page(iol->curl,url,0,&webpage)!=E_OK)
 			ret = E_NETWORK;
 		else
 		{	link_parser_t parser;
@@ -755,7 +780,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 				download = g_strdup_printf("%s/%s", dirname, 
 				                          IOL_MATERIAL_TMPFILE);
 				if( transfer_page(d->iol->curl, file, TP_FILE,
-				             download, &(d->iol->neterr)) == 0 )
+				             download) == 0 )
 					rename(download,local);
 				else
 				{	remove(download);
@@ -851,7 +876,7 @@ iol_get_network_error(iol_t iol)
 {	const char *ret = NULL;
 
 	if( IS_IOL_T(iol) )
-		ret = curl_strerror(iol->neterr);
+		ret = iol->errorbuf;
 	
 	return ret ;
 }
@@ -872,8 +897,7 @@ iol_get_new_novedades( iol_t iol )
 	if( !IS_IOL_T(iol) )
 		ret = -1;
 	else
-	{	if( transfer_page(iol->curl, IOL_NEWS, 0, &page, 
-	                       &(iol->neterr))!= E_OK )
+	{	if( transfer_page(iol->curl, IOL_NEWS, 0, &page)!= E_OK )
 	        	ret = E_NETWORK;
 	        else
 	        {	link_parser_t parser;
