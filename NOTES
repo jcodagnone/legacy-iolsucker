@@ -1,4 +1,8 @@
-iolsucker-2.0.27:
+iolsucker-2.0.28: Jeepers Creepers  (Thu Sep 2 2004)
+  o bugfix release: IOL ha cambiado nuevamente la interfase de material
+    didactico: una pequeña variación de la antigua forma.
+
+iolsucker-2.0.27: The Invisible Man (Thu Sep  1  2004)
   o incorporación libcrash (en caso de sigsegv, el usuario obtiene un backtrace
     que el usuario puede reportar)...lo incorporo porque ya lo tenia hecho, no
     porque hay cosas que se cuelguen :)
