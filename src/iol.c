@@ -441,17 +441,22 @@ iol_set_repository(iol_t cdt, const char *path)
 
 static int 
 iol_set_proxy_type(iol_t cdt, const char *type)
-{	
+{	int ret = E_OK;
 #ifdef HAVE_PROXYTYPE
 	if( !strcmp(type, "http" ) )
 		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_HTTP);
 	else if( !strcmp(type, "socks5") )
 		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_SOCKS5);
-
-	return E_OK;
+        else
+		ret = E_INVAL;
 #else
-	return E_INVAL;
+	if( type && *type == 0)
+		ret = E_OK;
+	else
+		ret = E_INVAL;
 #endif
+	return ret;
+	
 }
 
 static int
