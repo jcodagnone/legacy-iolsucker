@@ -192,7 +192,9 @@ nació como un script para bash un sábado por la tarde. El script consistía de
 (archivos de configuración xml) se escribió esta versión en lenguaje C. 
 La nueva versión termino siendo mucho mas mantenible que el viejo script.
 En la versión 2.0.13 existían 5203 líneas de codigo puras. El 49.66%
-fue escrito en otros proyectos (míos o opensource).
+fue escrito en otros proyectos (míos o opensource). Una nuevar versión 
+escrita en java (jiol) le sigue a la versión 2.x, y de apoco la va dejando
+obsoleta.
 
 .SH AUTHOR
 Original written by Juan F. Codagnone <juam at users.sourceforge.net>
