@@ -261,16 +261,80 @@ iol_destroy(iol_t iol)
 	free(iol);
 }
 
-int
+static int
 iol_set_repository(iol_t cdt, const char *path)
 {	int ret = E_OK;
 
-	if( !IS_IOL_T(cdt) || cdt == NULL || path == NULL )
+	if( path == NULL )
 		ret = E_INVAL;
 	else 
 	{ 	cdt->repository= strdup(path); 
 		if( cdt->repository == NULL )
 			ret = E_MEMORY;
+	}
+
+	return ret;
+}
+
+static int
+iol_set_proxy_host(iol_t cdt,  const char *proxy)
+{	int ret = E_OK;
+	int b;
+
+	if( proxy )
+	{	b = curl_easy_setopt(cdt->curl, CURLOPT_PROXY, proxy);
+		if( b != CURLE_OK )
+			ret = E_INVAL;
+	}
+	else
+		ret = E_INVAL;
+
+	return ret;
+}
+
+static int
+iol_set_proxy_user(iol_t cdt, const char *proxy_user)
+{	int ret = E_OK;
+	int b;
+	
+	if( proxy_user )
+	{	b = curl_easy_setopt(cdt->curl,CURLOPT_PROXYUSERPWD,proxy_user);
+		if( b != CURLE_OK )
+			ret = E_INVAL;
+	}
+	else
+		ret = E_INVAL;
+		
+	return ret;
+}
+
+int
+iol_set(iol_t iol, enum iol_settings set, void *data)
+{	unsigned i;
+	int ret = E_OK;
+	typedef int (* iol_set_fnc) (iol_t, void *d);
+	struct table 
+	{	enum iol_settings id;
+		iol_set_fnc fnc;
+	}  table [] = 
+	{	{	IOL_REPOSITORY,	(iol_set_fnc) iol_set_repository }, 
+		{	IOL_PROXY_HOST, (iol_set_fnc) iol_set_proxy_host },
+		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user }
+	};
+
+	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
+		ret = E_INVAL;
+	else
+	{	for( i=0; i< sizeof(table)/sizeof(*table) ; i++)
+			if( table[i].id == set )
+			{	ret = table[i].fnc(iol,data);
+				break;
+			}
+		/* should never happen */
+		if( i == sizeof(table)/sizeof(*table) )
+		{	rs_log_warning("iol_set(): unknown id `%d'",set);
+			ret = E_INVAL;
+		}
 	}
 
 	return ret;

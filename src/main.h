@@ -14,6 +14,8 @@ struct opt {
 	char password[MAX_PASSWORD];
 	char configfile[MAX_CONFIGFILE];
 	char repository[MAX_REPOSITORY];
+	char *proxy;
+	char *proxy_user;
 };
 
 #endif

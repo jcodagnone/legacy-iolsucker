@@ -42,17 +42,19 @@ const char *rs_program_name;
 static void
 help ( void )
 {	printf (
-	_("Usage: %s [OPTION]\n"
-	"Downloads things from IOL\n"
-	"\n"
-	"OPTIONS\n"
-	/* X   X                      X */
-	" -V   --version              print the version info and dies\n"
-	" -h   --help                 prints this message\n"
-	" -u   --user username        specify a username"
-	"\n"
-	"Send bugs to <juam at users dot sourceforge dot net>\n"
-	"\n"),rs_program_name);
+_("Usage: %s [OPTION]\n"
+"Downloads things from IOL\n"
+"\n"
+"OPTIONS\n"
+/* X   X                      X */
+" -V   --version              prints the version info and dies\n"
+" -h   --help                 prints this message\n"
+" -u   --user username        specify a username\n"
+" -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
+" -U <user[:password]>        specify proxy authentication\n"
+"\n"
+"Send bugs to <juam at users dot sourceforge dot net>\n"
+"\n"),rs_program_name);
 
 	exit( EXIT_SUCCESS );
 }
@@ -80,7 +82,7 @@ version( void )
 static int
 parseOptions( int argc, char * const * argv, struct opt *opt)
 {	int i;
-	const char *user = 0, *configfile;
+	const char *user = 0, *configfile = 0;
 	static optionT lopt[]=
 	{/*00*/	{"help",	OPT_NORMAL, 0,	OPT_T_FUNCT, (void *) help },
 	 /*01*/	{"h",		OPT_NORMAL, 1,  OPT_T_FUNCT, (void *) help },
@@ -89,9 +91,14 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*04*/ {"u",      	OPT_NORMAL, 1,  OPT_T_GENER, NULL },
 	 /*05*/ {"user",	OPT_NORMAL, 0,  OPT_T_GENER, NULL },
 	 /*06*/ {"f",   	OPT_NORMAL, 1,	OPT_T_GENER, NULL },
+	 /*07*/ {"U",           OPT_NORMAL, 1,  OPT_T_GENER, NULL },
+	 /*08*/ {"x",           OPT_NORMAL, 1,  OPT_T_GENER, NULL },
+	 /*09*/ {"proxy",       OPT_NORMAL, 0,  OPT_T_GENER, NULL },
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_FUNCT, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
+	   lopt[7].data = &(opt->proxy_user);
+	   lopt[8].data = lopt[9].data = &(opt->proxy);
 
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
@@ -103,11 +110,25 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	}
 
 	if( user )
-		strncmp(opt->username, user, sizeof(opt->username)-1);
+		strncpy(opt->username, user, sizeof(opt->username)-1);
 	if( configfile )
-		strncmp(opt->configfile, configfile, sizeof(opt->configfile)-1);
-		
+		strncpy(opt->configfile, configfile, sizeof(opt->configfile)-1);
+
+	if( opt->proxy_user )
+		opt->proxy_user = strdup(opt->proxy_user);
+	if( opt->proxy )
+		opt->proxy = strdup(opt->proxy_user);
+	/** \todo support strdup error condition */
+
 	return 0;
+}
+
+void free_options( struct opt *opt )
+{
+	if( opt )
+	{	free(opt->proxy);
+		free(opt->proxy_user);
+	}
 }
 
 int
@@ -130,7 +151,10 @@ main( int argc, char **argv )
 		return EXIT_FAILURE;
 	}
 	
-	iol_set_repository(iol, opt.repository);
+	iol_set(iol, IOL_REPOSITORY, opt.repository);
+	iol_set(iol, IOL_PROXY_HOST, opt.proxy);
+	iol_set(iol, IOL_PROXY_USER, opt.proxy_user);
+
 	rs_log_info(_("login on as `%s'"), opt.username);
 	if( iol_login(iol, opt.username, opt.password) != E_OK )
 	{	rs_log_error(_("login(): login failed"));
@@ -146,5 +170,7 @@ main( int argc, char **argv )
 	iol_logout(iol);
 	iol_destroy(iol);
 
+	free_options(&opt);
+	
 	return 0;
 }
