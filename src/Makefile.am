@@ -1,6 +1,6 @@
 AM_CFLAGS = @CFLAGS@ -I$(srcdir)/../lib  -DNDEBUG
 AM_LDFLAGS = @LDFLAGS@  -L$(srcdir)/../lib -L. 
-LIBS =  @LIBS@ -ldb 
+LIBS =  @LIBS@
 srcdir = @srcdir@
 
 #########
