@@ -17,29 +17,29 @@ typedef struct parse
 typedef struct stCDT * stm_t;
 
 /** creates a new parser object 	*/
-stm_t st_new(ST_PARSE **sp, unsigned num_states, int init_state, void *data);
+stm_t stm_new(ST_PARSE **sp, unsigned num_states, int init_state, void *data);
 
 /**
  * parses input c for parser object pd
  * returns whatever returns action routine or 0 if no action routine is given
  * or debug mode
  */
-int st_parse( stm_t pd, int c );
+int stm_parse( stm_t pd, int c );
 
 /** Obtains parser state of parser object pd  */
-int st_get_status( stm_t pd );
+int stm_get_state( stm_t pd );
 
 /** Sets parser object pd to its initial state */
-int st_reinit( stm_t pd );
+int stm_reinit( stm_t pd );
 
 /** closes parser object */
-int st_destroy( stm_t pd );
+int stm_destroy( stm_t pd );
 
 /** \brief enable/disable debug 
  *
  *  callback format: old_state, new_state, char
  */
-int st_set_debug( stm_t st, void (*fnc) (int, int, int) );
+int stm_set_debug( stm_t st, void (*fnc) (int, int, int) );
 
 enum
 { 	EST_OK,

@@ -36,7 +36,7 @@ struct stCDT
 #define IS_ST(l)	((l)!=NULL && (l)->root!=NULL )
 
 stm_t
-st_new( ST_PARSE **sp, unsigned nstates, int init_state, void *data )
+stm_new( ST_PARSE **sp, unsigned nstates, int init_state, void *data )
 { 	stm_t st = 0;
 
 	st = malloc(sizeof(*st));
@@ -52,7 +52,7 @@ st_new( ST_PARSE **sp, unsigned nstates, int init_state, void *data )
 }
 
 int
-st_set_debug( stm_t st, void (*debug)(int, int, int) )
+stm_set_debug( stm_t st, void (*debug)(int, int, int) )
 {	int ret = EST_OK;
 
 	if( IS_ST(st) )
@@ -64,7 +64,7 @@ st_set_debug( stm_t st, void (*debug)(int, int, int) )
 }
 
 int
-st_parse( stm_t st, int c )
+stm_parse( stm_t st, int c )
 { 	ST_PARSE *p;
 	int next;
 	int found;
@@ -104,7 +104,7 @@ st_parse( stm_t st, int c )
 }
 
 int
-st_get_state( stm_t st )
+stm_get_state( stm_t st )
 { 	int ret;
 
 	if( !IS_ST(st) )
@@ -116,7 +116,7 @@ st_get_state( stm_t st )
 }
 
 int
-st_reinit( stm_t st )
+stm_reinit( stm_t st )
 { 	int ret = EST_OK;
 
 	if( !IS_ST(st) )
@@ -128,7 +128,7 @@ st_reinit( stm_t st )
 }
 
 int
-st_destroy( stm_t st )
+stm_destroy( stm_t st )
 { 	int ret = EST_OK;
 
 	if( !IS_ST(st) )
