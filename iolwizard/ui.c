@@ -633,7 +633,14 @@ exec_iolwizard(void)
 #else
 static int
 exec_iolwizard(void)
-{	
-	return -1;
+{	pid_t pid;
+
+	pid = fork();
+	if( pid == -1 )
+		return -1;
+	else if( pid == 0 )
+		execlp("xterm","xterm", "-e", "iolsucker");
+		
+	return 0;
 }
 #endif
