@@ -120,18 +120,19 @@ struct course
  * Concrete data type for the IOL object */
 struct iolCDT
 { 	CURL *curl;		/**< curl handler */
-	int bLogged;    	/**< already logged in ? */ 
-	GSList *courses;	/**< loaded courses */ 
+	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
+	double transfered_bytes;/**< bytes downloaded */
 
 	const struct course *current_course;
+	GSList *courses;	/**< loaded courses */ 
+	int bLogged;    	/**< already logged in ? */ 
 	char *repository;	/**< repository directory */
 
 	int dry;		/**< dry run ? */
 	int verbose;		/**< print lots of information? */
 	int fancy;		/**< use fancy names */
 
-	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
-	cache_t fcache;
+	cache_t fcache;		/**< cache of files for download.asp **/
 	FILE *logfp;		/**< logfile filepointer */
 };
 
@@ -169,7 +170,7 @@ write_data_to_file(void *ptr, size_t size, size_t nmemb, void *data)
 	return fwrite(ptr, size, nmemb, fp);
 }
 
-#ifdef CURLOPT_DEBUGDATA
+#ifdef HAVE_CURLOPT_DEBUGDATA
 static int 
 curl_debug_fnc(CURL *curl ,curl_infotype type, char  *ptr, size_t size,
 iol_t iol)
@@ -197,6 +198,23 @@ iol_t iol)
 	return 0;
 }
 #endif
+
+static void
+count_bytes(CURL *curl)
+{
+#ifdef HAVE_CURLOPT_PRIVATE	/* libcurl >= 7.10.3 */
+	double d=0 ;
+	double *acc=0;
+	long header, request;
+
+	curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &d);
+	curl_easy_getinfo(curl, CURLINFO_REQUEST_SIZE, &request);
+	curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &header);
+	curl_easy_getinfo(curl, CURLINFO_PRIVATE, &acc);
+
+	*acc += d + request + header;
+#endif
+}
 
 /**
  *  wraper to libcurl. Transfer the url, and saves it in the buffer page
@@ -241,6 +259,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 	
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	res = curl_easy_perform(curl);
+	count_bytes(curl);
 
 	if( fp )
 		fclose(fp);
@@ -266,7 +285,11 @@ iol_new(void)
 	curl_easy_setopt(cdt->curl,CURLOPT_USERAGENT,USERAGENT);
 	curl_easy_setopt(cdt->curl,CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(cdt->curl,CURLOPT_ERRORBUFFER, cdt->errorbuf);
-	#ifdef CURLOPT_DEBUGDATA
+	#ifdef HAVE_CURLOPT_PRIVATE /* libcurl >= 7.10.3 */
+	  curl_easy_setopt(cdt->curl,CURLOPT_PRIVATE, &(cdt->transfered_bytes));
+	#endif  
+
+	#ifdef HAVE_CURLOPT_DEBUGDATA
 	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGFUNCTION, curl_debug_fnc);
 	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGDATA, cdt);
 	#endif
@@ -286,26 +309,26 @@ free_courses_list( struct course *data, gpointer user_data )
 
 static void
 show_curl_info( CURL *curl)
-{	static const char *unit[]={"bytes","KB","MB","GB","TB"};
-	double d=0 ;
-	long header, request;
+{	
+#ifdef HAVE_CURLOPT_PRIVATE	/* libcurl >= 7.10.3 */
+	static const char *unit[]={"bytes","KB","MB","GB","TB"};
+	double *d=0 ;
 	unsigned i;
 	const char *u;
 	
-	curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &d);
-	curl_easy_getinfo(curl, CURLINFO_REQUEST_SIZE, &request);
-	curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &header);
 
-	d+=request+header;
-	for( i=0; d > 1024; i++ )
-		d/=1024;
+	curl_easy_getinfo(curl, CURLINFO_PRIVATE, &d);
+	assert(d);
+	for( i=0; *d > 1024; i++ )
+		*d/=1024;
 
 	if( i >= sizeof(unit)/sizeof(*unit) )
 		u = "unknown";
 	else
 		u = unit[i];
 
-	rs_log_info(_("%.2f %s transfered"),d,u);
+	rs_log_info(_("%.2f %s transfered"),*d,u);
+#endif
 }
 
 void
