@@ -203,3 +203,11 @@ load_config_file(struct opt *opt)
 	
 	return 0;
 }
+
+unsigned int 
+sleep(unsigned int seconds)
+{
+	Sleep(seconds * 1000 );
+
+	return 0;
+}
