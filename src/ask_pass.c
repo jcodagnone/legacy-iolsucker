@@ -30,8 +30,7 @@
 
 int
 ask_password( struct opt *opt )
-{	int attr;
-	struct termios old,new;
+{ 	struct termios old,new;
 
 	printf(_("\nEnter the password for `%s'> "),opt->username );
 	if( tcgetattr(0, &old) == -1 )
