@@ -20,7 +20,7 @@ iolsucker_SOURCES = main.c main.h config.c fconfig.h  iol.c iol.h \
                     link.c link.h getpass.c getpass.h progress.c \
                     progress.h  iolerr.c opt.c forum.c \
                     forum.h demo.c  link_debug.c stringset.c stringset.h \
-		    common.h common.c cache.c
+		    common.h common.c cache.c cache.h
 
 iolsucker_CFLAGS = $(AM_CFLAGS) @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@ 
 iolsucker_LDADD = ../lib/libmisc.a @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
