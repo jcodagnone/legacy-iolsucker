@@ -4,6 +4,6 @@
 #include "dll.h"
 
 EXPORT char *
-path_get_dirname(const char *path);
+my_path_get_dirname(const char *path);
 
 #endif

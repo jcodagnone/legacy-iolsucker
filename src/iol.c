@@ -219,7 +219,7 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data)
 		fclose(fp);
 	if( progress )
 		destroy_progress_callback(progress);
-
+	curl_easy_setopt(curl, CURLOPT_URL, "");
 	return res == 0 ? E_OK : E_NETWORK;
 }
 
@@ -620,7 +620,7 @@ iol_set_current_course(iol_t iol, const char *course)
 	sleep(5); 
 	if( transfer_page(iol->curl, s, 0, NULL) != E_OK )
 		ret = E_NETWORK;
-
+	g_free(s);
 	return	ret;
 }
 
@@ -676,23 +676,26 @@ is_javascript_link( const char *link)
 static char *
 my_url_escape(const char *url)
 {	char *s;
-	unsigned i=0,len=0;
+	unsigned i=0, j,len=0;
 	
 	for(s=(char *)url; *s ; s++,len ++)
-		if( *s == ' ' )
+	{	if( *s == ' ' )
 			i++;
-	s = malloc(len + i*2 + 1);
+	}
+
+	s = malloc(len + i*2 + 100);
 	if( s == NULL )
 		return NULL;
-	for( i=0; *url; url++ , i++)
+	for( j=0; *url; url++ , j++)
 		if( *url == ' ' )
-		{	s[i++] = '%';
-			s[i++] = '2';
-			s[i]   = '0';
+		{	s[j++] = '%';
+			s[j++] = '2';
+			s[j]   = '0';
 		}
 		else
-			s[i] = *url;
-	s[i]=0;
+			s[j] = *url;
+	s[j]=0;
+	assert(j == len + i*2);
 
 	return s;
 }
@@ -811,12 +814,14 @@ link_files_fnc( const char *link, const char *comment, void *d )
 		g_free(s);
 		if( q )
 		{	if( t->url_prefix == NULL )
-				t->url_prefix = path_get_dirname(
+				t->url_prefix = my_path_get_dirname(
 				                    q+strlen(URL_BASE)+1);
 			t->files = g_slist_prepend(t->files, q);
 		}
 	}
-	else if( !link_is_sort_link(link) )
+	else if( link_is_sort_link(link) )
+		g_free(s);
+	else
 	{ 	if( is_father_folder(s,t->prefix) )
 			g_free(s);
 		else
@@ -904,7 +909,8 @@ struct tmp_resync_getfile
 static void
 foreach_getfile(char *file, struct tmp_resync_getfile *d)
 {	size_t len;
-	char *local, *dirname, *download, *unquote, *q;
+	char *local, *dirname, *download, *unquote;
+	const char *q;
 	struct stat st;
 
 	q = URL_BASE;
@@ -934,7 +940,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		 */
 		unquote = file + len;
 		local = g_strdup_printf("%s/%s", d->prefix, unquote);
-		dirname = path_get_dirname(local);
+		dirname = my_path_get_dirname(local);
 		/*curl_free(unquote);*/
 
 		if( stat(local,&st) == -1 )
@@ -969,7 +975,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 			}
 		}
 		
-		g_free(dirname);
+		free(dirname);
 		g_free(local);
 	}
 }
@@ -980,8 +986,8 @@ convertRepository( const char *from, const char *to)
 	int ret;
 
 
-	f = g_dirname(from);
-	t = g_dirname(to);
+	f = my_path_get_dirname(from);
+	t = my_path_get_dirname(to);
 	ret = rename(f, t);
 	/** \todo detect EISDIR EEXIST ENOTDIR */
 
@@ -1080,7 +1086,7 @@ iol_resync(iol_t iol, const char *code)
 			tmp.url_prefix = NULL;
 			get_current_file_list(iol, &files, &(tmp.url_prefix));
 			g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
-			g_free(tmp.url_prefix);
+			free(tmp.url_prefix);
 		}
 
 		g_free(s);

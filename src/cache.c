@@ -132,8 +132,9 @@ cache_get_file( cache_t cdt, const char *id)
 	
 		ret = cdt->dbp->get(cdt->dbp, NULL, &key, &data, 0);
 		if ((ret = cdt->dbp->get(cdt->dbp, NULL, &key, &data, 0)) == 0)
-			s = strdup(data.data);
-		else if (ret == DB_NOTFOUND )
+			/* yes. use g_strdup. the rest of the program
+			 * is made for a g_ */
+			s = g_strdup(data.data);
 			;
 		else
 			cdt->dbp->err(cdt->dbp, ret, "DB->get");
