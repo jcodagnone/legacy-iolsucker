@@ -1,4 +1,9 @@
-iolsucker-2.0.24
+iolsucker-2.0.25:
+  o implementacion del nuevo sistema de downloads
+  o nueva opcion --no-cache: forza al iolsucker a no usar ningun cache
+  o faltaba distribuir el Makefile de src/demo (Gracias Javier Ruere)
+
+iolsucker-2.0.24:
   o bugfix: iolwizard: no todas las xterm soportaban la forma de lanzar el
     iolsucker. Parche por Julio F. Pintos
   o bugfix: iolsucker lanzaba una SIGSegV si no había archivos para descargar.
