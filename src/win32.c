@@ -35,6 +35,7 @@ registry_get_string( HKEY root,		/* root key */
 	DWORD dwType, cbData;
 	int ret = FALSE;
 
+	buff[0]=0;
 	if( RegOpenKeyEx(root, path, 0, KEY_READ, &key) == ERROR_SUCCESS )
 	{	if(RegQueryValueEx(key,item,0,&dwType,0,&cbData)==ERROR_SUCCESS)
 		{	if(nBuff<cbData)
@@ -60,7 +61,7 @@ registry_change_string( HKEY root, const char *path, const char *item,
 {	HKEY key;
 	DWORD n;
 	BOOL ret = FALSE;
-	DWORD nBuff = lstrlen(buff);
+	DWORD nBuff = lstrlen(buff) + 1;
 
 	if( RegCreateKeyEx(root, path, 0, NULL, 0, KEY_SET_VALUE, NULL, &key,&n)
            == ERROR_SUCCESS)
@@ -158,7 +159,10 @@ load_config_file(struct opt *opt)
 		{	strncpy(opt->username,buf,sizeof(opt->username));
 			opt->username[sizeof(opt->username)-1] = 0;
 		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,""); 
 	}
+
 	if( opt->password[0] == 0 )
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PASS, buf,
                                         sizeof(buf) ) == TRUE )
@@ -166,6 +170,8 @@ load_config_file(struct opt *opt)
 			opt->password[sizeof(opt->password)-1] = 0;
 			rot13(opt->password);
 		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PASS,""); 
 
 	}
 	if( opt->repository[0] == 0 )
@@ -174,6 +180,8 @@ load_config_file(struct opt *opt)
 		{	strncpy(opt->repository,buf,sizeof(opt->repository));
 			opt->repository[sizeof(opt->repository)-1] = 0;
 		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,IOL_REPO,""); 
 	}
 	if( opt->proxy_type[0] == 0)
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_TYPE, buf,
@@ -186,6 +194,10 @@ load_config_file(struct opt *opt)
 			else
 				opt->proxy_type = "";
 		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_TYPE,
+			                        "");
+
 	}
 
 	if( opt->proxy == NULL )
@@ -198,6 +210,9 @@ load_config_file(struct opt *opt)
 				opt->proxy  = NULL;
 			}
 		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_HOST,
+			                       "");
 	}
 
 	if( opt->proxy_user == NULL )
@@ -212,12 +227,20 @@ load_config_file(struct opt *opt)
 			else
 				rot13(opt->proxy_user);
 		}
+		else
+			registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_USER,
+			                        "");
 	}
 
 	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_DRY, buf,
 	                        sizeof(buf) ) == TRUE )
-	 	opt->dry = buf[0] - '0' != 0;
-
+	{	if( isdigit(buf[0]) )
+	 		opt->dry = buf[0] - '0' != 0;
+		else
+			opt->dry = 0;
+	}
+	else
+		registry_change_string(IOL_ROOT,IOL_PATH,IOL_DRY,"");
 	if( opt->verbose )
 		print_verbose(opt);
 	
