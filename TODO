@@ -1,6 +1,5 @@
 TODO cercano (próxima version?):
   o  Completar la sincronizacronización de foros. Decir hay X mensajes nuevos.
-  o  --server server:8080 así se puede tunelear por ssh.
 
 TODO lejano:
   o  Filtros de materias y archivos:
