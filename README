@@ -1,31 +1,7 @@
 
-iolsucker-2.0.14: `jueves santo'
-
-Introducción:
-  Pequeños cambios que tenía en mi repositorio local. La mayoria de los
-  cambios son pequeñas cosas. Lo único que realmente se nota es que ya no
-  esperamos  5 segundos sin hacer nada entre cada materia (ver abajo).
-
-  Para mas información mas detallada en los cambios
-       http://embryos.homeip.net/~juam/code/iolsucker/changelog.html
-      
-Bugfixes:
-  o  mostrar correctamente el porcentaje cuando la barra de progresión 
-     son los puntos.
-  o  algunos errors en los mensajes de los tooltips del iolwizard (descubiertos
-     por Francisco Kiss)
-  
-Features: 
-  o  algunos comentarios y retoques sobre el código y la documentación.
-  o  icono transparente del iolwizard
-  o  no esperar más 5 segundos en el cambio de materia (el server se solía
-     equivocar). Ahora no pase más. Opcion wait por si vuelve a aparecer.
-     (van a notar que iolsucker es mucho mas rapido)
-  
-  o  opción -F para habilitar la sincronización de foros.
-     Por ahora solo dice cuantos mensajes hay.
-
 Compilación en windows:
+~~~~~~~~~~~~~~~~~~~~~~
+
 Para compilar el proyecto pueden usar el msvc: win32/iolsucker/iolsucker.dsw
 Necesitan tener el unix.zip. Me interesaria si alguien lo hace funcionar con
 el migwin
