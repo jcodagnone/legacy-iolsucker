@@ -4,6 +4,7 @@ AM_LDFLAGS = @LDFLAGS@  -L../lib -L.
 
 LIBS =  @LIBS@  @XML_LIBS@ @GTK_LIBS@ @GLIB_LIBS@
 
+EXTRA_DIST = dirent.c dirent.h
 EXTRA_PROGRAMS = iolwizard
 bin_PROGRAMS = @IOLWIZARD@
 
