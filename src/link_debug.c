@@ -17,18 +17,22 @@ const char *link_debug(int state) {
 	else if( state==5 ) 
 		r = "ST_TAG_A_END";
 	else if( state==6 ) 
-		r = "ST_TAG_A_OTHER";
+		r = "ST_TAG_A_END_IS_SLASH";
 	else if( state==7 ) 
-		r = "ST_TAG_A_H";
+		r = "ST_TAG_A_END_IS_SLASH_A";
 	else if( state==8 ) 
-		r = "ST_TAG_A_HR";
+		r = "ST_TAG_A_OTHER";
 	else if( state==9 ) 
-		r = "ST_TAG_A_HRE";
+		r = "ST_TAG_A_H";
 	else if( state==10 ) 
-		r = "ST_TAG_A_HREF";
+		r = "ST_TAG_A_HR";
 	else if( state==11 ) 
-		r = "ST_TAG_A_HREF_EQ";
+		r = "ST_TAG_A_HRE";
 	else if( state==12 ) 
+		r = "ST_TAG_A_HREF";
+	else if( state==13 ) 
+		r = "ST_TAG_A_HREF_EQ";
+	else if( state==14 ) 
 		r = "ST_TAG_A_HREF_EQ_READ";
 
 	return r;
