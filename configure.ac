@@ -51,7 +51,6 @@ AC_CHECK_HEADERS([termios.h sys/ioctl.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_TYPE_MODE_T
 AC_TYPE_SIGNAL
