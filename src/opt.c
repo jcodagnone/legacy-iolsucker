@@ -122,9 +122,9 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	   lopt[7].data = &(opt->proxy_user);
 	   lopt[8].data = lopt[9].data = &(opt->proxy);
 	   lopt[10].data = lopt[11].data = &(opt->dry);
-	   lopt[12].data = lopt[13].data = &(proxy_type);
+	   lopt[12].data = lopt[13].data = (char *)&(proxy_type);
 	   lopt[14].data = lopt[15].data = &(opt->verbose);
-	   lopt[16].data = &rep;
+	   lopt[16].data = (char *)&rep;
 	   lopt[17].data = &(opt->fancy);
 	   lopt[18].data = lopt[19].data = &(opt->forum);
 	assert( argv && opt );

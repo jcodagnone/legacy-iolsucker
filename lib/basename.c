@@ -1,5 +1,5 @@
 /*
- * $Id: basename.c,v 1.3 2003/03/01 18:09:38 juam Exp $
+ * $Id: basename.c,v 1.4 2003/04/10 04:17:02 juam Exp $
  *
  * basename(1) implementation
  */
@@ -10,7 +10,7 @@
 EXPORT const char *
 basename( const char *path )
 {	char *back,*slash,*gr;
-	char *r;
+	const char *r;
 	
 	back  = strrchr(path,'\\');
 	slash = strrchr(path,'/');

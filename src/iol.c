@@ -36,15 +36,16 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef HAVE_UNISTD_H
-  #include <unistd.h>
-#else
-  #include <unix.h>
-  #define isatty(m) (_isatty(m))
-#endif
 
 #include <glib.h>
 #include <curl/curl.h>
+#ifdef HAVE_UNISTD_H
+  #include <unistd.h>
+#else
+/*  #include <unix.h>*/
+#endif
+
+
 
 #include <trace.h>
 #include <strdup.h>
@@ -1043,7 +1044,7 @@ struct tmp_resync_getfile
 
 static unsigned
 get_tty_columns( void )
-{	char *env = g_getenv("COLUMNS");
+{	const char *env = getenv("COLUMNS");
 	unsigned columns = 80;
 	
 	if( env )
@@ -1051,8 +1052,6 @@ get_tty_columns( void )
 		if( columns == 0 )
 			columns = 80;
 	}
-
-	g_free(env);
 
 	return columns;
 }

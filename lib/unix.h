@@ -4,16 +4,19 @@
 #define _UNIX_H_
 
 /* missing mode */
-typedef unsigned mode_t;
-typedef unsigned size_t;
+
 
 	#define	R_OK	4		/* Test for read permission.  */
 	#define	W_OK	2		/* Test for write permission.  */
 	#define	X_OK	1		/* Test for execute permission.  */
 	#define	F_OK	0		/* Test for existence.  */
 
+
 int access(const char *pathname, int mode);
 
+
+typedef unsigned int mode_t;
+typedef unsigned int size_t;
 /*  
  *  MSVC++ sys/stat doesn't have the struct stat::st_mode macros and definitions *
  *  Extracted from stat(2) man page
@@ -54,4 +57,6 @@ int mkdir(const char *path, mode_t mode);
 int write(int fd, void *data, size_t len);
 mode_t umask(mode_t mask);
 unsigned int sleep(unsigned int seconds);
+int _isatty ( int desc );
+#define isatty(m) (_isatty(m))
 #endif
