@@ -107,6 +107,7 @@ rot13(char *data)
 #define IOL_FANCY    	"fancy"
 #define IOL_FORUM    	"forum"
 #define IOL_WAIT	"wait"
+#define IOL_VERBOSE	"verbose"
 
 int
 save_config_file(struct opt *opt)
@@ -141,6 +142,9 @@ save_config_file(struct opt *opt)
 	                          opt->forum? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_WAIT, 
 	                          opt->wait ? t : f);
+
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_VERBOSE, 
+	                          opt->verbose ? t : f);
 	return r == 1 ? 0 : -1;
 }
 
@@ -158,7 +162,8 @@ print_verbose(const struct opt *opt)
 	fprintf(fp,"dry: %d\n",opt->dry );
 	fprintf(fp,"fancy: %d\n",opt->fancy);
 	fprintf(fp,"forum: %d\n",opt->forum);
-	fprintf(fp,"forum: %d\n",opt->wait);
+	fprintf(fp,"wait: %d\n",opt->wait);
+	fprintf(fp,"verbose: %d\n",opt->verbose);
 }
 
 struct config_sz
@@ -259,6 +264,7 @@ load_config_file(struct opt *opt)
 		{ IOL_FANCY,	&(opt->fancy),	0},
 		{ IOL_FORUM,	&(opt->forum),	0}
 		{ IOL_WAIT,	&(opt->wait),	0}
+		{ IOL_VERBOSE,	&(opt->verbose),0}
 	};
 
 	#define NELEM(q) (sizeof(q)/sizeof(*(q)))
