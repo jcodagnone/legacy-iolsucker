@@ -138,7 +138,7 @@ cache_get_file( cache_t cdt, const char *id)
 		key.size = strlen(id) + 1;
 	
 		ret = cdt->dbp->get(cdt->dbp, NULL, &key, &data, 0);
-		if ((ret = cdt->dbp->get(cdt->dbp, NULL, &key, &data, 0)) == 0)
+		if ( ret == 0)
 			/* yes. use g_strdup. the rest of the program
 			 * is made for a g_ */
 			s = g_strdup(data.data);
