@@ -30,6 +30,7 @@ struct opt {
 	int xenofobe;
 	int no_cache;
 	char *dump;
+	int ask;
 };
 
 /** parse command line options */

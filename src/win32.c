@@ -111,6 +111,7 @@ rot13(char *data)
 #define IOL_HOST	"iol_host"
 #define IOL_XENOFOBE    "xenfobe"
 #define IOL_NO_CACHE    "no_cache"
+#define IOL_ASK         "ask"
 #define IOL_DUMP         "dump"
 
 int
@@ -153,6 +154,8 @@ save_config_file(struct opt *opt)
 	                          opt->xenofobe ? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_NO_CACHE, 
 	                          opt->no_cache? t : f);
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_ASK, 
+	                          opt->ask? t : f);
 	/*r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_DUMP, 
 	 *                        opt->dump ? t : f);
 	 */
@@ -180,6 +183,7 @@ print_verbose(const struct opt *opt)
 	fprintf(fp,"verbose: %d\n",opt->verbose);
 	fprintf(fp,"xenofobe: %d\n",opt->xenofobe);
 	fprintf(fp,"no_cache: %d\n",opt->no_cache);
+	fprintf(fp,"ask: %d\n",opt->ask);
 }
 
 struct config_sz
@@ -283,7 +287,8 @@ load_config_file(struct opt *opt)
 		{ IOL_FORUM,	&(opt->forum),	0},
 		{ IOL_WAIT,	&(opt->wait),	0},
 		{ IOL_VERBOSE,	&(opt->verbose),0},
-		{ IOL_XENOFOBE,	&(opt->xenofobe),0}
+		{ IOL_XENOFOBE,	&(opt->xenofobe),0},
+		{ IOL_ASK,	    &(opt->ask),0}
 	};
 
 	#define NELEM(q) (sizeof(q)/sizeof(*(q)))

@@ -61,7 +61,7 @@ struct tmp
 	GtkWidget *edtUser, *edtPass, *edtRep, *edtSHost;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait, 
-	          *chkXenofobe, *chkNoCache;
+	          *chkXenofobe, *chkNoCache, *chkAsk;
 	char *msg;
 };
 
@@ -202,6 +202,7 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkWait), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkXenofobe), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkNoCache), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkAsk), 0);
 
 }
 
@@ -323,6 +324,14 @@ no_cache_fnc( GtkWidget *widget, struct tmp *tmp )
 	tmp->opt->no_cache =
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkNoCache));
 }
+
+static void
+ask_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->ask = 
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkAsk));
+}
+
 
 
 /*
@@ -514,10 +523,14 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 		},
 		{&tmp->chkNoCache,"No usar Caches",0,1,2,3,(void *)no_cache_fnc,
 		  tmp->opt->no_cache, "No utilizar ningun cache"
+		},
+		{&tmp->chkAsk, "Confirmar Transferencias",2,3,2,3,
+		(void *)ask_fnc, tmp->opt->ask, "Le consulta al usuario si "
+		"desea descargar los la pagina web"
 		}
+
 	};
 	unsigned i;
-
 	table = gtk_table_new (4, 3, FALSE);
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
 	for( i = 0 ; i < NELEMS(chkbox) ; i ++ )

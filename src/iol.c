@@ -122,6 +122,7 @@ struct iolCDT
 	int wait;		/**< seconds to wait when changing context */
 	int xenofobe;           /**< show forein files (the ones that aren't 
 	                             from iol's repository) */
+	int ask;                /**< ask before downloading anything */
 	int no_cache;           /**< use cache feature? */
 	struct dump dump;
 
@@ -249,18 +250,20 @@ transfer_count_bytes(CURL *curl)
 #endif
 }
 
+
 /**
  *  wraper to libcurl. Transfer the url, and saves it in the buffer page or 
  *  in a file.
  */
 static int
-transfer_page( CURL *curl, const char *url, unsigned flags, void *data, 
+_transfer_page( CURL *curl, const char *url, unsigned flags, void *data, 
                struct dump *dump)
 {	struct dump_transfer dt = { 0 };
 	struct progress *progress = NULL;
 	void *fnc = 0, *fncdata = 0;
 	CURLcode res; 
 	
+
 	if( curl == NULL || url == 0 || url[0]==0)
 		return E_INVAL;
 
@@ -342,6 +345,45 @@ transfer_page( CURL *curl, const char *url, unsigned flags, void *data,
 	curl_easy_setopt(curl, CURLOPT_URL, "");
 	return res == 0 ? E_OK : E_NETWORK;
 }
+
+static int transfer_page(iol_t iol, const char *url, unsigned flags,
+                          void *data) {
+	int ret = 0;
+	
+	if( iol->ask ) {
+		char *r;
+		char buff[1024];
+		int ok = 0;
+		do {
+			rs_log_info("desea descargar `%s'? (y/N) ", url);
+		
+			r = fgets(buff, sizeof(buff), stdin);
+			if( r == 0 ) {
+				ret = E_USERCANCEL;
+				ok = 1;
+			} else {
+				buff[strlen(buff)-1]=0;
+				if( buff[0] == 0 || 
+				   (tolower(buff[0]) == 'n' && buff[1] == 0)) {
+					ret = E_USERCANCEL;
+					ok = 1;
+				} else if( tolower(buff[0]) == 'y' &&
+				           buff[1] == 0) {
+					ok = 1;
+				} else {
+					ok = 0;
+				}
+			}
+		} while(!ok);
+	} 
+	
+	if(ret == 0) {
+		ret = _transfer_page(iol->curl, url, flags, data, &(iol->dump));
+	}
+
+	return ret;
+}
+
 
 /**
  * given url_part creates the url.
@@ -661,6 +703,21 @@ iol_set_no_cache(iol_t cdt, int *no_cache)
 	return ret;
 }
 
+
+static int
+iol_set_ask(iol_t cdt, int *ask)
+{	int ret = E_OK;
+
+	if( cdt != 0 && ask != 0 ) {
+		cdt->ask = *ask;
+	} else {
+		ret = E_INVAL;
+	}
+		
+	return ret;
+}
+
+
 static int
 iol_set_dump(iol_t cdt, const char *dump)
 {	int ret = E_OK;
@@ -697,7 +754,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_HOST,       (iol_set_fnc) iol_set_host       },
 		{	IOL_XENOFOBE,   (iol_set_fnc) iol_set_xenofobe   },
 		{	IOL_NO_CACHE,   (iol_set_fnc) iol_set_no_cache   },
-		{	IOL_DUMP,       (iol_set_fnc) iol_set_dump       }
+		{	IOL_DUMP,       (iol_set_fnc) iol_set_dump       },
+		{	IOL_ASK,        (iol_set_fnc) iol_set_ask        }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -735,7 +793,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 	{       struct buff buf = {NULL, 0};
 		
 		/* yummm!!! cookiessss */ 
-		if( transfer_page(iol->curl, url, 0, NULL, &iol->dump)!= E_OK )
+		if( transfer_page(iol, url, 0, NULL)!= E_OK )
 			nRet = E_NETWORK;
 		else if( (url = iol_get_url(iol, URL_LOGIN_1)) == NULL) 
 			nRet = E_MEMORY;
@@ -752,7 +810,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			 */
 			curl_easy_setopt(iol->curl,CURLOPT_FAILONERROR, 0);
 			
-			if(transfer_page(iol->curl,url,0,&buf,&iol->dump)!=E_OK)
+			if(transfer_page(iol, url,0,&buf)!=E_OK)
 				nRet = E_NETWORK;
 			else if( course_load_from_page(iol->courses,&buf) == 0)
 					iol->bLogged = 1;
@@ -781,7 +839,7 @@ iol_logout(iol_t iol)
 	else if( (url = iol_get_url(iol, URL_LOGOUT) ) == NULL )
 		nRet = E_MEMORY;
 	else if( iol->bLogged  )
-	{	transfer_page(iol->curl, url, 0, NULL, &iol->dump);
+	{	transfer_page(iol, url, 0, NULL);
 		iol->bLogged = 0;
 	}
 	else
@@ -818,7 +876,7 @@ iol_set_current_course(iol_t iol, const char *course)
 		if( iol->wait )
 			sleep(5); 
 		
-		if( transfer_page(iol->curl, s, 0, &page, &iol->dump) != E_OK )
+		if( transfer_page(iol, s, 0, &page) != E_OK )
 			ret = E_NETWORK;
 		else
 			c->flags = course_get_capabilities_from_page(&page);
@@ -995,7 +1053,7 @@ _iol_get_url_from_fid(iol_t iol, unsigned long fid, const char *fid_sz)
 		snprintf(tmp, sizeof(tmp), IOL_SHOWFILE, fid_sz);
 		tmp[sizeof(tmp)-1]=0;
 		url = iol_get_url(iol, tmp);
-		if( transfer_page(iol->curl, url, 0, &buf, &iol->dump) == E_OK )
+		if( transfer_page(iol, url, 0, &buf) == E_OK )
 		{
 			if( buf.size && buf.data  )
 			{	buf.data[buf.size - 1] = 0; /* hack */
@@ -1124,7 +1182,7 @@ get_file_list_from_current(iol_t iol, GSList **l)
 		webpage.data = NULL;
 		webpage.size = 0;
 
-		if(transfer_page(iol->curl, eurl, 0, &webpage,&iol->dump)!=E_OK)
+		if(transfer_page(iol, eurl, 0, &webpage)!=E_OK)
 			ret = E_NETWORK;
 		else
 		{	link_parser_t parser;
@@ -1287,9 +1345,8 @@ foreach_getfile(const char *file, struct tmp_resync_getfile *d)
 				                          IOL_MATERIAL_TMPFILE);
 				if( d->iol->dry )
 					;
-				else if( transfer_page(d->iol->curl, f,
-				                       TP_FILE, download,
-						       &d->iol->dump) == 0 )
+				else if( transfer_page(d->iol, f,
+				                       TP_FILE, download) == 0 )
 					rename(download,local);
 				else
 				{	remove(download);
@@ -1398,7 +1455,7 @@ iol_resync_forum(iol_t iol, const struct course *courses)
 	char *url = iol_get_url(iol, IOL_FORUM);
 	int ret = E_OK;
 	
-	if(transfer_page(iol->curl,url,0,&webpage, &iol->dump)!=E_OK)
+	if(transfer_page(iol,url,0,&webpage)!=E_OK)
 		ret = E_NETWORK;
 	else
 	{	
@@ -1533,7 +1590,7 @@ iol_get_new_novedades( iol_t iol, unsigned *n )
 	else if( (url=iol_get_url(iol, IOL_NEWS))== NULL )
 		ret = E_MEMORY;
 	else
-	{	if( transfer_page(iol->curl, url, 0, &page,&iol->dump)!= E_OK )
+	{	if( transfer_page(iol, url, 0, &page)!= E_OK )
 	        	ret = E_NETWORK;
 	        else
 	        {	link_parser_t parser;

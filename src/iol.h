@@ -18,6 +18,9 @@ enum iol_settings {
 	IOL_NO_CACHE,   /**< don't use any cache. default: FALSE data: (int *)*/
 	IOL_DUMP,       /**< path donde dumpear todas las transferencias 
 	                 *   default FALSE. data: (char *) */
+	IOL_ASK,        /**< ask before downloading a web page.
+	                 *   default FALSE. Data: (int *)
+			 */
 	IOL_MAX
 };
 
@@ -75,6 +78,7 @@ enum errors
 	E_NETWORK,	/**< network error */
 	E_MEMORY,	/**< need to take some Memorol 500 pills :) */
 	E_FS,		/**< error in the filesystem I/O */
+	E_USERCANCEL,	/**< user canceled operation */
 	E_MAXERROR	
 };
 

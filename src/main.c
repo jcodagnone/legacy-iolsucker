@@ -104,7 +104,8 @@ suck(struct opt *opt)
 	  { IOL_WAIT,        &(opt->wait),    "wait flag"    },
 	  { IOL_XENOFOBE,    &(opt->xenofobe),"xenofobe flag"},
 	  { IOL_NO_CACHE,    &(opt->no_cache),"no cache flag"},
-	  { IOL_DUMP,        opt->dump,       "dump flag"    }
+	  { IOL_DUMP,        opt->dump,       "dump flag"    },
+	  { IOL_ASK,         &(opt->ask),     "ask flag"     }
 	};
 	
 	iol = iol_new();
@@ -171,6 +172,7 @@ suck(struct opt *opt)
 	return ret;
 }
 
+#include <stdio.h>
 void
 version( void )
 {	char buff[4096];

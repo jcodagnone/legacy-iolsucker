@@ -27,6 +27,9 @@ iol_strerror(int code)
 		case E_FS:
 			r = "error in the filesystem I/O";
 			break;
+		case E_USERCANCEL:
+			r = "user canceled operation";
+			break;
 		case E_MAXERROR:
 			r = "E_MAXERROR";
 			break;

@@ -66,7 +66,6 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	load_config_file(&opt);	/* ignore if the file can't loaded */
-
 	create_ui((void *)&opt);
 
 	gtk_main();
