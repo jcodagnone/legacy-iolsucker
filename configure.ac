@@ -136,6 +136,8 @@ win32/libmisc/Makefile
 win32/libmiscdll/Makefile
 win32/iolsucker/Makefile
 win32/iolwizard/Makefile
+extra/Makefile
+extra/inst/Makefile
 iolwizard/Makefile]
 )
 

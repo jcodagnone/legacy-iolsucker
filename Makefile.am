@@ -9,4 +9,5 @@ SUBDIRS = \
 	src \
 	doc \
 	win32 \
-	iolwizard
+	iolwizard \
+	extra
