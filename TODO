@@ -1,8 +1,5 @@
 TODO cercano (próxima version?):
   o  Completar la sincronizacronización de foros. Decir hay X mensajes nuevos.
-  o  Intentar otra solución que no nos haga perder 5 segundos por materia para
-     evitar la race del servidor. seguramente va a implicar transferir unos
-     bytes de más.
 
 TODO lejano:
   o  Filtros de materias y archivos:
