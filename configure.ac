@@ -5,6 +5,7 @@ IOL_MAJOR_VERSION=2
 IOL_MINOR_VERSION=0
 IOL_MICRO_VERSION=0
 IOL_VERSION=$IOL_MAJOR_VERSION.$IOL_MINOR_VERSION.$IOL_MICRO_VERSION
+DATE="28 Feb 2003"
 
 VERSION=$IOL_VERSION
 PACKAGE=iolsucker
@@ -91,13 +92,15 @@ fi
 AC_SUBST(PACKAGE)
 AC_SUBST(IOL_VERSION)
 AC_SUBST(IOLWIZARD)
-
+AC_SUBST(DATE)
 dnl --------------------------------------------------------------------------
 dnl Output
 dnl --------------------------------------------------------------------------
 AC_OUTPUT([
 Makefile
 doc/Makefile
+doc/iolsucker.1
+doc/iolwizard.1
 lib/Makefile
 iolwizard/Makefile
 src/Makefile]
