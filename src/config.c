@@ -77,6 +77,11 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 			}
 			xmlFree(key);
 		}
+		else if ((!xmlStrcmp(cur->name, (const xmlChar *)"fancy")))
+		{ 	key = xmlNodeListGetString(doc,cur->xmlChildrenNode,1);
+			opt->fancy = 1;
+			xmlFree(key);
+		}
 		cur = cur->next;
 	}
 
@@ -217,7 +222,9 @@ save_config_file( const struct opt *opt)
 		fprintf(fp,"\t\t<pass>%s</pass>\n",opt->password);
 	if( opt->repository[0] )
 		fprintf(fp,"\t\t<rep>%s</rep>\n", opt->repository);
-
+	if( opt->fancy )
+		fprintf(fp,"\t\t<fancy></fancy>\n");
+		
         fprintf(fp,"\t</login>\n");
         fprintf(fp,"\t<proxy>\n");
         if( opt->proxy_type[0] )
