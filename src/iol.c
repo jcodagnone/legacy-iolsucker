@@ -1093,7 +1093,14 @@ get_real_download_file( iol_t iol,  const char *url )
 	return ret;
 }
 
-/**callback called for every link found in `material didacticos` pages
+static int
+link_is_rare_for_file( const char *link )
+{
+	return !strncmp(link, "./",  2) || !strncmp(link, "../", 3) ;
+}
+
+/**
+ * callback called for every link found in `material didacticos` pages
  * creates the list of files to download
  */
 static void
@@ -1106,10 +1113,18 @@ link_files_fnc( const unsigned char *link,
 	if( is_external_link(link) || is_javascript_link(link) )
 		return ;
 
-	p = my_url_escape(link);
+	if( link_is_rare_for_file(link) )
+	{
+		rs_log_warning("hum. the link is rare. skiping: `%s'", link);
+		rs_log_warning("please update to the lastest version "
+		               "or contact the author");
+		return;
+	}
+	
+	p = my_url_escape(link); 
 	if( p == NULL )
 		return;
-	s = g_strdup(iol_get_url(t->iol,p) );
+	s = g_strdup(iol_get_url(t->iol, p) );
 	free(p);
 	if( s == NULL )
 		return;
@@ -1420,7 +1435,7 @@ iol_resync_download(iol_t iol, const struct course *course)
 		tmp.iol = iol;
 		tmp.url_prefix = NULL;
 		
-		get_file_list_from_current(iol, &files, &(tmp.url_prefix));
+		ret=get_file_list_from_current(iol, &files, &(tmp.url_prefix));
 		g_slist_foreach(files, (GFunc)foreach_getfile, &tmp);
 
 		free(tmp.url_prefix);
