@@ -1,7 +1,8 @@
 #ifndef D4AFC5AB48A98F57BB9476499411ED651
 #define D4AFC5AB48A98F57BB9476499411ED651
 
-typedef void (*link_callback)(const char *link, const char *callback, void *);
+typedef void (*link_callback)(const unsigned char *link,
+                              const unsigned char *callback, void *);
 typedef struct link_parserCDT * link_parser_t;
 
 /** creates a parser object */

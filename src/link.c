@@ -1,8 +1,9 @@
 /*
  * link.c -- 
+ 
  *
  * Copyright (C) 2003 by Juan F. Codagnone <juam@users.sourceforge.net>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -13,45 +14,32 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
-
-#ifdef HAVE_CONFIG_H
-  #include <config.h>
-#endif
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <assert.h>
-
+#include <stm.h>
 #include "link.h"
 
-#define PARSER_SIGNATURE	0xE2F3
-#define IS_PARSER(m)	( m!=NULL && m->signature==PARSER_SIGNATURE)
-
-const char *link_debug(int state);
-
-enum state {	
-/*extract*/	ST_START,
-/*extract*/	ST_TAG,
-/*extract*/	ST_ISTAG_A,
-/*extract*/	ST_OTHERTAG,
-/*extract*/	ST_TAG_A,
-/*extract*/	ST_TAG_A_END,
-/*extract*/	ST_TAG_A_END_IS_SLASH,
-/*extract*/	ST_TAG_A_END_IS_SLASH_A,
-/*extract*/	ST_TAG_A_OTHER,
-/*extract*/	ST_TAG_A_H,
-/*extract*/	ST_TAG_A_HR,
-/*extract*/	ST_TAG_A_HRE,
-/*extract*/	ST_TAG_A_HREF,
-/*extract*/	ST_TAG_A_HREF_EQ,
-/*extract*/	ST_TAG_A_HREF_EQ_READ,
-/*extract*/	ST_TAG_A_END_IS_SLASH_A_OTHER
+enum state {
+/*extract*/     ST_START,
+/*extract*/     ST_TAG,
+/*extract*/     ST_ISTAG_A,
+/*extract*/     ST_OTHERTAG,
+/*extract*/     ST_TAG_A,
+/*extract*/     ST_TAG_A_END,
+/*extract*/     ST_TAG_A_END_IS_SLASH,
+/*extract*/     ST_TAG_A_END_IS_SLASH_A,
+/*extract*/     ST_TAG_A_OTHER,
+/*extract*/     ST_TAG_A_H,
+/*extract*/     ST_TAG_A_HR,
+/*extract*/     ST_TAG_A_HRE,
+/*extract*/     ST_TAG_A_HREF,
+/*extract*/     ST_TAG_A_HREF_EQ,
+/*extract*/     ST_TAG_A_HREF_EQ_READ,
+/*extract*/     ST_TAG_A_END_IS_SLASH_A_OTHER
 };
 
 struct link_parserCDT
@@ -59,11 +47,243 @@ struct link_parserCDT
 	unsigned char link[4096];
 	unsigned char comment[4096];
 	unsigned i,j;
-	enum state state;
 	link_callback link_fnc;
 	void *user_data;
-	int debug;
+	stm_t st;
 };
+
+/* transition functions */
+static int
+init_parser(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->link[0] = 0;
+	parser->comment[0] = 0;
+
+	return 0;
+}
+
+static int
+link_first_char(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->i=0;
+	parser->link[parser->i] = c;
+
+	return 0;
+}
+
+static int
+endlink(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->link[parser->i]=0;
+
+	return 0;
+}
+
+static int
+add_char(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->link[parser->i++]=c;
+	return 0;
+}
+
+static int
+addcomment(int c, void *data)
+{	link_parser_t parser = data;
+
+       if( parser->j != 0 && isspace(c) &&
+	    isspace(parser->comment[parser->j-1]) )
+		;
+	else
+	{       if( isspace(c) )
+			c = ' ';
+		parser->comment[parser->j++]=c;
+	}
+
+	return 0;
+}
+
+static int
+e_is_slash(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->comment[parser->j++] = '<';
+	parser->comment[parser->j++] = c;
+	
+	return 0;
+}
+
+static int
+e_slash_a(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->comment[parser->j++] = '<';
+	parser->comment[parser->j++] =  '/';
+	parser->comment[parser->j++] =  c;
+
+	return 0;
+}
+
+static int
+e_slash_a_other(int c, void *data)
+{       link_parser_t parser = data;
+
+	parser->comment[parser->j++] = '<';
+	parser->comment[parser->j++] =  '/';
+	parser->comment[parser->j++] =  'a';
+	parser->comment[parser->j++] =  c;
+
+	return 0;
+}
+
+static int
+done_link(int c, void *data)
+{	link_parser_t parser = data;
+
+	parser->comment[parser->j]=0;
+	parser->j = 0; 
+	if( parser->link_fnc )
+		 (*parser->link_fnc)(parser->link, parser->comment,
+		                     parser->user_data);
+
+	return 0;
+}
+
+/* state table */
+static ST_PARSE st_start[]=
+{	{ ST_CHAR,	'<',	ST_TAG  ,	NULL },
+	{ ST_FUNC,	ELSE,	ST_START,	NULL },
+};
+
+static ST_PARSE st_tag[]=
+{	{ ST_CHAR,	'>',	ST_START  ,	NULL	},
+	{ ST_LCHAR,	'a',	ST_ISTAG_A,	init_parser},
+	{ ST_FUNC,	ELSE,	ST_OTHERTAG,	NULL	}
+};
+
+static ST_PARSE st_istag_a[]=
+{	{ ST_FUNC,	isspace,ST_TAG_A,	NULL	},
+	{ ST_CHAR,	'>',   	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_OTHERTAG,	NULL	}
+};
+
+static ST_PARSE st_othertag[]= 
+{	{ ST_CHAR,	'>',	ST_START,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_OTHERTAG,	NULL	}
+};
+
+static ST_PARSE st_tag_a[]=
+{	{ ST_LCHAR,	'h',	ST_TAG_A_H,	NULL	},
+	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	isspace,ST_TAG_A_H,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A_OTHER,	NULL	}
+};
+
+static ST_PARSE st_tag_a_other[]=
+{	{ ST_FUNC,	isspace,ST_TAG_A,	NULL	},
+	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A_OTHER,	NULL	}
+};
+
+static ST_PARSE st_tag_a_h[]=
+{	{ ST_LCHAR,	'r',	ST_TAG_A_HR,	NULL	},
+	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}  
+};
+
+static ST_PARSE st_tag_a_hr[]=
+{	{ ST_LCHAR,	'e',	ST_TAG_A_HRE,	NULL	},
+	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}
+};
+
+static ST_PARSE st_tag_a_hre[]=
+{	{ ST_LCHAR,	'f',	ST_TAG_A_HREF,	NULL	},
+	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}
+};
+
+static ST_PARSE st_tag_a_href[]=
+{	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_CHAR,	'=',	ST_TAG_A_HREF_EQ,NULL	},
+	{ ST_FUNC,	isspace,ST_TAG_A_HREF,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A,	NULL	}
+};
+
+static ST_PARSE st_tag_a_href_eq[]=
+{	{ ST_CHAR,	'>',	ST_TAG_A_END,	NULL	},
+	{ ST_FUNC,	isspace,ST_TAG_A_HREF_EQ, NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A_HREF_EQ_READ,	link_first_char},
+};
+
+static ST_PARSE st_tag_a_href_eq_read[]=
+{	{ ST_CHAR,	'"',	ST_TAG_A,	endlink },
+	{ ST_CHAR,	'\'',	ST_TAG_A,	endlink },
+	{ ST_CHAR,	'>',	ST_TAG_A_END,	endlink },
+	{ ST_FUNC,	ELSE,	ST_TAG_A_HREF_EQ_READ,	add_char   }
+};
+
+static ST_PARSE st_tag_a_end[]=
+{	{ ST_CHAR, 	'<',	ST_TAG_A_END_IS_SLASH,	NULL        	},
+	{ ST_FUNC, 	ELSE,   ST_TAG_A_END,         	addcomment	}
+};
+
+static ST_PARSE st_tag_a_end_is_slash[]=
+{	{ ST_FUNC,	isspace,	ST_TAG_A_END_IS_SLASH,  	NULL },
+	{ ST_CHAR,	'/',   		ST_TAG_A_END_IS_SLASH_A,	NULL },
+	{ ST_FUNC,	ELSE,    	ST_TAG_A_END,              e_is_slash},
+};
+
+static ST_PARSE st_tag_a_end_is_slash_a[]=
+{	{ ST_LCHAR,	'a',	ST_TAG_A_END_IS_SLASH_A_OTHER,	NULL	},
+	{ ST_FUNC,	ELSE,	ST_TAG_A_END,                 	e_slash_a}
+};
+
+static ST_PARSE st_tag_a_end_is_slash_a_other[]=
+{	{ ST_CHAR,'>',    	ST_START,	done_link },
+	{ ST_FUNC,isspace,    	ST_START,	done_link },
+	{ ST_FUNC,ELSE,    	ST_TAG_A_END,	e_slash_a_other}
+};
+
+static ST_PARSE *link_table[]=
+{
+	st_start,
+	st_tag,
+	st_istag_a,
+	st_othertag,
+	st_tag_a,
+	st_tag_a_end,
+	st_tag_a_end_is_slash,
+	st_tag_a_end_is_slash_a,
+	st_tag_a_other,
+	st_tag_a_h,
+	st_tag_a_hr,
+	st_tag_a_hre,
+	st_tag_a_href,
+	st_tag_a_href_eq,
+	st_tag_a_href_eq_read,
+	st_tag_a_end_is_slash_a_other
+
+};
+
+/*****************************************************************************/
+#include <stdio.h>
+#include <string.h>
+
+#define NELEMS(a)	(sizeof(a)/sizeof(*(a)))
+#define PARSER_SIGNATURE	0xE2F3
+#define IS_PARSER(m)	( m!=NULL && m->signature==PARSER_SIGNATURE)
+
+const char *link_debug(int state);
+
+static void
+link_internal_debug(int old, int new, int c)
+{
+	printf("%c - %s\n",c,link_debug(old));
+}
 
 link_parser_t 
 link_parser_new(void)
@@ -71,12 +291,18 @@ link_parser_new(void)
 
 	parser = malloc(sizeof(*parser));
 	if( parser )
-	{	parser->signature = PARSER_SIGNATURE;
+	{	memset(parser, 0, sizeof(*parser) );
+		parser->signature = PARSER_SIGNATURE;
 		parser->i = parser->j = 0;
-		parser->state = ST_START;
 		parser->link_fnc = NULL ;
 		parser->user_data = NULL;
-		parser->debug = 0;
+		parser->st = st_new(link_table,  NELEMS(link_table), ST_START,
+		                    parser);
+		if( parser->st == NULL )
+		{	free(parser);
+			parser = NULL;
+		}
+		
 	}
 
 	return  parser;
@@ -85,217 +311,69 @@ link_parser_new(void)
 void
 link_parser_destroy(link_parser_t parser)
 {
-	free(parser);
+	if( IS_PARSER(parser) ) 
+		free(parser);
+
 }
 
 void
 link_parser_set_debug(link_parser_t parser, int b)
 {	
 	if( IS_PARSER(parser) )
-		parser->debug = b !=0 ;
+		st_set_debug(parser->st, b ? link_internal_debug : NULL );
 }
 
 void
 link_parser_set_link_callback(link_parser_t parser,link_callback call, void *d )
 {
 	if( IS_PARSER(parser) )
-	{
-		parser->link_fnc =  call;
+	{ 	parser->link_fnc =  call;
 		parser->user_data = d;
-		
 	}
 }
 
-/* large, straight foward, and boring
- */
 int
 link_parser_process_char( link_parser_t parser, int c )
 {
-	if(!IS_PARSER(parser))
-		return -1;
-		
-	if( parser->debug )
-	{	if( isprint(c) )
-			printf("%c - %s \n",c,link_debug(parser->state));
-		else
-			printf("0x%x - %s \n",c,link_debug(parser->state));
-	}
-
-	switch(parser->state)
-	{
-		case ST_START:
-			if( c == '<' )
-				parser->state = ST_TAG;
-			else
-				parser->state = ST_START;
-			break;
-		case ST_TAG:
-			if( c == '>' )
-				parser->state = ST_START;
-			else if( tolower(c) == 'a' )
-				parser->state = ST_ISTAG_A;
-			else
-				parser->state = ST_OTHERTAG;
-			break;
-		case ST_ISTAG_A:
-			parser->link[0] = 0;
-			parser->comment[0] = 0;
-
-			if( isspace(c) )
-				parser->state = ST_TAG_A;
-			else if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else
-				parser->state = ST_OTHERTAG;
-			break;
-		case ST_OTHERTAG:
-			if( c == '>' )
-				parser->state = ST_START;
-			else
-				parser->state = ST_OTHERTAG;
-			break;
-		case ST_TAG_A:
-			if( tolower(c) == 'h' )
-				parser->state = ST_TAG_A_H;
-			else if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else if( isspace(c) )
-				parser->state = ST_TAG_A_H;
-			else
-				parser->state = ST_TAG_A_OTHER;
-			break;
-		case ST_TAG_A_OTHER:
-			if( isspace(c) )
-				parser->state = ST_TAG_A;
-			else if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else
-				parser->state = ST_TAG_A_OTHER;
-			break;
-		case ST_TAG_A_H:
-			if( tolower(c) == 'r' )
-				parser->state = ST_TAG_A_HR;
-			else if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else
-				parser->state = ST_TAG_A;
-			break;
-		case ST_TAG_A_HR:
-			if( tolower(c) == 'e' )
-				parser->state = ST_TAG_A_HRE;
-			else if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else
-				parser->state = ST_TAG_A;
-			break;
-		case ST_TAG_A_HRE:
-			if( tolower(c) == 'f' )
-				parser->state = ST_TAG_A_HREF;
-			else if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else
-				parser->state = ST_TAG_A;
-			break;
-		case ST_TAG_A_HREF:
-			if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else if ( c == '=')
-				parser->state = ST_TAG_A_HREF_EQ;
-			else if( isspace(c) )
-				parser->state = ST_TAG_A_HREF;
-			else
-				parser->state = ST_TAG_A;
-			break;
-		case ST_TAG_A_HREF_EQ:
-			if( c == '>' )
-				parser->state = ST_TAG_A_END;
-			else if( isspace(c) )
-				;
-			else
-			{	parser->i=0;
-				parser->link[parser->i] = c;
-				parser->state = ST_TAG_A_HREF_EQ_READ;
-			}
-			break;
-		case ST_TAG_A_HREF_EQ_READ:
-			if( c=='"' || c == '>' || c=='\'' )
-			{	parser->link[parser->i]=0;
-				parser->state = ( c == '>' ) ?  ST_TAG_A_END :
-				                                ST_TAG_A;
-			}
-			else 
-				parser->link[parser->i++]=c;
-			break;
-		case ST_TAG_A_END:
-			if( c == '<' )
-				parser->state = ST_TAG_A_END_IS_SLASH;
-			else
-			{	if( parser->j != 0 && isspace(c) && 
-				    isspace(parser->comment[parser->j-1]) )
-				    	;
-				else
-				{	if( isspace(c) )
-						c = ' ';
-					parser->comment[parser->j++]=c;
-				}
-			}
-			break;
-		case ST_TAG_A_END_IS_SLASH:
-			if( isspace(c) )
-				;
-			else if( c == '/' )
-				parser->state = ST_TAG_A_END_IS_SLASH_A;
-			else
-			{	parser->comment[parser->j++] = '<';
-				parser->comment[parser->j++] = c;
-				parser->state = ST_TAG_A_END;
-			}
-			break;
-		case ST_TAG_A_END_IS_SLASH_A:
-			if( tolower(c) == 'a' )
-				parser->state = ST_TAG_A_END_IS_SLASH_A_OTHER;
-			else
-			{	parser->comment[parser->j++] = '<';
-				parser->comment[parser->j++] =  c;
-				parser->state = ST_TAG_A_END;
-			}
-			break;
-		case ST_TAG_A_END_IS_SLASH_A_OTHER:
-			if( c == '>' || isspace(c) )
-			{ 	parser->comment[parser->j]=0;
-				parser->j = 0;
-				if( parser->link_fnc )
-				(*parser->link_fnc)(parser->link,
-				                    parser->comment,
-				                    parser->user_data);
-			}
-			else
-			{	parser->comment[parser->j++] = '<';
-				parser->comment[parser->j++] =  '/';
-				parser->comment[parser->j++] =  'a';
-				parser->comment[parser->j++] =  c;
-				parser->state = ST_TAG_A_END;
-			}
-			break;
-		default:
-			printf("unknown state: %d\n",parser->state);
-			assert(0);
-	}
-	
-	return 0;
+	return st_parse(parser->st, c);
 }
 
 void
 link_parser_end(link_parser_t parser)
 {
-	/* we have a link in the buffer, but the author forgot about
-	 * the </a>. the comment should be ignored
-	 */
-	if( parser->state == ST_TAG_A_END || 
-	    parser->state == ST_TAG_A_END_IS_SLASH )
-	{
-		if( parser->link_fnc )
-			(*parser->link_fnc)(parser->link, "",
-			                    parser->user_data);
-	}
 }
+
+
+/*****************************************************************************/
+#ifdef LINK_TEST
+static void
+link_fnc( unsigned const char *link, const unsigned char *comment, void *data)
+{	int d = *((int*)data);
+
+	printf( comment[0] && d ? "%s (%s)\n" : "%s\n",link,comment);
+}
+
+int
+main(int argc, char **argv)
+{	link_parser_t parser;
+	int c, i;
+	int print_comment=1;
+
+	parser = link_parser_new();
+
+	for( i=1; i< argc ; i++ )
+	{
+		if( !strcmp(argv[i], "-d") )
+			link_parser_set_debug(parser,1);
+		else if( !strcmp(argv[i], "-n"))
+			print_comment = 0;
+	}
+	link_parser_set_link_callback(parser,link_fnc,&print_comment);
+	while( (c=getchar())!=EOF && link_parser_process_char(parser,c)==0 )
+		;
+	link_parser_end(parser);
+	link_parser_destroy(parser);
+
+	return 0;
+}
+#endif
