@@ -59,7 +59,7 @@ struct tmp
 	GtkWidget *edtUser, *edtPass, *edtRep, *edtSHost;
 	GtkWidget *edtHost, *spnPort, *edtPUser, *edtPPass, *cmbType;
 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait, 
-	          *chkXenofobe;
+	          *chkXenofobe, *chkNoCache;
 	char *msg;
 };
 
@@ -198,6 +198,7 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkVerbose), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkWait), 0);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkXenofobe), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmp->chkNoCache), 0);
 
 }
 
@@ -312,6 +313,14 @@ xenofobe_fnc( GtkWidget *widget, struct tmp *tmp )
 	tmp->opt->xenofobe =
 	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkXenofobe));
 }
+
+static void
+no_cache_fnc( GtkWidget *widget, struct tmp *tmp )
+{
+	tmp->opt->no_cache =
+	gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(tmp->chkNoCache));
+}
+
 
 /*
  * EDIT CONTROLS
@@ -455,17 +464,18 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 static void
 create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 { 	GtkWidget *chkDry, *chkFancy, *chkForum, *chkVerbose, *chkWait,
-                  *chkXenofobe;
+                  *chkXenofobe, *chkNoCache;
 	GtkWidget *table;
 
 	/* extra frame */
-	table = gtk_table_new (3, 3, FALSE);
+	table = gtk_table_new (4, 3, FALSE);
 	chkDry   = gtk_check_button_new_with_label(_("Dry Run"));
 	chkFancy = gtk_check_button_new_with_label(_("Fancy Names"));
 	chkForum = gtk_check_button_new_with_label(_("Resync Foros"));
 	chkVerbose= gtk_check_button_new_with_label(_("Verbose"));
 	chkWait = gtk_check_button_new_with_label(_("Wait"));
 	chkXenofobe = gtk_check_button_new_with_label(_("Xenofobo"));
+	chkNoCache = gtk_check_button_new_with_label(_("No usar Caches"));
 	gtk_container_add(GTK_CONTAINER(parent), GTK_WIDGET(table));
 
 	gtk_table_attach(GTK_TABLE(table),chkDry,     0,1,0,1,GTK_FILL, 0, 4,0);
@@ -475,6 +485,8 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_table_attach(GTK_TABLE(table),chkFancy,   0,1,1,2,GTK_FILL, 0, 4,0);
 	gtk_table_attach(GTK_TABLE(table),chkVerbose, 1,2,1,2,GTK_FILL, 0, 4,0);
 	gtk_table_attach(GTK_TABLE(table),chkXenofobe,2,3,1,2,GTK_FILL, 0, 4,0);
+	
+	gtk_table_attach(GTK_TABLE(table),chkNoCache ,0,1,2,3,GTK_FILL, 0, 4,0);
 
 	/* signals */
 	gtk_signal_connect(GTK_OBJECT(chkDry),"toggled",
@@ -489,7 +501,8 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                           GTK_SIGNAL_FUNC(wait_fnc), tmp);
 	gtk_signal_connect(GTK_OBJECT(chkXenofobe),"toggled",
 	                           GTK_SIGNAL_FUNC(xenofobe_fnc), tmp);
-	                           
+	gtk_signal_connect(GTK_OBJECT(chkNoCache),"toggled",
+	                           GTK_SIGNAL_FUNC(no_cache_fnc), tmp);
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
          _("activar la ejecucion en seco: no se descarga ningun archivo"),NULL);
@@ -508,6 +521,8 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkXenofobe,
 	 _("Modo xenofobia: al terminar, lista los archivos que se encuentran "
 	 "en nuestro repositorio y que no existen en iol"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkNoCache,
+	 _("No utilizar ningun cache"), NULL);
 
 	/* save data */
 	tmp->chkDry = chkDry;
@@ -516,6 +531,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	tmp->chkVerbose = chkVerbose;
 	tmp->chkWait  = chkWait;
 	tmp->chkXenofobe = chkXenofobe;
+	tmp->chkNoCache  = chkNoCache;
 	
 	/* default values */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(chkDry), tmp->opt->dry);

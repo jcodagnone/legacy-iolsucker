@@ -101,7 +101,8 @@ suck(struct opt *opt)
 	  { IOL_VERBOSE,     &(opt->verbose), "verbose flag" },
 	  { IOL_FANCY_NAMES, &(opt->fancy),   "fancy flag"   },
 	  { IOL_WAIT,        &(opt->wait),    "wait flag"    },
-	  { IOL_XENOFOBE,    &(opt->xenofobe),"xenofobe flag"}
+	  { IOL_XENOFOBE,    &(opt->xenofobe),"xenofobe flag"},
+	  { IOL_NO_CACHE,    &(opt->no_cache),"no cache flag"}
 	};
 	
 	iol = iol_new();

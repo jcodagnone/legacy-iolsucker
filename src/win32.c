@@ -110,6 +110,7 @@ rot13(char *data)
 #define IOL_VERBOSE	"verbose"
 #define IOL_HOST	"iol_host"
 #define IOL_XENOFOBE    "xenfobe"
+#define IOL_NO_CACHE    "no_cache"
 
 int
 save_config_file(struct opt *opt)
@@ -149,6 +150,8 @@ save_config_file(struct opt *opt)
 	                          opt->wait ? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_XENOFOBE, 
 	                          opt->xenofobe ? t : f);
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_NO_CACHE, 
+	                          opt->no_cache? t : f);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_VERBOSE, 
 	                          opt->verbose ? t : f);
 	return r == 1 ? 0 : -1;
@@ -172,6 +175,7 @@ print_verbose(const struct opt *opt)
 	fprintf(fp,"wait: %d\n",opt->wait);
 	fprintf(fp,"verbose: %d\n",opt->verbose);
 	fprintf(fp,"xenofobe: %d\n",opt->xenofobe);
+	fprintf(fp,"no_cache: %d\n",opt->no_cache);
 }
 
 struct config_sz

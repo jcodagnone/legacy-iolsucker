@@ -131,6 +131,7 @@ parse_login(xmlDocPtr doc, xmlNodePtr cur, struct opt *opt)
 		{  "fancy",&(opt->fancy), 0, CT_FLAG },
 		{  "wait", &(opt->wait),  0, CT_FLAG },
 		{  "xenofobe", &(opt->xenofobe),  0, CT_FLAG },
+		{  "no_cache", &(opt->no_cache),  0, CT_FLAG },
 		{  "host", &(opt->server),  0, CT_SZ },
 	};
 
@@ -299,6 +300,8 @@ save_config_file( const struct opt *opt)
 		err = dump_line("\t\t<wait></wait>\n", fd);
 	if( !err && opt->xenofobe)
 		err = dump_line("\t\t<xenofobe></xenofobe>\n", fd);
+	if( !err && opt->no_cache)
+		err = dump_line("\t\t<no_cache></no_cache>\n", fd);
 	if( !err && opt->server )
 	{	buf = g_strdup_printf("\t\t<host>%s</host>\n", opt->server);
 		err = dump_line(buf, fd);

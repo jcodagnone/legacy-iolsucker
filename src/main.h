@@ -28,6 +28,7 @@ struct opt {
 	int forum;
 	int wait;
 	int xenofobe;
+	int no_cache;
 };
 
 /** parse command line options */

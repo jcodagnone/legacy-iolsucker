@@ -134,6 +134,7 @@ struct iolCDT
 	int wait;		/**< seconds to wait when changing context */
 	int xenofobe;           /**< show forein files (the ones that aren't 
 	                             from iol's repository) */
+	int no_cache;           /**< use cache feature? */
 
 	FILE *logfp;		/**< logfile filepointer */
 
@@ -338,8 +339,6 @@ iol_new(void)
 		return NULL;
 	}
 
-	
-	
 	cdt->host = IOL_HOSTN;
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -602,6 +601,18 @@ iol_set_xenofobe(iol_t cdt, int *xenofobe)
 	return ret;
 }
 
+static int
+iol_set_no_cache(iol_t cdt, int *no_cache)
+{	int ret = E_OK;
+
+	if( no_cache )
+		cdt->no_cache = *no_cache != 0;
+	else
+		ret = E_INVAL;
+		
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -620,7 +631,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_FANCY_NAMES,(iol_set_fnc) iol_set_fancy_names},
 		{	IOL_WAIT,       (iol_set_fnc) iol_set_wait       },
 		{	IOL_HOST,       (iol_set_fnc) iol_set_host       },
-		{	IOL_XENOFOBE,   (iol_set_fnc) iol_set_xenofobe   }
+		{	IOL_XENOFOBE,   (iol_set_fnc) iol_set_xenofobe   },
+		{	IOL_NO_CACHE,   (iol_set_fnc) iol_set_no_cache   }
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -640,6 +652,7 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 
 	return ret;
 }
+
 /** validates weather ::code is in the parameters in server's list */
 static int
 is_valid_course_code( const char *code )
@@ -1142,7 +1155,7 @@ _iol_get_url_from_fid(iol_t iol, unsigned long fid, const char *fid_sz)
 	char *ret = 0;
 	char needle[]="\"fileviewer\" SRC=\"";
 	
-	 if( (s=cache_get_file(iol->fid_cache, fid_sz)) )
+	 if( !iol->no_cache && (s=cache_get_file(iol->fid_cache, fid_sz)) )
 	 	ret = g_strdup(s);
 	 else
 	 {

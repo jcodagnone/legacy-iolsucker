@@ -15,6 +15,7 @@ enum iol_settings {
 	                 *   default FALSE. data: (int *) */
 	IOL_HOST,	/**< address or name of the server. data <host[:port]>*/
 	IOL_XENOFOBE,   /**< show forein files? default: FALSE data: (int *) */
+	IOL_NO_CACHE,   /**< don't use any cache. default: FALSE data: (int *)*/
 	IOL_MAX
 };
 
