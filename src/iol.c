@@ -926,13 +926,16 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 		       len_url + (d->url_prefix[len_url - 1] != '/');
 		assert( strlen(file) > len );
 
-		unquote = curl_unescape(file+len,0);
-		if( !unquote )
-			return;
-
+		/* IOL has files with out escape 
+		 *
+		 *unquote = curl_unescape(file+len,0);
+		 *if( !unquote )
+		 *	return;
+		 */
+		unquote = file + len;
 		local = g_strdup_printf("%s/%s", d->prefix, unquote);
 		dirname = path_get_dirname(local);
-		curl_free(unquote);
+		/*curl_free(unquote);*/
 
 		if( stat(local,&st) == -1 )
 		{	/** \todo 
@@ -943,13 +946,16 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 			if( mkrdir(dirname,0755) == 0 || errno == EEXIST)
 			{	time_t now =  time(NULL);
 				struct tm *tm = localtime(&now);
+				char *f;
+				
+				f = my_url_escape(file);
 				printf("--%02d:%02d:%02d-- %s\n" ,tm->tm_hour,
-				                   tm->tm_min,tm->tm_sec,file);
+				                   tm->tm_min,tm->tm_sec,f);
 				download = g_strdup_printf("%s/%s", dirname, 
 				                          IOL_MATERIAL_TMPFILE);
 				if( d->iol->dry )
 					;
-				else if( transfer_page(d->iol->curl, file,
+				else if( transfer_page(d->iol->curl, f,
 				         TP_FILE, download) == 0 )
 					rename(download,local);
 				else
@@ -959,6 +965,7 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 				}
 
 				g_free(download);
+				free(f);
 			}
 		}
 		
