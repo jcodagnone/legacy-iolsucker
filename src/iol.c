@@ -315,8 +315,11 @@ iol_get_url(iol_t iol, const char *url_part)
 iol_t 
 iol_new(void) 
 {	iol_t cdt;
+        
+        #ifdef CURLVERSION_NOW
 	curl_version_info_data *version;
-	
+        #endif
+
 	cdt = malloc( sizeof(*cdt) );
 	if( cdt == NULL )
 		return NULL;
@@ -339,11 +342,13 @@ iol_new(void)
 	  curl_easy_setopt(cdt->curl,CURLOPT_DEBUGDATA, cdt);
 	#endif
 
+	#ifdef CURLVERSION_NOW
 	version = curl_version_info(CURLVERSION_NOW);
 	if( version->version_num == 0x070a03 )
 		/* avoid a bug when using libcurl-7.0.3 */
 		curl_easy_setopt(cdt->curl,CURLOPT_FORBID_REUSE, 1L);
-	
+	#endif
+
 	return cdt;
 }
 
