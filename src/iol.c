@@ -45,11 +45,13 @@
 #include <strdup.h>
 #include <basename.h>
 #include <mkrdir.h>
-#include <progress.h>
+#include <dirname.h>
+#include <queue.h>
 
 #include "i18n.h"
 #include "iol.h"
 #include "link.h"
+#include "progress.h"
 
 /** User Agent string reported to the webserver */
 #define USERAGENT	"Links (0.97; Unix; 80x25)"
@@ -545,7 +547,7 @@ static int url_is_file(const char *url)
 }
 
 struct tmp 
-{ 	GQueue	*pending;
+{ 	queue_t pending;
 	GSList  *files;
 	char *prefix;
 	char *url_prefix;
@@ -621,7 +623,7 @@ link_files_fnc( const char *link, const char *comment, void *d )
 	{ 	if( is_father_folder(link,t->prefix) )
 			free(s);
 		else
-			g_queue_push_head(t->pending, s);
+			queue_enqueue(t->pending, s);
 	}
 }
 
@@ -632,14 +634,16 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 	struct tmp t;
 	int ret;
 
-	t.pending = g_queue_new(); 
+	t.pending = queue_new(); 
+	if( t.pending == NULL )
+		return E_MEMORY;
 	t.files = NULL;
 	t.url_prefix = NULL;
-	g_queue_push_head(t.pending, strdup(URL_MATERIAL));
+	queue_enqueue(t.pending, strdup(URL_MATERIAL));
 
-	while( ! g_queue_is_empty(t.pending) )
+	while( ! queue_is_empty(t.pending) )
 	{	
-		url = g_queue_pop_head(t.pending);
+		url = queue_dequeue(t.pending);
 		t.prefix = url;
 		webpage.data = NULL;
 		webpage.size = 0;
@@ -667,8 +671,8 @@ get_current_file_list(iol_t iol, GSList **l, char **url_prefix )
 		free(webpage.data);
 	}
 	
-	assert(g_queue_is_empty(t.pending));
-	g_queue_free(t.pending); 
+	assert(queue_is_empty(t.pending));
+	queue_free(t.pending); 
 	*l = t.files;
 
 	return 0;

@@ -1,3 +1,5 @@
+EXTRA_DIST = gencurlerr.awk gendebug.sh
+
 AM_CFLAGS = @CFLAGS@ -I../lib @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@
 AM_LDFLAGS = @LDFLAGS@  -L../lib -L. 
 
@@ -19,10 +21,13 @@ iolsucker_SOURCES = \
 	link_debug.c		\
 	getpass.c		\
 	getpass.h		\
-	progress.c
+	progress.c		\
+	curlerr.c
 
 iolsucker_LDADD = ../lib/libmisc.a
 
 link_debug.c:	link.c gendebug.sh
 	gendebug.sh < link.c > link_debug.c
-	
+
+curlerr.c:	gencurlerr.awk
+	gencurlerr.awk < "`curl-config --prefix`/include/curl/curl.h" >curlerr.c
