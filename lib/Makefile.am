@@ -43,7 +43,7 @@ EXTRA_DIST = dll.c snprintf.c  \
 	trio/doc/doc_scanf.h \
 	trio/doc/doc_static.h \
 	trio/doc/doc_printf.h 
-	trio/doc/footer.html \ 
+	trio/doc/footer.html \
 	trio/doc/doc_dynamic.h \
 	trio/doc/header.html  \
 	trio/html/group___special_quantities.html \
