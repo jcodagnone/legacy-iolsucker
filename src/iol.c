@@ -394,95 +394,6 @@ iol_set_current_course(iol_t iol, const char *course)
 }
 
 /**/
-static int
-create_course_directory(const char *dir) 
-{	struct stat buf;
-	int ret = 0;
-
-	if( stat(dir,&buf) == -1 )
-	{	if( errno == ENOENT )
-		{	if(mkdir(dir,0755) == -1 )
-				ret = -1;
-		}
-		else
-			ret = -1;
-	}
-
-	return ret;
-}
-
-static void
-foreach_printdebug(char *file, void *user_data) 
-{
-	if( file )
-		printf("%s\n",file);
-}
-
-static int get_current_file_list(iol_t iol, GSList **l);
-
-int 
-iol_resync(iol_t iol, const char *code)
-{	int ret = E_OK;
-
-	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
-		ret = E_INVAL;
-	else if( !iol->bLogged )
-		ret = E_NLOGED;
-	else if( iol_set_current_course(iol, code) != E_OK ) 
-	{ 	rs_log_error(_("setting current course to `%s'"),code);
-		ret = E_NETWORK;
-	} 
-	else
-	{       char *s = g_strdup_printf("%s/%s", iol->repository, code);
-		struct stat buf;
-
-		/* try to create course folder */ 
-		if( create_course_directory(s) == -1 ) 
-		{
-			rs_log_error("error creating dir `%s'",s);
-			rs_log_error("%s",strerror(errno) ); ret = E_FS;
-		}
-		else
-		{       GSList *files;
-			get_current_file_list(iol, &files);
-			g_slist_foreach(files, (GFunc)foreach_printdebug, NULL);
-		}
-
-		g_free(s);
-	}
-
-	return ret;
-} 
-
-/**/
-
-/** comunication between #iol_resync_all() and #foreach_resync() */ 
-struct foreach_resync 
-{	int ret;
-	iol_t iol;
-};
-
-/* nice for a lambda function */
-static void
-foreach_resync(struct course *course, struct foreach_resync *r) 
-{
-	if( course && r )
-		r->ret |= iol_resync(r->iol, course->code);
-}
-
-int
-iol_resync_all(iol_t iol) 
-{	struct foreach_resync r;
-
-	if( !IS_IOL_T(iol) )
-		return -1;
-
-	r.ret = 0;
-	r.iol = iol;
-	g_slist_foreach(iol->courses,(GFunc)foreach_resync,&r);
-
-	return r.ret;
-}
 
 
 /* Download Material didactico section
@@ -619,4 +530,92 @@ get_current_file_list(iol_t iol, GSList **l)
 	*l = t.files;
 
 	return 0;
+}
+
+static int
+create_course_directory(const char *dir) 
+{	struct stat buf;
+	int ret = 0;
+
+	if( stat(dir,&buf) == -1 )
+	{	if( errno == ENOENT )
+		{	if(mkdir(dir,0755) == -1 )
+				ret = -1;
+		}
+		else
+			ret = -1;
+	}
+
+	return ret;
+}
+
+static void
+foreach_printdebug(char *file, void *user_data) 
+{
+	if( file )
+		printf("%s\n",file);
+}
+
+int 
+iol_resync(iol_t iol, const char *code)
+{	int ret = E_OK;
+
+	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
+		ret = E_INVAL;
+	else if( !iol->bLogged )
+		ret = E_NLOGED;
+	else if( iol_set_current_course(iol, code) != E_OK ) 
+	{ 	rs_log_error(_("setting current course to `%s'"),code);
+		ret = E_NETWORK;
+	} 
+	else
+	{       char *s = g_strdup_printf("%s/%s", iol->repository, code);
+		struct stat buf;
+
+		/* try to create course folder */ 
+		if( create_course_directory(s) == -1 ) 
+		{
+			rs_log_error("error creating dir `%s'",s);
+			rs_log_error("%s",strerror(errno) ); ret = E_FS;
+		}
+		else
+		{       GSList *files;
+			get_current_file_list(iol, &files);
+			g_slist_foreach(files, (GFunc)foreach_printdebug, NULL);
+		}
+
+		g_free(s);
+	}
+
+	return ret;
+} 
+
+/**/
+
+/** comunication between #iol_resync_all() and #foreach_resync() */ 
+struct foreach_resync 
+{	int ret;
+	iol_t iol;
+};
+
+/* nice for a lambda function */
+static void
+foreach_resync(struct course *course, struct foreach_resync *r) 
+{
+	if( course && r )
+		r->ret |= iol_resync(r->iol, course->code);
+}
+
+int
+iol_resync_all(iol_t iol) 
+{	struct foreach_resync r;
+
+	if( !IS_IOL_T(iol) )
+		return -1;
+
+	r.ret = 0;
+	r.iol = iol;
+	g_slist_foreach(iol->courses,(GFunc)foreach_resync,&r);
+
+	return r.ret;
 }
