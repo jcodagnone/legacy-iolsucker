@@ -25,7 +25,7 @@ windist:	dist	doc/iolsucker.html
 	fi
 	tar -C $(WINPREFIX)/compile -xjf $(distdir).tar.bz2
 	if [[ -d $(WINPREFIX)/compile ]] ; then \
-		cp -R unix $(WINPREFIX)/source ; \
+		cp -R unix $(WINPREFIX)/compile ; \
 		cp unix/dll/*.dll $(WINPREFIX)/data; \
 	fi 
 	chmod o+w -R $(WINPREFIX)
