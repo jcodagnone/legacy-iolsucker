@@ -19,4 +19,10 @@ struct opt {
 	int dry;
 };
 
+int
+parseOptions( int argc, char * const * argv, struct opt *opt);
+
+void
+free_options( struct opt *opt );
+
 #endif
