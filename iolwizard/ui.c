@@ -22,6 +22,7 @@
  * answer you: `yeah, but is linear. give me some TNT!'
  */
 #include <gtk/gtk.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -77,7 +78,49 @@ hwndMain_delete( GtkWidget *widget, GdkEvent  *event, gpointer   data )
  
 static void 
 resync_fnc( GtkWidget *widget, struct tmp *tmp )
-{
+{	char *s, *ss;
+	int l;
+
+	strncpy(tmp->opt->username,
+	        gtk_entry_get_text(GTK_ENTRY(tmp->edtUser)), 
+	        sizeof(tmp->opt->username));
+	strncpy(tmp->opt->password,
+	        gtk_entry_get_text(GTK_ENTRY(tmp->edtPass)),
+	        sizeof(tmp->opt->password));
+	strncpy(tmp->opt->repository,
+	        gtk_entry_get_text(GTK_ENTRY(tmp->edtRep)),
+	        sizeof(tmp->opt->repository));
+
+	tmp->opt->username[sizeof(tmp->opt->username)-1] = 0;
+	tmp->opt->password[sizeof(tmp->opt->password)-1] = 0;
+	tmp->opt->repository[sizeof(tmp->opt->repository)-1] = 0;
+
+	s = gtk_entry_get_text(GTK_ENTRY(tmp->edtHost));
+	if( *s )
+	{	l = gtk_spin_button_get_value_as_int(
+		                         GTK_SPIN_BUTTON(tmp->spnPort));
+	
+		free(tmp->opt->proxy);
+		tmp->opt->proxy = malloc(strlen(s) + 1 + 7 + 1 );
+		if( tmp->opt->proxy )
+		{	sprintf(tmp->opt->proxy,"%s:%d",s,l);
+		}
+	}
+	
+	s   = gtk_entry_get_text(GTK_ENTRY(tmp->edtPUser));
+	ss  = gtk_entry_get_text(GTK_ENTRY(tmp->edtPPass));
+
+	if( *s )
+	{	free(tmp->opt->proxy_user);
+		if( *ss )
+		{	tmp->opt->proxy_user=malloc(strlen(s)+1+ strlen(ss) +1);
+			if( tmp->opt->proxy_user )
+				sprintf(tmp->opt->proxy_user,"%s:%s",s,ss);
+		}
+		else
+			tmp->opt->proxy_user = strdup(s);		
+	}
+
 	if( save_config_file(tmp->opt) == -1 )
 		show_error(_("no se ha podido guardar esta nueva informacion"));
 }
@@ -171,7 +214,7 @@ static void
 entry_nospaces_insert(GtkEditable *editable, const gchar *text, gint length,
                       gint *position, gpointer data)
 {	
-	unsigned i, j;
+	gint i, j;
 	gchar *result = g_new (gchar, length); 
 
 	for (i=j=0; i<length; i++)
@@ -360,7 +403,7 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 			port = atoi(s+1);
 			if( port != 0 )
 				gtk_spin_button_set_value(
-				         GTK_SPIN_BUTTON(spnPort),(double)port);
+				         GTK_SPIN_BUTTON(spnPort),(gfloat)port);
 			*s = ':';
 		}
 		else

@@ -29,6 +29,7 @@
 
 #include "ui.h"
 #include "../src/main.h"
+#include "../src/config.h"
 
 #ifdef HAVE_CONFIG_H
   #ifdef WIN32

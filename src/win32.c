@@ -78,7 +78,6 @@ registry_change_string( HKEY root, const char *path, const char *item,
 #define IOL_DRY 	"dry_run"
 #define IOL_PROXY_HOST	"proxy"
 #define IOL_PROXY_USER	"proxy_user"
-#define IOL_PROXY_SAVE	"save_data"
 
 int
 save_config_file(struct opt *opt)
@@ -87,11 +86,13 @@ save_config_file(struct opt *opt)
 	
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,opt->username); 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PASS,opt->password); 
-	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_HOST,opt->proxy);
-	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_USER,
-	                          opt->proxy_user); 
+	if( opt->proxy )
+		 r&=registry_change_string(IOL_ROOT,IOL_PATH,
+		                          IOL_PROXY_HOST,opt->proxy);
+	if( opt->proxy_user )
+		 r&=registry_change_string(IOL_ROOT,IOL_PATH,
+		                           IOL_PROXY_USER, opt->proxy_user); 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_DRY, opt->dry ? t : f);
-	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_SAVE,opt->save ? t : f);
 	
 	return r == 1 ? 0 : -1;
 }
@@ -115,7 +116,7 @@ load_config_file(struct opt *opt)
 		}
 	}
 	if( opt->proxy == NULL )
-	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_USER, buf,
+	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
                                         sizeof(buf) ) == TRUE )
 			opt->proxy = strdup(buf);
 			if( opt->proxy && opt->proxy[0] == 0 )
@@ -130,20 +131,16 @@ load_config_file(struct opt *opt)
 			opt->proxy_user = strdup(buf);
 			if( opt->proxy_user && opt->proxy_user[0] == 0 )
 			{	if( opt->proxy_user[0] == 0 )
-				{	free(opt->proxy);
-					opt->proxy = NULL;
+				{	free(opt->proxy_user);
+					opt->proxy_user = NULL;
 				}
 			}
 	}
 
-	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_DRY, buf,
+	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_DRY, buf,
 	                        sizeof(buf) ) == TRUE )
-	 	opt->dry = buff[0] - '0' != 0:
+	 	opt->dry = buf[0] - '0' != 0;
 
 	
-	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_SAVE, buf,
-	                        sizeof(buf) ) == TRUE )
-	 	opt->save = buff[0] - '0' != 0:
-
 	return 0;
-
+}
