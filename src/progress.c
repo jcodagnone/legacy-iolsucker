@@ -990,6 +990,9 @@ bar_progress_callback( struct progress *progress,
  	{ 	progress->data = bar_create(0L,(long)dltotal);
 		progress->dllast = (long) 0;
 	}
+	if(  ((struct bar_progress *)progress->data)->total_length != dltotal ) 
+	  ((struct bar_progress *)progress->data)->total_length = dltotal;
+
 	bar_update(progress->data, ((long)dlnow) - progress->dllast,
 	                                   wtimer_elapsed(progress->timer));
 
