@@ -100,6 +100,8 @@ link_parser_proccess_char( link_parser_t parser, int c )
 		case ST_START:
 			if( c == '<' )
 				parser->state = ST_TAG;
+			else
+				parser->state = ST_START;
 			break;
 		case ST_TAG:
 			if( c == '>' )
@@ -123,6 +125,8 @@ link_parser_proccess_char( link_parser_t parser, int c )
 		case ST_OTHERTAG:
 			if( c == '>' )
 				parser->state = ST_START;
+			else
+				parser->state = ST_OTHERTAG;
 			break;
 		case ST_TAG_A:
 			if( tolower(c) == 'h' )
@@ -139,6 +143,8 @@ link_parser_proccess_char( link_parser_t parser, int c )
 				parser->state = ST_TAG_A;
 			else if( c == '>' )
 				parser->state = ST_TAG_A_END;
+			else
+				parser->state = ST_TAG_A_OTHER;
 			break;
 		case ST_TAG_A_H:
 			if( tolower(c) == 'r' )
