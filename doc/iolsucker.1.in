@@ -30,6 +30,7 @@ iolsucker \- cliente no interactivo para IOL
 .RB [ \-\-version ]
 .RB [ \-\-verbose ]
 .RB [ \-\-dry\-run ]
+.RB [ \-\-fancy ]
 .RB [ \-\-user\  username]
 .RB [ \-r\  repository ]
 .RB [ \-f\  filename ]
@@ -60,6 +61,10 @@ Antes de envierle esta informacion a otra persona, para que lo ayude,
 fijese que no exista informacion confidencial.
 .IP "\fB\-n\fR, \fB\-\-dry\-run\fR"
 corre en seco: no descarga ningún archivo. Solo reporta cambios.
+.IP "\fB\-\-fancy\fR"
+usar nombres lindos en los nombres de los directorios de las materias. la
+opcion es inteligente: sabe determinar si la ultima ves se utilizó la opcion
+(y en caso negativo) reacomoda el repositorio.
 .IP "\fB\-r\fR repositorio"
 especifica el directorio donde se almacenan los archivos bajados.
 .IP "\fB\-f\fR"

@@ -105,6 +105,7 @@ struct iolCDT
 
 	int dry;		/**< dry run ? */
 	int verbose;		/**< print lots of information? */
+	int fancy;		/**< use fancy names */
 
 	char errorbuf[CURL_ERROR_SIZE+1];	/**< CURLOPT_ERRORBUFFER */
 	cache_t fcache;
@@ -377,6 +378,18 @@ iol_set_download(iol_t cdt, int *download)
 	return ret;
 }
 
+static int
+iol_set_fancy_names(iol_t cdt, int *fancy)
+{	int ret = E_OK;
+
+	if( fancy )
+		cdt->fancy = *fancy;
+	else
+		ret = E_INVAL;
+
+	return ret;
+}
+
 int
 iol_set(iol_t iol, enum iol_settings set, void *data)
 {	unsigned i;
@@ -391,7 +404,8 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_PROXY_HOST, (iol_set_fnc) iol_set_proxy_host },
 		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user },
 		{	IOL_DRY,        (iol_set_fnc) iol_set_download   },
-		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    }
+		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    },
+		{	IOL_FANCY_NAMES,(iol_set_fnc) iol_set_fancy_names}
 	};
 
 	if( !IS_IOL_T(iol) || set <0 || set >= IOL_MAX )
@@ -434,6 +448,32 @@ is_valid_course_code( const char *code )
 	return b;
 }
 
+/* one_space ( touper ( trim( name ) ) ) */
+static char *
+normalize_course_name( char *name )
+{       char *p, *q;
+
+        for( q = p = name ; *p && isspace(*p) ; p++ )
+                ;
+        while( *p )
+        {
+                for( ; *p && !isspace(*p) ; p++ )
+                        *(q++) = toupper(*p);
+
+                if( isspace(*p) )
+                {       *(q++) = *p++;
+                        for( ; *p && isspace(*p) ;  p++ )
+                                ;
+                }
+        }
+
+        *q = 0;
+        if( *(q-1) == ' ' )
+        	*(q-1) = 0;
+
+        return name;
+}
+
 /**
  * callback called by the html parser when procesing newmaterial.asp 
  */
@@ -466,7 +506,7 @@ link_courses_fnc( const char *link, const char *comment, void *d )
 		course = malloc(sizeof(*course));
 		if( course ) 
 		{ 	course->code = strdup(s);
-			course->name = strdup(ss);
+			course->name = normalize_course_name(strdup(ss));
 			if( course->code && course->name )
 				*listptr = g_slist_prepend(*listptr, course);
 			else
@@ -927,22 +967,97 @@ foreach_getfile(char *file, struct tmp_resync_getfile *d)
 	}
 }
 
+static int
+convertRepository( const char *from, const char *to)
+{	char *f, *t;
+	int ret;
+
+
+	f = g_dirname(from);
+	t = g_dirname(to);
+	ret = rename(f, t);
+	/** \todo detect EISDIR EEXIST ENOTDIR */
+
+	g_free(f);
+	g_free(t);
+	
+	return ret;
+}
+
+struct tmp_cname
+{	const char *code;
+	const char *ret;
+};
+
+static void
+foreach_find_cname( struct course *course, struct tmp_cname *t)
+{
+	if( t && !t->ret )
+	{	
+		if( !strcmp(t->code, course->code) )
+			t->ret = course->name;
+	
+	}
+}
+
+static const char *
+get_course_name( iol_t iol, const char *code )
+{	struct tmp_cname tmp;
+
+	tmp.code = code;
+	tmp.ret = NULL;
+	
+	g_slist_foreach(iol->courses, (void *)foreach_find_cname, (void *)&tmp);
+	
+	return tmp.ret;
+}
+
 int 
 iol_resync(iol_t iol, const char *code)
 {	struct tmp_resync_getfile tmp;
+	struct stat st;
 	int ret = E_OK;
+	const char *cname;
 
 	if ( !IS_IOL_T(iol)||iol->repository==NULL||!is_valid_course_code(code))
 		ret = E_INVAL;
 	else if( !iol->bLogged )
 		ret = E_NLOGED;
+	else if( (cname= get_course_name(iol, code)) == NULL )
+	{	ret = E_INVAL;
+		rs_log_error(_("course `%s' has no name! (TODO)"),code);
+	}
 	else if( iol_set_current_course(iol, code) != E_OK ) 
 	{ 	rs_log_error(_("setting current course to `%s'"),code);
 		ret = E_NETWORK;
 	} 
 	else
-	{       char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
+	{	char *s = g_strdup_printf("%s/%s/%s", iol->repository, code,
 	                                  IOL_MATERIAL_FOLDER);
+		char *r = g_strdup_printf("%s/%s/%s", iol->repository, cname,
+		                          IOL_MATERIAL_FOLDER);
+
+		if( iol->fancy )	/* convert repository ? */
+		{	if( stat(s,&st)==0 && convertRepository(s,r) )
+			{	rs_log_error(
+			 	   _("error renaming repository. using old"));
+			 	g_free(r);
+			}
+			else
+			{	g_free(s);
+				s = r;
+			}
+		}
+		else 
+		{ 	if( stat(r,&st)==0 && convertRepository(r,s) )
+			{	rs_log_error(
+				    _("error renaming repository. using old"));
+				g_free(s);
+				s = r;
+			}
+			else
+				g_free(r);	
+		}
 
 		/* try to create course folder */ 
 		if( create_course_directory(s) == -1 ) 

@@ -54,6 +54,7 @@ _("Usage: %s [OPTION]\n"
 " -n   --dry-run              dry-run: don't download any files. just report\n"
 " -t   --proxy-type type      proxy type. http is the default (other: socks5)\n"
 " -x   --proxy <host[:port]>  use proxy. (default port is 1080)\n"
+"      --fancy                use fancy names as course directories\n"
 " -U <user[:password]>        specify proxy authentication\n"
 " -f filename                 load settings from file\n"
 " -r repository               sets the file  repository\n" 
@@ -67,7 +68,7 @@ _("Usage: %s [OPTION]\n"
 static void 
 usage ( void )
 {
-	printf("Usage: %s [-hnVv] [--help] [--version] [--dry-run]"
+	printf("Usage: %s [-hnVv] [--help] [--version] [--dry-run] [--fancy]"
 	       " [-u username] [-r repository]"
 	       " [-f filename] [-x <host[:port]>] [-U <username[:port]]>"
 	       " [-t proxy-type ] [--proxy-type proxy-type]\n",
@@ -110,6 +111,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	 /*14*/ {"v",           OPT_NORMAL, 1,  OPT_T_FLAG,  NULL  },
 	 /*15*/ {"verbose",     OPT_NORMAL, 0,  OPT_T_FLAG,  NULL  },
 	 /*16*/ {"r",           OPT_NORMAL, 1,  OPT_T_GENER, NULL },
+	 /*17*/ {"fancy",       OPT_NORMAL, 0,  OPT_T_FLAG, NULL},
 	 	{NULL,          OPT_NORMAL, 0,  OPT_T_GENER, 0 }
 	}; lopt[4].data = lopt[5].data = (void *) &user;
 	   lopt[6].data = (void *) &configfile;
@@ -119,6 +121,7 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 	   lopt[12].data = lopt[13].data = &(proxy_type);
 	   lopt[14].data = lopt[15].data = &(opt->verbose);
 	   lopt[16].data = &rep;
+	   lopt[17].data = &(opt->fancy);
 	assert( argv && opt );
 	memset(opt,0,sizeof(*opt) );
 	i = GetOptions( argv, lopt, 0, NULL);

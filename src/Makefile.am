@@ -1,4 +1,4 @@
-AM_CFLAGS = @CFLAGS@ -I../lib 
+AM_CFLAGS = @CFLAGS@ -I../lib  -DNDEBUG
 AM_LDFLAGS = @LDFLAGS@  -L../lib -L. 
 LIBS =  @LIBS@ -ldb -lefence 
 

@@ -102,6 +102,7 @@ main( int argc, char **argv )
 	iol_set(iol, IOL_PROXY_TYPE, opt.proxy_type);
 	iol_set(iol, IOL_DRY,        &(opt.dry));
 	iol_set(iol, IOL_VERBOSE,    &(opt.verbose));
+	iol_set(iol, IOL_FANCY_NAMES,&(opt.fancy));
 
 	rs_log_info(_("login on as `%s'"), opt.username);
 	if( (ret = iol_login(iol, opt.username, opt.password)) != E_OK )
