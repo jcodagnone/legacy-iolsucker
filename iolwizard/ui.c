@@ -474,7 +474,7 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	 _("resincronizar los foros? por ahora solo advierte de cambios en "
 	   "los foros. (no baja los mensajes)"),NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkVerbose,
-	 _("imprime información extra sobre la conexion. util para cuando las"
+	 _("imprime informacion extra sobre la conexion. util para cuando las"
 	   "cosas no funcionan"), NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkWait,
 	 _("esperar unos segundos en el cambio de contexo de materias. "
