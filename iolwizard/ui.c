@@ -571,7 +571,7 @@ create_ui(struct opt *opt)
 	
 	/* main window */
 	hwnd = gtk_dialog_new();
-	gtk_window_set_title (GTK_WINDOW(hwnd), _("iolwizard"));
+	gtk_window_set_title (GTK_WINDOW(hwnd), _("iolwizard " VERSION));
 	gtk_container_set_border_width(GTK_CONTAINER(hwnd), 0);
 	gtk_window_set_default_size( GTK_WINDOW(hwnd), SIZE_X,SIZE_Y );
 	gtk_window_set_position( GTK_WINDOW(hwnd), GTK_WIN_POS_CENTER);
