@@ -138,4 +138,56 @@ stm_destroy( stm_t st )
 	
 	return EST_OK;
 }
+#include <stdio.h>
+int
+stm_print_digraph( void *fp, ST_PARSE **sp, unsigned nstates, 
+                   const char *(state)(int c), const char *(fnc)(void *) )
+{	int ret = EST_OK;
+	unsigned i, j;
+	const char *p, *q;
+	char buff[4096];
+	
+	fprintf(fp,"digraph test {\n");
+	for( i=0; i<nstates; i++ )
+	{
+		for( j=0; 
+		     !(sp[i][j].function == ST_FUNC && sp[i][j].cmpfnc == ELSE);
+		     j++ )
+		{ 	p = (*state)(i);
+			q = (*state)(sp[i][j].next_state);
 
+			buff[0]=0;
+			switch( sp[i][j].function )
+			{	case ST_CHAR:
+				case ST_LCHAR:
+				case ST_UCHAR:
+				if( (int) sp[i][j].cmpfnc == '"' )
+					sprintf(buff,"\\%c",
+					         (int)sp[i][j].cmpfnc);
+				else
+					sprintf(buff,"%c",(int)sp[i][j].cmpfnc);
+				break;
+				case ST_FUNC:
+					sprintf(buff,"%s",
+						(*fnc)(sp[i][j].cmpfnc));
+				break;
+				case ST_RFUNC:
+				case ST_MAX:
+				default:
+					break;
+			}
+			fprintf(fp,"\t%s -> %s[label=\"%s\"]\n", p, q, buff);
+		}
+
+		p = (*state)(i);
+		q = (*state)(sp[i][j].next_state);
+		fprintf(fp,"\t%s -> %s[label=\"%s\"]\n", p, q,"ELSE" );
+	
+
+		
+	}
+
+	fprintf(fp,"}\n");
+	
+	return ret;
+}

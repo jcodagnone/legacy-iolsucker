@@ -41,6 +41,12 @@ int stm_destroy( stm_t pd );
  */
 int stm_set_debug( stm_t st, void (*fnc) (int, int, int) );
 
+/**
+ * Outputs a graphviz digraph
+ */
+int
+stm_print_digraph( void *fp, ST_PARSE **sp, unsigned nstates, 
+                   const char *(state)(int c), const char *(fnc)(void *) );
 enum
 { 	EST_OK,
 	EST_NO_SLOT, 

@@ -1,7 +1,8 @@
 /* autogenerado */
 
 
-const char *link_debug(int state) {
+#ifdef GEN_LIN
+static const char *link_debug(int state) {
 	const char *r;
 
 	if( state==0 ) 
@@ -41,3 +42,23 @@ const char *link_debug(int state) {
 
 	return r;
 }
+#endif
+#ifdef GEN_LIN
+static const char * links_fnc_name(void *p) {
+	const char *r="";
+
+	if (p == &isspace) r="isspace";
+	else if (p == &init_parser) r="init_parser";
+	else if (p == &link_first_char) r="link_first_char";
+	else if (p == &endlink) r="endlink";
+	else if (p == &add_char) r="add_char";
+	else if (p == &addcomment) r="addcomment";
+	else if (p == &e_is_slash) r="e_is_slash";
+	else if (p == &e_slash_a) r="e_slash_a";
+	else if (p == &e_slash_a_other) r="e_slash_a_other";
+	else if (p == &done_link) r="done_link";
+	else if (p == &embeeded_goto_end) r="embeeded_goto_end";
+
+	return r;
+}
+#endif

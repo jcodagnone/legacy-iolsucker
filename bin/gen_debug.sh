@@ -3,7 +3,8 @@ sed 's/,//g'|
 awk '
 	BEGIN{i=0
 	print "/* autogenerado */\n\n"
-	print "const char *link_debug(int state) {" 
+	print "#ifdef GEN_LIN"
+	print "static const char *link_debug(int state) {" 
 	print "\tconst char *r;"
 	print "";
 }
@@ -16,4 +17,5 @@ awk '
 	END {
 		print "";
 		print "\treturn r;\n}"
+		print "#endif"
 }'

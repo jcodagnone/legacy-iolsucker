@@ -53,8 +53,11 @@ struct link_parserCDT
 };
 
 /* transition functions */
+/* 
+  isspace  @fextract@
+ */
 static int
-init_parser(int c, void *data)
+init_parser(int c, void *data)	/* @fextract@ */
 {	link_parser_t parser = data;
 
 	parser->link[0] = 0;
@@ -64,7 +67,7 @@ init_parser(int c, void *data)
 }
 
 static int
-link_first_char(int c, void *data)
+link_first_char(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	parser->i=0;
@@ -74,7 +77,7 @@ link_first_char(int c, void *data)
 }
 
 static int
-endlink(int c, void *data)
+endlink(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	parser->link[parser->i]=0;
@@ -83,7 +86,7 @@ endlink(int c, void *data)
 }
 
 static int
-add_char(int c, void *data)
+add_char(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	if( parser->i + 1 < sizeof(parser->link) )
@@ -95,7 +98,7 @@ add_char(int c, void *data)
 }
 
 static int
-addcomment(int c, void *data)
+addcomment(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
        if( parser->j != 0 && isspace(c) &&
@@ -114,7 +117,7 @@ addcomment(int c, void *data)
 }
 
 static int
-e_is_slash(int c, void *data)
+e_is_slash(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	if( parser->j + 1 < sizeof(parser->comment) )
@@ -128,7 +131,7 @@ e_is_slash(int c, void *data)
 }
 
 static int
-e_slash_a(int c, void *data)
+e_slash_a(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	if( parser->j + 1 < sizeof(parser->comment) )
@@ -144,7 +147,7 @@ e_slash_a(int c, void *data)
 }
 
 static int
-e_slash_a_other(int c, void *data)
+e_slash_a_other(int c, void *data) /* @fextract@ */
 {       link_parser_t parser = data;
 
 	if( parser->j + 1 < sizeof(parser->comment) )
@@ -162,7 +165,7 @@ e_slash_a_other(int c, void *data)
 }
 
 static int
-done_link(int c, void *data)
+done_link(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	parser->comment[parser->j]=0;
@@ -175,7 +178,7 @@ done_link(int c, void *data)
 }
 
 static int
-embeeded_goto_end(int c, void *data)
+embeeded_goto_end(int c, void *data) /* @fextract@ */
 {	link_parser_t parser = data;
 
 	if( parser->j + 1 < sizeof(parser->comment) )
@@ -318,9 +321,13 @@ static ST_PARSE *link_table[]=
 	st_tag_a_end_is_a_again
 };
 
+
 /*****************************************************************************/
 #include <stdio.h>
 #include <string.h>
+
+#define GEN_LIN
+#include "link_debug.c"
 
 #define NELEMS(a)	(sizeof(a)/sizeof(*(a)))
 #define PARSER_SIGNATURE	0xE2F3
@@ -337,6 +344,8 @@ link_internal_debug(int old, int new, int c)
 link_parser_t 
 link_parser_new(void)
 {	link_parser_t parser;
+
+	
 
 	parser = malloc(sizeof(*parser));
 	if( parser )
@@ -421,10 +430,15 @@ main(int argc, char **argv)
 
 	parser = link_parser_new();
 
+	
 	for( i=1; i< argc ; i++ )
 	{
 		if( !strcmp(argv[i], "-d") )
 			link_parser_set_debug(parser,1);
+		else if( !strcmp(argv[i], "-g") )
+			stm_print_digraph(stdout, link_table,
+			                  NELEMS(link_table), link_debug,
+			                  links_fnc_name);
 		else if( !strcmp(argv[i], "-n"))
 			print_comment = 0;
 	}
@@ -436,4 +450,5 @@ main(int argc, char **argv)
 
 	return 0;
 }
+
 #endif
