@@ -330,6 +330,7 @@ show_curl_stats( CURL *curl)
 
 	*d = ((int)(*d+0.05)) + ((int)((*d+0.05)*100))/100.0;
 	rs_log_info(_("%2f %s transfered"),*d,u);
+#endif
 }
 
 void
@@ -583,7 +584,8 @@ normalize_course_name( char *name )
  * callback called by the html parser when procesing newmaterial.asp 
  */
 static void 
-link_courses_fnc( const char *link, const char *comment, void *d )
+link_courses_fnc( unsigned const char *link, 
+                  unsigned const char *comment, void *d )
 {	GSList **listptr =  d;
 	struct course *course; 
 	char *s;
@@ -751,7 +753,8 @@ get_course_by_name( iol_t iol, const char *code )
 }
 
 static void 
-link_context_fnc( const char *link,const char *comment,enum resync_flags *flags)
+link_context_fnc( const unsigned char *link,
+                  const unsigned char *comment, enum resync_flags *flags)
 {	static const struct 
 	{	const char *link;
 		enum resync_flags flag;
@@ -1009,7 +1012,8 @@ get_real_download_file( iol_t iol,  const char *url )
 }
 
 static void
-link_files_fnc( const char *link, const char *comment, void *d ) 
+link_files_fnc( const unsigned char *link, 
+                const unsigned char *comment, void *d ) 
 {	struct  tmp *t = (struct tmp *)d;
 	int bFile;
 	char *s, *p, *q ;
@@ -1440,7 +1444,8 @@ iol_get_network_error(iol_t iol)
 
 /***/
 static void
-link_news_fnc( const char *link, const char *comment, void *d )
+link_news_fnc( unsigned const char *link,
+               unsigned const char *comment, void *d )
 {	unsigned *i=d;
 	(*i)++;
 }
