@@ -837,7 +837,7 @@ iol_resync_all(iol_t iol)
 const char * curl_strerror(CURLcode code);
 
 const char *
-iol_get_last_network_error(iol_t iol)
+iol_get_network_error(iol_t iol)
 {	const char *ret = NULL;
 
 	if( IS_IOL_T(iol) )

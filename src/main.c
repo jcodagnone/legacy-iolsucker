@@ -147,6 +147,7 @@ int
 main( int argc, char **argv )
 {	struct opt opt;
 	iol_t iol;
+	int ret;
 	
 	rs_program_name = basename(argv[0]);
 	rs_trace_to(rs_trace_stderr);
@@ -160,6 +161,7 @@ main( int argc, char **argv )
 	iol = iol_new();
 	if( iol == NULL )
 	{	rs_log_error("creating IOL object. bye bye");
+		
 		return EXIT_FAILURE;
 	}
 	
@@ -168,13 +170,21 @@ main( int argc, char **argv )
 	iol_set(iol, IOL_PROXY_USER, opt.proxy_user);
 
 	rs_log_info(_("login on as `%s'"), opt.username);
-	if( iol_login(iol, opt.username, opt.password) != E_OK )
-	{	rs_log_error(_("login(): login failed"));
+	if( (ret = iol_login(iol, opt.username, opt.password)) != E_OK )
+	{	const char *p = ret == E_NETWORK ? "login(): %s: %s" :
+	 	                                   "login(): %s";
+	 	                                   
+		rs_log_error(_("login(): login failed"));
+		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
 		return 0;
 	}
 
-	if( iol_resync_all(iol) != E_OK )
-	{ 	rs_log_info("eeehhh!");
+	if( (ret=iol_resync_all(iol)) != E_OK )
+	{	const char *p = ret == E_NETWORK ? "resync_all(): %s: %s" :
+	 	                                   "resync_all(): %s";
+	 	                                   
+		rs_log_error(_("resync_all(): login failed"));
+		rs_log_error(p,iol_strerror(ret), iol_get_network_error(iol));
 		return 0;
 	}
 
