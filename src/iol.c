@@ -59,7 +59,12 @@
 #include "progress.h"
 
 /** User Agent string reported to the webserver */
-#define USERAGENT	"Links (0.97; Unix; 80x25)"
+#ifdef WIN32
+	#define USERAGENT	"iolsucker ("VERSION"; Windows )"
+#else
+	#define USERAGENT	"iolsucker ("VERSION"; Linux )"
+#endif
+
 #define COOKIEFILE	".iolcookie"
 
 #define IOL_HOST        "silvestre.itba.edu.ar"
@@ -239,6 +244,8 @@ iol_new(void)
 	cdt->curl = curl_easy_init();
 	curl_easy_setopt(cdt->curl,CURLOPT_COOKIEJAR, cdt->cookie_file);
 	curl_easy_setopt(cdt->curl,CURLOPT_USERAGENT,USERAGENT);
+	curl_easy_setopt(cdt->curl,CURLOPT_FAILONERROR, 1);
+	/* curl_easy_setopt(cdt->curl,CURLOPT_VERBOSE, 1); */
 
 	return cdt;
 }
@@ -299,7 +306,7 @@ iol_set_proxy_type(iol_t cdt, const char *type)
 {	
 	if( !strcmp(type, "http" ) )
 		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_HTTP);
-	else if( strcmp(type, "socks5") )
+	else if( !strcmp(type, "socks5") )
 		curl_easy_setopt(cdt->curl,CURLOPT_PROXYTYPE,CURLPROXY_SOCKS5);
 
 	return E_OK;
@@ -498,7 +505,8 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
 
-			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, NULL);
+			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, "");
+			curl_easy_setopt(iol->curl,CURLOPT_POST,0L);
 			curl_easy_setopt(iol->curl,CURLOPT_HTTPGET,1L);
 			g_free(s);
 		}

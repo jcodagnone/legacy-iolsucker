@@ -19,6 +19,7 @@
  */
 #define	 STRICT
 #include <windows.h>
+#include <assert.h>
 #include "main.h"
 
 /* returs false on error 
@@ -72,12 +73,10 @@ registry_change_string( HKEY root, const char *path, const char *item,
 }
 
 /*
- * Nobody likes to find password while looking at the registry.
- * yeah. this is nasty. the password should be save to disk at all
- *
- * We need an advanced rpc between iolsucker and iolwizard 
+ * Nobody likes to find passwords while looking values at the registry.
+ * 
+ * A fast implementation of rot13 algorithm (not mine)
  */
-
 static char *
 rot13(char *data)
 {	char *s;
@@ -112,6 +111,8 @@ save_config_file(struct opt *opt)
 	assert(opt->proxy_type);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_USER,opt->username); 
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_REPO,opt->repository);
+	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PROXY_TYPE,
+	                          opt->proxy_type);
 	rot13(opt->password);
 	r&=registry_change_string(IOL_ROOT,IOL_PATH,IOL_PASS,opt->password); 
 	rot13(opt->password);
@@ -160,6 +161,19 @@ load_config_file(struct opt *opt)
 			opt->repository[sizeof(opt->repository)-1] = 0;
 		}
 	}
+	if( *opt->proxy_type == 0)
+	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_TYPE, buf,
+		                        sizeof(buf) ) == TRUE )
+		{
+			if( !strcmp(buf,"http") )
+				opt->proxy_type = "http";
+			else if( !strcmp(buf, "socks5" ) )
+				opt->proxy_type = "sock5";
+			else
+				opt->proxy_type = "";
+		}
+	}
+
 	if( opt->proxy == NULL )
 	{	if( registry_get_string(IOL_ROOT, IOL_PATH, IOL_PROXY_HOST, buf,
                                         sizeof(buf) ) == TRUE )

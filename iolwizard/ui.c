@@ -112,8 +112,11 @@ sync_data(struct tmp *tmp)
 		tmp->opt->proxy_type = STYPE_HTTP;
 	else if (!strcmp(s, STYPE_SOCK5) )
 		tmp->opt->proxy_type = STYPE_SOCK5;
-	else if( *s != 0 ) 
-		assert(0);
+	else 
+	{	tmp->opt->proxy_type = "";
+		/* if the user typed something invalid we clean his shit */
+		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(tmp->cmbType)->entry),"");
+	}
 
 	s = gtk_entry_get_text(GTK_ENTRY(tmp->edtHost));
 	if( *s )
@@ -166,8 +169,8 @@ resync_fnc( GtkWidget *widget, struct tmp *tmp )
 	 	if( save_config_file(tmp->opt) == -1 )
 			show_error(_("no se ha podido guardar esta nueva "
 			             "informacion"));
-		else
-			exec_iolwizard();
+		else if( exec_iolwizard() == -1 )
+			show_error(_("no se pudo ejecutar el iolsucker"));
 	}
 }
 
@@ -259,7 +262,7 @@ edtHost_changed( GtkWidget *widget, struct tmp *tmp )
 	gtk_widget_set_sensitive(tmp->spnPort, ( s && *s ) );
 	gtk_widget_set_sensitive(tmp->edtPUser, ( s && *s ) );
 	gtk_widget_set_sensitive(tmp->edtPPass, ( s && *s ) );
-	
+	gtk_widget_set_sensitive(tmp->cmbType, ( s && *s ) );
 }
 
 /* dont allow spaces inputs
@@ -336,12 +339,14 @@ create_ui_login( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                   GTK_SIGNAL_FUNC(repbrowse_fnc), tmp);
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtUser, 
-	                    _("numero de DNI"), NULL );
+	                    _("(*) numero de DNI"), NULL );
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtPass, 
-	                    _("password de iol"), NULL );
+	                    _("password de iol. NO ES NECESARIO QUE LA INGRESE"
+	                      ". si no la ingresa el programa se la "
+	                      "preguntara."), NULL );
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtRep,
-	                    _("directorio donde guardar los archivos que se "
-	                      "descargan"), NULL);
+	                    _("(*) directorio donde guardar los archivos que "
+	                      "se descargan"), NULL);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), btnRep, 
 	                    _("Buscar directorio"),NULL);
 
@@ -372,8 +377,8 @@ create_ui_extra( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                           GTK_SIGNAL_FUNC(dryrun_fnc), tmp);
 	/* tooltips */
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), chkDry,
-	                    _("activar la ejecucion en seco: no se descarga "
-	                      "ningun archivo"),NULL);
+         _("activar la ejecucion en seco: no se descarga ningun archivo"),NULL);
+
 	/* save data */
 	tmp->chkDry = chkDry;
 	
@@ -413,12 +418,6 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	fill_proxy_type_combo(GTK_COMBO(cmbType));
 
 	hbox = gtk_hbox_new(FALSE, 0);
-	label = gtk_label_new(_("Type:"));
-	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(hbox),cmbType, TRUE, TRUE, 2);
-	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
-	
-	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Host:"));
 	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(hbox),edtHost, TRUE, TRUE, 2);
@@ -426,12 +425,19 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
 
 	hbox = gtk_hbox_new(FALSE, 0);
+	label = gtk_label_new(_("Type:"));
+	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(hbox),cmbType, TRUE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
+	
+	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("User:"));
 	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(hbox),edtPUser, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(vbox),hbox, FALSE, FALSE, 2);
 	hbox = gtk_hbox_new(FALSE, 0);
 
+	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Pass:"));
 	gtk_box_pack_start(GTK_BOX(hbox),label, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(hbox),edtPPass, TRUE, TRUE, 2);
@@ -445,10 +451,18 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	                   GTK_SIGNAL_FUNC(entry_nospaces_insert), tmp);
 	gtk_signal_connect(GTK_OBJECT(edtHost), "changed", 
 	                   GTK_SIGNAL_FUNC(edtHost_changed), tmp);
-	gtk_signal_connect(GTK_OBJECT(GTK_COMBO(cmbType)->entry),"changed",
+	gtk_signal_connect(GTK_OBJECT(GTK_COMBO(cmbType)->entry),"changed", 
 	                   GTK_SIGNAL_FUNC(changed_combo_fnc),tmp);
 	                   
 	/* tooltips */
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtHost,
+	    _("ip o nombre de la maquina donde se encuntra el proxy"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), cmbType,
+	    _("tipo de proxy: http|socks5"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtPUser,
+	    _("usuario para autenticarse con el proxy"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), edtPPass,
+	    _("password del usuario..."), NULL);
 
 	/* save data */
 	tmp->edtHost = edtHost;
@@ -486,10 +500,9 @@ create_ui_proxy( struct tmp *tmp, GtkWidget *parent, GtkTooltips *tips)
 	else if( !strcmp(tmp->opt->proxy_type, STYPE_SOCK5) )
 		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(cmbType)->entry),
 		                   STYPE_SOCK5);
-	else if( !strcmp(tmp->opt->proxy_type, "" ))
-		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(cmbType)->entry), "");
 	else
-		assert(0);
+		gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(cmbType)->entry), "");
+		
 
 	if( tmp->opt->proxy_user )
 	{	char *s;

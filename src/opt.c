@@ -126,15 +126,16 @@ parseOptions( int argc, char * const * argv, struct opt *opt)
 		strncpy(opt->username, user, sizeof(opt->username)-1);
 	if( configfile )
 		strncpy(opt->configfile, configfile, sizeof(opt->configfile)-1);
-	if( *proxy_type )
-	{	if( !strcmp(proxy_type, "socks5") )
-			opt->proxy_type = "socks5";
-		else if( !strcmp(proxy_type, "http") )
-			opt->proxy_type = "http";
-		else
-		{	rs_log_error(_("unknown proxy-type `%s'"),proxy_type);
+	
+	if( !strcmp(proxy_type, "socks5") )
+		opt->proxy_type = "socks5";
+	else if( !strcmp(proxy_type, "http") )
+		opt->proxy_type = "http";
+	else if( *proxy_type == 0 )
+		opt->proxy_type = "";
+	else
+	{	rs_log_error(_("unknown proxy-type `%s'"),proxy_type);
 			return -1;
-		}
 	}
 	if( opt->proxy_user )
 		opt->proxy_user = strdup(opt->proxy_user);
