@@ -329,7 +329,7 @@ show_curl_stats( CURL *curl)
 		u = unit[i];
 
 	*d = ((int)(*d+0.005)) + ((int)((*d+0.005)*100))/100.0;
-	rs_log_info(_("%2f %s transfered"),*d,u);
+	rs_log_info(_("%.2f %s transfered"),*d,u);
 #endif
 }
 

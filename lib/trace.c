@@ -1,7 +1,7 @@
 /*= -*- c-basic-offset: 4; indent-tabs-mode: nil; -*-
  *
  * librsync -- library for network deltas
- * $Id: trace.c,v 1.11 2003/05/01 07:19:12 juam Exp $
+ * $Id: trace.c,v 1.12 2003/05/01 15:32:39 juam Exp $
  *
  * Copyright (C) 2000, 2001 by Martin Pool <mbp@samba.org>
  *
@@ -58,6 +58,7 @@
 
 #ifdef WIN32
 	#include <process.h>
+	#define vsnprintf trio_vsnprintf
 #endif
 
 rs_trace_fn_t  *rs_trace_impl = rs_trace_stderr;
@@ -160,7 +161,7 @@ void rs_format_msg(char *buf,
         len = strlen(buf);
     }
 
-    trio_vsnprintf(buf + len, buf_len - len, fmt, va);
+    vsnprintf(buf + len, buf_len - len, fmt, va);
 }
 
 

@@ -177,7 +177,7 @@
 #define HAVE_CURLOPT_PRIVATE 1
 
 /* include TRIO lib */
-/*
+
 #undef HAVE_CONFIG_H
 #define TRIO_REPLACE_STDIO
 #define HAVE_PRINTF
@@ -193,4 +193,4 @@
 
 #include <trio/trio.h>
 #define HAVE_CONFIG_H
-*/
+
