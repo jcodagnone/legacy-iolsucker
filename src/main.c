@@ -100,6 +100,7 @@ main( int argc, char **argv )
 	iol_set(iol, IOL_PROXY_HOST, opt.proxy);
 	iol_set(iol, IOL_PROXY_USER, opt.proxy_user);
 	iol_set(iol, IOL_PROXY_TYPE, opt.proxy_type);
+	iol_set(iol, IOL_DRY,        &(opt.dry));
 	iol_set(iol, IOL_VERBOSE,    &(opt.verbose));
 
 	rs_log_info(_("login on as `%s'"), opt.username);

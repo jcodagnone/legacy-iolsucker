@@ -342,7 +342,7 @@ iol_set(iol_t iol, enum iol_settings set, void *data)
 		{	IOL_PROXY_TYPE, (iol_set_fnc) iol_set_proxy_type },
 		{	IOL_PROXY_HOST, (iol_set_fnc) iol_set_proxy_host },
 		{	IOL_PROXY_USER, (iol_set_fnc) iol_set_proxy_user },
-		{	IOL_DOWNLOAD,   (iol_set_fnc) iol_set_download   },
+		{	IOL_DRY,        (iol_set_fnc) iol_set_download   },
 		{	IOL_VERBOSE,    (iol_set_fnc) iol_set_verbose    }
 	};
 
