@@ -1,7 +1,7 @@
 /*
  * newopt.c -- Command line options parser inspired in getopt(3)(in behavior)
  *
- * $Id: newopt.c,v 1.1 2003/02/19 04:44:56 juam Exp $
+ * $Id: newopt.c,v 1.2 2003/02/19 07:20:39 juam Exp $
  *
  * Copyright (C) 2001 by Juan F. Codagnone <juam@users.sourceforge.net>
  *
@@ -27,7 +27,7 @@
 #include <limits.h>	/* for types conversion */
 
 #include <assert.h>
-#include <debug.h>
+#include <trace.h>
 
 #include <strdup.h>
 #include "newopt.h"
@@ -59,8 +59,9 @@ report( unsigned flags, const char *fmt,...)
 {	va_list ap;
 	
 	if( !(flags & OPT_F_QUIET) )
-	{	va_start(ap,fmt);
-		fprintf(stderr,_("GetOptions: "));
+	{	
+		va_start(ap,fmt);
+		fprintf(stderr,_("%s"), rs_program_name);
 		vfprintf(stderr,fmt,ap);
 		fprintf(stderr,"\n");
 		va_end(ap); 
