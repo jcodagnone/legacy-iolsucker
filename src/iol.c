@@ -485,6 +485,7 @@ iol_login(iol_t iol, const char *user, const char *pass)
 			else if( parse_courses(&(iol->courses),&buf) == 0)
 					iol->bLogged = 1;
 
+			curl_easy_setopt(iol->curl, CURLOPT_POSTFIELDS, NULL);
 			curl_easy_setopt(iol->curl,CURLOPT_HTTPGET,1L);
 			g_free(s);
 		}
@@ -525,7 +526,7 @@ iol_set_current_course(iol_t iol, const char *course)
 
 	if( !IS_IOL_T(iol) )
 		return E_INVAL;
-
+	rs_log_info(_("%s"), course);
 	if( iol->current_course )
 		free(iol->current_course);
 	iol->current_course = strdup(course);
