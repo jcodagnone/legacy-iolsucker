@@ -19,7 +19,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #include <config.h>
+  #include "../config.h"
 #endif
 
 #include <stdio.h>
@@ -125,7 +125,7 @@ IOL::IOL( void )
 	cdt->bLogged = 0;
 	cdt->szCookie = 0;
 	cdt->buff = 0;
-	cdt-> buffsize =0;
+	cdt->buffsize = 0;
 	cdt->cookietmp = getCookieTmp();
 	cdt->current_course = 0;
 	if( cdt->cookietmp == 0 )
@@ -161,10 +161,25 @@ IOL::~IOL( void )
 		free( (*iter).name );
 	}
 
-	if( cdt->current_course )
-		free( cdt->current_course );
-		
+	free( cdt->current_course );
+	free (cdt->prefix);
+
 	delete cdt;
+}
+
+int IOL::set_repository( const char *path )
+{	int ret = E_OK;
+
+	if( cdt == NULL || path == NULL )
+		ret = E_INVAL;
+	else
+	{
+		cdt->prefix = strdup(path);
+		if( cdt->prefix == 0 )
+			ret = E_MEMORY;
+	}
+	
+	return ret;
 }
 
 static bool
@@ -265,7 +280,7 @@ IOL::login( const char *user, const char *pass )
 	{	struct buff buf;
 
 		/* yummm!!! get a cookie */
-		rs_log_info(_("login on"));
+		rs_log_info(_("login on as `%s'"),user);
 		if( transfer_page(URL_LOGIN,0,NULL)!= E_OK )
 		{	rs_log_error(_("login(): network error"));
 			nRet = E_NETWORK;
@@ -392,6 +407,7 @@ int IOL::get_file_list_recursive(const char *url, std::list<char *> *files,
 
 			}
 	}
+	return 0;
 }
 
 int IOL::get_file_list(std::list<char *> &l)
@@ -400,6 +416,7 @@ int IOL::get_file_list(std::list<char *> &l)
 	/* queue is passed so each time i dont need to create a new queue */
 	get_file_list_recursive(URL_FILE,&l,&pending);
 
+	return 0;
 }
 
 static int

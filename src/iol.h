@@ -27,6 +27,8 @@ public:
 	 * resync all courses
 	 */
 	int resync_all();
+
+	int set_repository(const char *path);
 private:
 	/**
 	 * Get all the files for the current subject

@@ -31,6 +31,7 @@
 
 #include <trace.h>
 #include <newopt.h>
+#include <basename.h>
 
 #include "i18n.h"
 #include "main.h"
@@ -127,7 +128,7 @@ int
 main( int argc, char **argv )
 {	struct opt opt;
 
-	rs_program_name = argv[0];
+	rs_program_name = basename(argv[0]);
 	rs_trace_to(rs_trace_stderr);
 
 	if( parseOptions(argc, argv, &opt) == -1 )
@@ -135,14 +136,13 @@ main( int argc, char **argv )
 
 	load_data(&opt);
 	
-	return 0;
 	IOL iol;
-	if( iol.login("29503381","--argentina2k") != E_OK )
+	iol.set_repository(opt.repository);
+	if( iol.login(opt.username,opt.password) != E_OK )
 		return 0;
 
 	if( iol.resync_all() != E_OK )
-	{
-		rs_log_info("eeehhh!");
+	{ 	rs_log_info("eeehhh!");
 		return 0;
 	}
 
