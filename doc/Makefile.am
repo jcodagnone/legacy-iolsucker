@@ -1,16 +1,10 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 
-EXTRA_DIST = \
-	Doxygen
+EXTRA_DIST =  Doxyfile iolsucker.1
 
-man_MANS = \
-	iolsucker.1
-
-HTMLPAGES = \
-	iolsucker.html
-
-PDFPAGES = \
-	iolsucker.pdf
+man_MANS =  iolsucker.1
+HTMLPAGES =  iolsucker.html
+PDFPAGES =  iolsucker.pdf
 	
 all: $(HTMLPAGES) $(PDFPAGES)
 

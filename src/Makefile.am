@@ -13,7 +13,7 @@ bin_PROGRAMS = iolsucker
 link_SOURCES = link.c link.h testlink.c link_debug.c
 iolsucker_SOURCES = main.c main.h config.c config.h  iol.c iol.h \
                     link.c link.h link_debug.c getpass.c getpass.h progress.c \
-                    curlerr.c
+                    progress.h curlerr.c
 iolsucker_CFLAGS = @CURL_CFLAGS@  @XML_CFLAGS@ @GLIB_CFLAGS@ 
 iolsucker_LDADD = ../lib/libmisc.a @XML_LIBS@ @GLIB_LIBS@  @CURL_LIBS@
 iolsucker_DEPENDENCIES = ../lib/libmisc.a
