@@ -49,7 +49,6 @@
 
 #include "../src/main.h"
 #include "../src/config.h"
-#include "dirbrowser.h"
 #include "error_dlg.h"
 
 #define SIZE_X	320
@@ -197,22 +196,55 @@ clear_fnc( GtkWidget *widget, struct tmp *tmp )
 
 }
 
+struct  repbrowse
+{	GtkWidget *fs;
+	struct tmp *tmp;	
+};
 
-static void handler( gchar *g, struct tmp *tmp)
+
+static void
+repbrowse_cancel( GtkWidget *widget, struct repbrowse *rb)
 {
+	gtk_widget_destroy(GTK_WIDGET(rb->fs));
+	free(rb);
+}
 
-	
+
+static void
+repbrowse_ok( GtkWidget *widget, struct repbrowse *rb)
+{	char *s;
+
+	s = gtk_file_selection_get_filename(GTK_FILE_SELECTION(rb->fs));
+	gtk_entry_set_text(GTK_ENTRY(rb->tmp->edtRep), s);
+	repbrowse_cancel(widget, rb);
 }
 
 static void
 repbrowse_fnc( GtkWidget *widget, struct tmp *tmp )
 { 	GtkWidget *browse;
+	struct repbrowse *rb;
 	gchar *s;
 
+	rb = malloc(sizeof(*rb));
+	if( rb == NULL )
+		return ;
+		
+	
+	browse = gtk_file_selection_new(_("Seleccione donde se almacenan los "
+	                                  "archivos"));
+	rb->fs = browse;
+	rb->tmp = tmp;
+	
 	s = gtk_entry_get_text(GTK_ENTRY(tmp->edtRep));	
-	browse = xmms_create_dir_browser(_("Select repository directory"),s,
-	         GTK_SELECTION_SINGLE, (void *)handler, tmp);
+	gtk_file_selection_set_filename(GTK_FILE_SELECTION(browse),s);
+
+        gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(rb->fs)->ok_button),
+                           "clicked", GTK_SIGNAL_FUNC(repbrowse_ok), rb);
+        gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(rb->fs)->cancel_button)
+                           ,"clicked",GTK_SIGNAL_FUNC(repbrowse_cancel), rb);
+
 	gtk_widget_show(browse);
+	gtk_file_selection_get_filename(GTK_FILE_SELECTION(browse));
 }
 
 /* COMBOS

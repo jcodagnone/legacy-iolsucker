@@ -18,11 +18,7 @@
  */
 
 #if defined(HAVE_CONFIG_H)
-  #ifdef WIN32
-     #include "../configwin.h"
-  #else
-    #include "config.h"
-  #endif
+#include "config.h"
 #endif
 
 #include <i18n.h>
@@ -30,12 +26,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "dirent.h"
-#ifdef HAVE_UNISTD_H
-  #include <unistd.h>
-#else
-  #include <unix.h>
-#endif
+#include <dirent.h>
+#include <unistd.h>
 
 #include <string.h>
 
@@ -260,7 +252,7 @@ static int filetreeent_compare_func(const void *a, const void *b)
 	return strcmp(((DirNode *) a)->path, (gchar *) b);
 }
 
-GtkWidget *xmms_create_dir_browser(gchar * title, gchar * current_path, GtkSelectionMode mode, void (*handler) (gchar *, void *), void *data)
+GtkWidget *xmms_create_dir_browser(gchar * title, gchar * current_path, GtkSelectionMode mode, void (*handler) (gchar *))
 {
 	GtkWidget *window, *scroll_win, *tree, *vbox, *bbox, *ok, *cancel,
 	         *sep;
