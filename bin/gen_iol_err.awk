@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 BEGIN {
-	print "#include <iol.h>"
+	print "#include \"iol.h\""
 	print ""
 	print "const char *";
 	print "iol_strerror(int code)"
