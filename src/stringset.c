@@ -11,7 +11,7 @@ struct stringsetCDT {
 	GTree *tree;
 };
 
-
+#if GLIB_MAJOR_VERSION  != 1
 stringset_t 
 stringset_new(void)
 {	stringset_t s;
@@ -84,6 +84,49 @@ stringset_look(stringset_t set, const char *string)
 		
 	return ret;
 }
+#else /********************** dummy implementation *************************/
+stringset_t 
+stringset_new(void)
+{	stringset_t s;
+
+	s = malloc(sizeof(*s));
+	if( s )
+	{
+		memset(s,0,sizeof(*s));
+	}
+
+	return s;
+}
+stringset_t
+stringset_destroy(stringset_t set)
+{
+	if( IS_STRINGSET(set) )
+	{
+		free(set);
+	}
+
+	return set;
+}
+
+int
+stringset_is_valid(stringset_t set)
+{
+	return IS_STRINGSET(set);
+}
+
+stringset_error_t
+stringset_add(stringset_t set, const char *string)
+{	
+	return E_STRINGSET_OK;
+}
+
+stringset_error_t 
+stringset_look(stringset_t set, const char *string)
+{
+	
+	return E_STRINGSET_NOTFOUND;
+}
+#endif
 
 #ifdef TEST_DRIVER_STRINGSET
 #include <stdio.h>

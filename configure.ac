@@ -72,8 +72,8 @@ AC_TRY_RUN([
 ],,[AC_DEFINE(HAVE_DEBUGDATA,[],[libcurl has CURLOPT_DEBUGDATA])])
 
 AM_PATH_XML2(,,AC_MSG_ERROR([$PACKAGE requiere de libxml2]))
-AM_PATH_GLIB_2_0(,,AC_MSG_ERROR([$PACKAGE requiere la GLIB]))
-AM_PATH_GTK_2_0(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])
+AM_PATH_GLIB_2_0(,,[AM_PATH_GLIB(,,AC_MSG_ERROR([$PACKAGE requiere la GLIB]))])
+AM_PATH_GTK_2_0(,[iolsucker_gtk="yes"],[AM_PATH_GTK(,[iolsucker_gtk="yes"],[iolscuker_gtk="no"])])
 
 AC_CHECK_FUNCS([memset strchr strtol strrchr tcgetattr tcsetattr])
 AC_CHECK_FUNCS([strchr strdup strerror strchr strstr mkdir gettimeofday])
