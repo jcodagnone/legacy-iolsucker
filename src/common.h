@@ -11,4 +11,12 @@
 char *
 get_common_startpath(GSList *list);
 
+/* this should not be here, but.... */
+struct buff 
+{ 	char *data;
+	size_t size;
+};
+
+
+
 #endif

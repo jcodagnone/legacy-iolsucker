@@ -32,6 +32,7 @@
 #include <glib.h>
 
 #include "link.h"
+#include "common.h"
 #include "course.h"
 
 #define IS_COURSE_T(c)  ( (c) != NULL )

@@ -2,7 +2,6 @@
 #define Z39A8E160E826019532A53D9883FD7B00
 
 #include "iol.h"
-#include "iolcommon.h"
 
 enum course_type {
 	CT_COURSE,
