@@ -5,7 +5,6 @@ srcdir = @srcdir@
 
 #########
 
-SUBDIRS = demo
 EXTRA_DIST = win32.h win32.c cache_db.c cache_dummy.c
 
 EXTRA_PROGRAMS = link
